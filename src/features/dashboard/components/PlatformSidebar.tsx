@@ -21,10 +21,11 @@ import {
   KeyRound,
   ScrollText,
   Target,
-  BarChart3,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { useState } from 'react';
+import { signout } from '@/actions/auth';
 
 interface NavItem {
   label: string;
@@ -202,7 +203,7 @@ export function PlatformSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-800">
+      <div className="p-4 border-t border-slate-800 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center">
             <Users className="h-4 w-4 text-slate-400" />
@@ -212,6 +213,14 @@ export function PlatformSidebar() {
             <p className="text-xs text-slate-500">Enterprise</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => signout()}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-rose-400 hover:bg-slate-800/50 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Cerrar sesion</span>
+        </button>
       </div>
     </aside>
   );
