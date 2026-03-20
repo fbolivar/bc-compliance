@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     mcpServer: true,
   },
+  serverExternalPackages: ['exceljs'],
 }
 
 export default nextConfig

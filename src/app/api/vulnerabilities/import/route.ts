@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/shared/lib/audit';
 
+// Allow up to 50MB uploads (Vercel Pro limit)
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export const maxDuration = 60; // 60 seconds timeout for large files
+
 interface ParsedVuln {
   name: string;
   description: string | null;
