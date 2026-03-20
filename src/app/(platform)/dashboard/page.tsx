@@ -5,6 +5,7 @@ import { getFrameworksWithCompliance } from '@/features/compliance/services/comp
 import { createClient } from '@/lib/supabase/server';
 import { Shield, ShieldAlert, Server, Bug, AlertTriangle, CheckSquare, FileText, Users, ClipboardCheck, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { ComplianceRing } from './compliance-ring';
 
 export default async function DashboardPage() {
   const { orgId } = await requireOrg();
@@ -171,8 +172,6 @@ export default async function DashboardPage() {
       ? '#f59e0b'
       : '#f43f5e';
 
-  const conicGradient = `conic-gradient(${complianceHex} ${globalCompliance * 3.6}deg, rgba(30,41,59,0.5) 0deg)`;
-
   const showAlertBanner = criticalRisks > 0 || activeIncidents > 0;
 
   const quickActions = [
@@ -235,16 +234,7 @@ export default async function DashboardPage() {
                   {frameworks.length} framework{frameworks.length !== 1 ? 's' : ''} activo{frameworks.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              {/* eslint-disable-next-line react/forbid-component-props */}
-              <div
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: conicGradient }}
-                aria-hidden="true"
-              >
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-900 flex items-center justify-center">
-                  <span className="text-lg sm:text-xl font-bold text-white">{globalCompliance}%</span>
-                </div>
-              </div>
+              <ComplianceRing value={globalCompliance} color={complianceHex} />
             </div>
           </Link>
 
