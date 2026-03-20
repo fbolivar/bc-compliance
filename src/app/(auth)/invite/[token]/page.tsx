@@ -14,7 +14,7 @@ export default async function InvitePage({ params }: Props) {
         <div className="mx-auto w-16 h-16 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center mb-4">
           <Mail className="w-8 h-8 text-sky-500" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Invitacion a BC Compliance</h1>
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">Invitacion a BC Trust</h1>
         <p className="text-sm text-slate-400">
           Has sido invitado a unirte a una organizacion
         </p>

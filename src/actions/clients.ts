@@ -87,7 +87,7 @@ export async function createClientOrg(formData: FormData): Promise<CreateClientR
       type: 'recovery',
       email,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://bc-compliance.vercel.app'}/update-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://bc-trust.vercel.app'}/update-password`,
       },
     });
 

@@ -5,7 +5,7 @@ import { MobileSidebar } from '@/features/dashboard/components/MobileSidebar';
 import { Shield } from 'lucide-react';
 
 export const metadata = {
-  title: 'BC Compliance - GRC & SecOps Platform',
+  title: 'BC Trust - GRC & SecOps Platform',
   description: 'Plataforma unificada de ciberseguridad y cumplimiento normativo',
 };
 

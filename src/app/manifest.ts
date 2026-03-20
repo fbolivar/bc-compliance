@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'BC Compliance - GRC & SecOps Platform',
-    short_name: 'BC Compliance',
+    name: 'BC Trust - GRC & SecOps Platform',
+    short_name: 'BC Trust',
     description: 'Plataforma unificada de ciberseguridad tecnica y cumplimiento normativo',
     start_url: '/dashboard',
     display: 'standalone',

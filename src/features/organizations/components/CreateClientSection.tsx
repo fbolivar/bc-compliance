@@ -49,7 +49,7 @@ export function CreateClientSection() {
 
   const copyCredentials = async () => {
     if (!result) return;
-    const text = `BC Compliance - Credenciales de acceso\n\nURL: ${window.location.origin}\nEmail: ${result.email}\nPassword temporal: ${result.password}\n\nPor favor cambia tu password al iniciar sesion.`;
+    const text = `BC Trust - Credenciales de acceso\n\nURL: ${window.location.origin}\nEmail: ${result.email}\nPassword temporal: ${result.password}\n\nPor favor cambia tu password al iniciar sesion.`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

@@ -11,12 +11,12 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'BC Compliance - GRC & SecOps Platform',
+  title: 'BC Trust - GRC & SecOps Platform',
   description: 'Plataforma unificada de ciberseguridad tecnica y cumplimiento normativo',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'BC Compliance',
+    title: 'BC Trust',
   },
   formatDetection: {
     telephone: false,

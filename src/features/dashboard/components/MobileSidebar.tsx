@@ -206,7 +206,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
             </div>
             <div>
               <span className="text-lg font-bold text-slate-800">BC</span>
-              <span className="text-lg font-light text-sky-500"> Compliance</span>
+              <span className="text-lg font-light text-sky-500"> Trust</span>
             </div>
           </div>
           <button

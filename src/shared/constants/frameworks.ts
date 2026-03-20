@@ -1,6 +1,6 @@
 // ============================================
 // CONSTANTES DE MARCOS DE CUMPLIMIENTO
-// Marcos de cumplimiento soportados por BC Compliance
+// Marcos de cumplimiento soportados por BC Trust
 // ============================================
 
 // --------------------------------------------

@@ -160,7 +160,7 @@ export function LoginForm() {
                   name="email"
                   type="email"
                   required
-                  placeholder="operador@bc-compliance.com"
+                  placeholder="operador@bc-trust.com"
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
                   className="w-full px-4 py-3 bg-slate-800/50 text-slate-200 border border-slate-700/50 rounded-xl placeholder:text-slate-600 font-mono text-sm transition-all duration-300 focus:outline-none focus:border-cyan-500/50 focus:bg-slate-800/80 focus:shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:border-slate-600"

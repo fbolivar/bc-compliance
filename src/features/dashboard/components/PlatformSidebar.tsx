@@ -193,7 +193,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
           </div>
           <div>
             <span className="text-[14px] font-bold text-slate-800 tracking-tight">BC</span>
-            <span className="text-[14px] font-light text-sky-500 tracking-tight"> Compliance</span>
+            <span className="text-[14px] font-light text-sky-500 tracking-tight"> Trust</span>
           </div>
         </div>
       </div>

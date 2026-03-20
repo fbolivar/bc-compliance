@@ -26,7 +26,7 @@ export default async function SettingsUsersPage() {
 
   const memberList = members || [];
   const invitationList = invitations || [];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bc-compliance.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bc-trust.vercel.app';
 
   return (
     <div className="space-y-4 sm:space-y-6">
