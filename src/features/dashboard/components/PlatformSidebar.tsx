@@ -85,15 +85,16 @@ const navigation: NavItem[] = [
   { label: 'Integraciones', href: '/integrations', icon: Plug },
 ];
 
-const settingsNav: NavItem[] = [
+const baseSettingsNav: NavItem[] = [
   { label: 'Configuración', href: '/settings', icon: Settings },
-  { label: 'Clientes', href: '/settings/clients', icon: Building2 },
   { label: 'Usuarios', href: '/settings/users', icon: Users },
   { label: 'Roles', href: '/settings/roles', icon: KeyRound },
   { label: 'Log de Auditoría', href: '/settings/audit-log', icon: ScrollText },
 ];
 
-export function PlatformSidebar() {
+const clientsNavItem: NavItem = { label: 'Clientes', href: '/settings/clients', icon: Building2 };
+
+export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?: boolean }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -199,7 +200,8 @@ export function PlatformSidebar() {
           Administración
         </p>
         <ul className="space-y-1">
-          {settingsNav.map(renderNavItem)}
+          {isPlatformOwner && renderNavItem(clientsNavItem)}
+          {baseSettingsNav.map(renderNavItem)}
         </ul>
       </nav>
 

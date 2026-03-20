@@ -11,7 +11,7 @@ export async function getCurrentOrg() {
 
   const { data: membership } = await supabase
     .from('organization_members')
-    .select('organization_id, organizations(id, name, slug, plan)')
+    .select('organization_id, organizations(id, name, slug, plan, is_platform_owner)')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .limit(1)
