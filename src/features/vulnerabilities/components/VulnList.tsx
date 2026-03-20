@@ -43,7 +43,10 @@ const columns = [
       <span className="font-mono text-sm">{item.cvss_base_score ?? '-'}</span>
     ),
   },
-  { key: 'cve_id', label: 'CVE', render: (item: VulnRow) => <span className="font-mono text-xs text-slate-500">{item.cve_id || '-'}</span> },
+  { key: 'affected_host', label: 'Host', render: (item: VulnRow) => (
+    <span className="font-mono text-xs text-slate-600">{item.affected_host || '-'}{item.affected_port ? `:${item.affected_port}` : ''}</span>
+  ), hideOnMobile: true },
+  { key: 'cve_id', label: 'CVE', render: (item: VulnRow) => <span className="font-mono text-xs text-slate-500">{item.cve_id || '-'}</span>, hideOnMobile: true },
   {
     key: 'status',
     label: 'Estado',

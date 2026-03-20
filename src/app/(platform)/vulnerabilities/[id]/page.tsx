@@ -4,7 +4,7 @@ import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Shield, Calendar } from 'lucide-react';
+import { ArrowLeft, Shield, Calendar, Server, ClipboardList } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -38,67 +38,95 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status={vuln.severity} />
         <StatusBadge status={vuln.status} />
         {vuln.cvss_base_score !== null && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 text-slate-500 border border-slate-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
             <Shield className="w-3 h-3" />
             CVSS {vuln.cvss_base_score}
+          </span>
+        )}
+        {vuln.source && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs bg-sky-50 text-sky-600 border border-sky-200">
+            {vuln.source}
           </span>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* General Info */}
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h2>
           <div className="divide-y divide-slate-100">
             <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{vuln.code}</span>} />
-            <DetailRow label="ID CVE" value={vuln.cve_id ? (
-              <span className="font-mono text-amber-400">{vuln.cve_id}</span>
-            ) : null} />
+            <DetailRow label="ID CVE" value={vuln.cve_id ? <span className="font-mono text-amber-600">{vuln.cve_id}</span> : null} />
             <DetailRow label="Severidad" value={<StatusBadge status={vuln.severity} />} />
             <DetailRow label="Estado" value={<StatusBadge status={vuln.status} />} />
-            <DetailRow label="Score CVSS" value={vuln.cvss_base_score !== null ? (
-              <span className="font-mono">{vuln.cvss_base_score}/10</span>
-            ) : null} />
+            <DetailRow label="Score CVSS" value={vuln.cvss_base_score !== null ? <span className="font-mono">{vuln.cvss_base_score}/10</span> : null} />
+            <DetailRow label="Fuente" value={vuln.source} />
           </div>
         </div>
 
+        {/* Host Afectado */}
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Fechas</h2>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            <Server className="w-4 h-4" />
+            Host Afectado
+          </h2>
           <div className="divide-y divide-slate-100">
-            <DetailRow label="Fecha de descubrimiento" value={vuln.due_date ? (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                {new Date(vuln.due_date).toLocaleDateString('es-CO', { dateStyle: 'long' })}
-              </span>
-            ) : null} />
+            <DetailRow label="Host / IP" value={vuln.affected_host ? <span className="font-mono text-slate-700">{vuln.affected_host}</span> : null} />
+            <DetailRow label="Puerto" value={vuln.affected_port ? <span className="font-mono">{vuln.affected_port}</span> : null} />
+            <DetailRow label="Sistema Operativo" value={vuln.affected_os} />
+            <DetailRow label="Producto Afectado" value={vuln.affected_product} />
             <DetailRow label="Fecha limite" value={vuln.due_date ? (
-              <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="flex items-center gap-1.5 text-amber-600">
                 <Calendar className="w-3.5 h-3.5" />
                 {new Date(vuln.due_date).toLocaleDateString('es-CO', { dateStyle: 'long' })}
               </span>
             ) : null} />
-            <DetailRow label="Creado" value={new Date(vuln.created_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
-            <DetailRow label="Actualizado" value={new Date(vuln.updated_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
           </div>
         </div>
       </div>
 
+      {/* Description */}
       {vuln.description && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vuln.description}</p>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{vuln.description}</p>
         </div>
       )}
 
+      {/* Remediation */}
       {vuln.remediation && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Notas de Remediacion</h2>
-          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vuln.remediation}</p>
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-emerald-700 uppercase tracking-wider mb-3">Solucion / Remediacion</h2>
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{vuln.remediation}</p>
         </div>
       )}
+
+      {/* Action Plan */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+          <ClipboardList className="w-4 h-4" />
+          Plan de Accion
+        </h2>
+        <div className="divide-y divide-slate-100">
+          <DetailRow label="Plan de accion" value={vuln.action_plan} />
+          <DetailRow label="Responsable" value={vuln.action_responsible} />
+          <DetailRow label="Prioridad" value={vuln.action_priority ? <StatusBadge status={vuln.action_priority} /> : null} />
+          <DetailRow label="Estado del plan" value={vuln.action_status ? <StatusBadge status={vuln.action_status} /> : null} />
+        </div>
+      </div>
+
+      {/* Dates */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Registro</h2>
+        <div className="divide-y divide-slate-100">
+          <DetailRow label="Creado" value={new Date(vuln.created_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
+          <DetailRow label="Actualizado" value={new Date(vuln.updated_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
+        </div>
+      </div>
     </div>
   );
 }

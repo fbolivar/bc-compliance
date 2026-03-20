@@ -16,6 +16,11 @@ interface ParsedVuln {
   severity: string;
   cvss_score: number | null;
   cve_id: string | null;
+  affected_host: string | null;
+  affected_port: string | null;
+  affected_os: string | null;
+  affected_product: string | null;
+  remediation: string | null;
 }
 
 function mapNessusSeverity(level: number): string {
@@ -39,30 +44,52 @@ function cvssToSeverity(score: number): string {
 function parseNessusClient(xml: string): ParsedVuln[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xml, 'text/xml');
-  const items = doc.querySelectorAll('ReportItem');
+  const hosts = doc.querySelectorAll('ReportHost');
   const vulns: ParsedVuln[] = [];
   const seen = new Set<string>();
 
-  items.forEach(item => {
-    const severity = parseInt(item.getAttribute('severity') || '0');
-    const pluginName = item.getAttribute('pluginName') || 'Unknown';
-    const cve = item.querySelector('cve')?.textContent || null;
+  hosts.forEach(host => {
+    const hostName = host.getAttribute('name') || 'Unknown';
+    // Get OS from HostProperties
+    const osTags = host.querySelectorAll('HostProperties > tag');
+    let hostOS = '';
+    osTags.forEach(tag => {
+      if (tag.getAttribute('name') === 'operating-system') {
+        hostOS = tag.textContent || '';
+      }
+    });
 
-    if (severity === 0 && !cve) return;
+    const items = host.querySelectorAll('ReportItem');
+    items.forEach(item => {
+      const severity = parseInt(item.getAttribute('severity') || '0');
+      const pluginName = item.getAttribute('pluginName') || 'Unknown';
+      const port = item.getAttribute('port') || '';
+      const protocol = item.getAttribute('protocol') || '';
+      const cve = item.querySelector('cve')?.textContent || null;
 
-    const key = `${pluginName}|${cve || ''}`;
-    if (seen.has(key)) return;
-    seen.add(key);
+      if (severity === 0 && !cve) return;
 
-    const description = item.querySelector('description')?.textContent || item.querySelector('synopsis')?.textContent || null;
-    const cvss = item.querySelector('cvss3_base_score')?.textContent || item.querySelector('cvss_base_score')?.textContent || null;
+      const key = `${hostName}|${pluginName}|${cve || ''}`;
+      if (seen.has(key)) return;
+      seen.add(key);
 
-    vulns.push({
-      name: pluginName.substring(0, 500),
-      description: description ? description.substring(0, 2000) : null,
-      severity: mapNessusSeverity(severity),
-      cvss_score: cvss ? parseFloat(cvss) : null,
-      cve_id: cve,
+      const description = item.querySelector('description')?.textContent || item.querySelector('synopsis')?.textContent || null;
+      const cvss = item.querySelector('cvss3_base_score')?.textContent || item.querySelector('cvss_base_score')?.textContent || null;
+      const solution = item.querySelector('solution')?.textContent || null;
+      const pluginOutput = item.querySelector('plugin_output')?.textContent || null;
+
+      vulns.push({
+        name: pluginName.substring(0, 500),
+        description: description ? description.substring(0, 2000) : null,
+        severity: mapNessusSeverity(severity),
+        cvss_score: cvss ? parseFloat(cvss) : null,
+        cve_id: cve,
+        affected_host: hostName,
+        affected_port: port && port !== '0' ? `${port}/${protocol}` : null,
+        affected_os: hostOS || null,
+        affected_product: pluginOutput ? pluginOutput.substring(0, 500) : null,
+        remediation: solution && solution !== 'n/a' ? solution.substring(0, 2000) : null,
+      });
     });
   });
 
@@ -100,6 +127,11 @@ function parseCSVClient(content: string): ParsedVuln[] {
       severity: severity.toLowerCase(),
       cvss_score: cvss ? parseFloat(cvss) : null,
       cve_id: get('cve_id') || get('cve') || null,
+      affected_host: get('host') || get('ip') || get('affected_host') || null,
+      affected_port: get('port') || get('affected_port') || null,
+      affected_os: get('os') || get('operating_system') || null,
+      affected_product: get('product') || get('affected_product') || null,
+      remediation: get('remediation') || get('solution') || null,
     };
   }).filter(v => v.name !== 'Sin nombre' || v.cve_id);
 }
@@ -119,6 +151,11 @@ function parseJSONClient(content: string): ParsedVuln[] {
         severity: severity.toLowerCase() || (cvss ? cvssToSeverity(Number(cvss)) : 'medium'),
         cvss_score: cvss ? Number(cvss) : null,
         cve_id: (item.cve_id || item.cve || null) as string | null,
+        affected_host: (item.host || item.ip || item.affected_host || null) as string | null,
+        affected_port: (item.port || item.affected_port || null) as string | null,
+        affected_os: (item.os || item.operating_system || null) as string | null,
+        affected_product: (item.product || item.affected_product || null) as string | null,
+        remediation: (item.remediation || item.solution || null) as string | null,
       };
     }).filter((v: ParsedVuln) => v.name !== 'Sin nombre');
   } catch {

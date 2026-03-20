@@ -12,8 +12,16 @@ export interface VulnRow {
   cvss_base_score: number | null;
   cve_id: string | null;
   source: string | null;
-  due_date: string | null;
+  affected_host: string | null;
+  affected_port: string | null;
+  affected_os: string | null;
+  affected_product: string | null;
   remediation: string | null;
+  action_plan: string | null;
+  action_responsible: string | null;
+  action_priority: string | null;
+  action_status: string | null;
+  due_date: string | null;
   created_at: string;
   updated_at: string;
 }

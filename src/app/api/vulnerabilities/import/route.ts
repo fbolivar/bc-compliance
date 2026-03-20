@@ -193,7 +193,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Prepare records - map to actual DB column names
-  const records = parsed.map((v, i) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const records = parsed.map((v: any, i: number) => ({
     organization_id: orgId,
     code: `VUL-${String(nextNum + i).padStart(4, '0')}`,
     title: v.name,
@@ -202,6 +203,11 @@ export async function POST(request: NextRequest) {
     status: 'open',
     cvss_base_score: v.cvss_score,
     cve_id: v.cve_id,
+    affected_host: v.affected_host || null,
+    affected_port: v.affected_port || null,
+    affected_os: v.affected_os || null,
+    affected_product: v.affected_product || null,
+    remediation: v.remediation || null,
     source: format,
     created_by: user.id,
   }));
