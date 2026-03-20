@@ -1,24 +1,61 @@
 import { requireOrg } from '@/shared/lib/get-org';
-import { getGapAnalysis } from '@/features/compliance/services/complianceService';
+import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { StatusBadge } from '@/shared/components/StatusBadge';
-import { AlertTriangle } from 'lucide-react';
+import { GapList } from '@/features/compliance/components/GapList';
+import { AlertTriangle, CircleDashed, CircleOff, HelpCircle } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function GapAnalysisPage() {
   const { orgId } = await requireOrg();
-  const gaps = await getGapAnalysis(orgId);
+  const supabase = await createClient();
 
-  const byStatus = {
-    not_implemented: gaps.filter((g) => g.compliance_status === 'not_implemented'),
-    partially_implemented: gaps.filter((g) => g.compliance_status === 'partially_implemented'),
-    not_assessed: gaps.filter((g) => g.compliance_status === 'not_assessed'),
-  };
+  // Fetch all SOA entries with requirement and framework info
+  const { data: soaData } = await supabase
+    .from('soa_entries')
+    .select(
+      'id, implementation_status, requirement_id, framework_requirements(id, code, name, description, framework_id, frameworks(id, name))',
+    )
+    .eq('organization_id', orgId)
+    .order('created_at');
 
-  const byFramework = gaps.reduce<Record<string, typeof gaps>>((acc, gap) => {
-    if (!acc[gap.framework_name]) acc[gap.framework_name] = [];
-    acc[gap.framework_name].push(gap);
-    return acc;
-  }, {});
+  const allEntries = soaData ?? [];
+  const totalEntries = allEntries.length;
+
+  // Gaps = everything that is NOT fully implemented
+  const gapEntries = allEntries.filter(
+    (e) => e.implementation_status !== 'implemented' && e.implementation_status !== 'not_applicable',
+  );
+
+  // Summary counts
+  const notImplementedCount = gapEntries.filter(
+    (e) => e.implementation_status === 'not_implemented',
+  ).length;
+  const partialCount = gapEntries.filter(
+    (e) => e.implementation_status === 'partially_implemented',
+  ).length;
+  const plannedCount = gapEntries.filter(
+    (e) => e.implementation_status === 'planned',
+  ).length;
+  const notAssessedCount = gapEntries.filter(
+    (e) => e.implementation_status === 'not_assessed' || !e.implementation_status,
+  ).length;
+
+  // Derive unique frameworks from gap entries
+  const frameworkMap = new Map<string, { id: string; name: string }>();
+  for (const e of gapEntries) {
+    const fw = (
+      e.framework_requirements as unknown as {
+        frameworks?: { id: string; name: string } | null;
+      }
+    )?.frameworks;
+    if (fw?.id && fw?.name) {
+      frameworkMap.set(fw.id, { id: fw.id, name: fw.name });
+    }
+  }
+  const frameworks = Array.from(frameworkMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   return (
     <div className="space-y-6">
@@ -27,58 +64,74 @@ export default async function GapAnalysisPage() {
         description="Requisitos normativos no cumplidos que requieren atencion"
       />
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-5">
-          <p className="text-xs text-rose-400 font-medium uppercase tracking-wider">No Implementados</p>
-          <p className="text-3xl font-bold text-rose-400 mt-1">{byStatus.not_implemented.length}</p>
-        </div>
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-          <p className="text-xs text-amber-400 font-medium uppercase tracking-wider">Parcialmente Implementados</p>
-          <p className="text-3xl font-bold text-amber-400 mt-1">{byStatus.partially_implemented.length}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Sin Evaluar</p>
-          <p className="text-3xl font-bold text-slate-600 mt-1">{byStatus.not_assessed.length}</p>
-        </div>
+      {/* Summary stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <SummaryCard
+          label="No implementados"
+          value={notImplementedCount}
+          icon={<CircleOff className="w-4 h-4 text-rose-500" />}
+          colorClass="border-rose-200 bg-rose-50"
+          valueClass="text-rose-700"
+        />
+        <SummaryCard
+          label="Parcialmente implementados"
+          value={partialCount}
+          icon={<CircleDashed className="w-4 h-4 text-amber-500" />}
+          colorClass="border-amber-200 bg-amber-50"
+          valueClass="text-amber-700"
+        />
+        <SummaryCard
+          label="Planificados"
+          value={plannedCount}
+          icon={<AlertTriangle className="w-4 h-4 text-sky-500" />}
+          colorClass="border-sky-200 bg-sky-50"
+          valueClass="text-sky-700"
+        />
+        <SummaryCard
+          label="Sin evaluar"
+          value={notAssessedCount}
+          icon={<HelpCircle className="w-4 h-4 text-slate-400" />}
+          colorClass="border-slate-200 bg-slate-50"
+          valueClass="text-slate-600"
+        />
       </div>
 
-      {gaps.length === 0 ? (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 py-16 text-center">
-          <p className="text-sm text-emerald-400 font-medium">Excelente! No se detectaron brechas de cumplimiento</p>
-          <p className="text-xs text-emerald-500/60 mt-1">Todos los requisitos evaluados estan implementados</p>
+      {gapEntries.length === 0 ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 py-16 text-center">
+          <p className="text-sm font-medium text-emerald-700">
+            Excelente! No se detectaron brechas de cumplimiento
+          </p>
+          <p className="text-xs text-emerald-600/70 mt-1">
+            Todos los requisitos evaluados estan implementados
+          </p>
         </div>
       ) : (
-        Object.entries(byFramework).map(([frameworkName, frameworkGaps]) => (
-          <div key={frameworkName} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <h2 className="text-sm font-semibold text-slate-700">{frameworkName}</h2>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                {frameworkGaps.length} brechas
-              </span>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {frameworkGaps.map((gap, idx) => (
-                <div key={idx} className="px-4 py-3 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <span className="font-mono text-xs text-sky-600 w-24 shrink-0 mt-0.5">
-                      {gap.requirement_code}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700">{gap.requirement_title}</p>
-                      {gap.gap_description && (
-                        <p className="mt-0.5 text-xs text-slate-500">{gap.gap_description}</p>
-                      )}
-                    </div>
-                    <StatusBadge status={gap.compliance_status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
+        <GapList
+          entries={gapEntries as unknown as Parameters<typeof GapList>[0]['entries']}
+          frameworks={frameworks}
+          totalEntries={totalEntries}
+        />
       )}
+    </div>
+  );
+}
+
+interface SummaryCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  colorClass: string;
+  valueClass: string;
+}
+
+function SummaryCard({ label, value, icon, colorClass, valueClass }: SummaryCardProps) {
+  return (
+    <div className={`rounded-xl border p-4 shadow-sm ${colorClass}`}>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs text-slate-500 font-medium">{label}</p>
+        {icon}
+      </div>
+      <p className={`text-2xl font-bold ${valueClass}`}>{value}</p>
     </div>
   );
 }

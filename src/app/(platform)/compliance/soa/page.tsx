@@ -1,123 +1,161 @@
 import { requireOrg } from '@/shared/lib/get-org';
-import { getSoaEntries } from '@/features/compliance/services/complianceService';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { StatusBadge } from '@/shared/components/StatusBadge';
-import Link from 'next/link';
+import { SoaTable } from '@/features/compliance/components/SoaTable';
+import { CheckCircle2, CircleDashed, AlertCircle, MinusCircle, BarChart3 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function SoaPage() {
   const { orgId } = await requireOrg();
-  const soaEntries = await getSoaEntries(orgId);
   const supabase = await createClient();
 
-  // Enrich with requirement and control data
-  const reqIds = [...new Set(soaEntries.map((e) => e.requirement_id).filter(Boolean))];
-  const ctrlIds = [...new Set(soaEntries.map((e) => e.control_id).filter(Boolean))];
+  const { data: soaData } = await supabase
+    .from('soa_entries')
+    .select(
+      'id, is_applicable, justification, compliance_status, implementation_status, notes, requirement_id, framework_requirements(id, code, name, description, framework_id, frameworks(id, name))',
+    )
+    .eq('organization_id', orgId)
+    .order('created_at');
 
-  const [{ data: requirements }, { data: controls }] = await Promise.all([
-    reqIds.length > 0
-      ? supabase.from('framework_requirements').select('id, code, title, framework_id, frameworks(name)').in('id', reqIds)
-      : { data: [] },
-    ctrlIds.length > 0
-      ? supabase.from('controls').select('id, code, name').in('id', ctrlIds)
-      : { data: [] },
-  ]);
+  const entries = soaData ?? [];
 
-  const reqMap = new Map((requirements || []).map((r) => [r.id, r]));
-  const ctrlMap = new Map((controls || []).map((c) => [c.id, c]));
+  // Derive unique frameworks for the filter
+  const frameworkMap = new Map<string, { id: string; name: string }>();
+  for (const e of entries) {
+    const fw = (e.framework_requirements as unknown as { frameworks?: { id: string; name: string } | null })?.frameworks;
+    if (fw?.id && fw?.name) {
+      frameworkMap.set(fw.id, { id: fw.id, name: fw.name });
+    }
+  }
+  const frameworks = Array.from(frameworkMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
-  const byApplicability = soaEntries.reduce<Record<string, typeof soaEntries>>((acc, entry) => {
-    const key = entry.applicability || 'applicable';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(entry);
-    return acc;
-  }, {});
+  // Summary stats
+  const total = entries.length;
+  const implemented = entries.filter((e) => e.implementation_status === 'implemented').length;
+  const partial = entries.filter(
+    (e) => e.implementation_status === 'partially_implemented',
+  ).length;
+  const notImplemented = entries.filter(
+    (e) => e.implementation_status === 'not_implemented',
+  ).length;
+  const notApplicable = entries.filter(
+    (e) => e.implementation_status === 'not_applicable',
+  ).length;
+  const planned = entries.filter((e) => e.implementation_status === 'planned').length;
+
+  const implementedPct = total > 0 ? Math.round(((implemented + partial * 0.5) / total) * 100) : 0;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Declaracion de Aplicabilidad (SOA)"
-        description="Statement of Applicability - Relacion de controles aplicables y su justificacion"
+        description="Statement of Applicability — estado de implementacion de todos los requisitos normativos"
       />
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs text-slate-500">Total Entradas SOA</p>
-          <p className="text-3xl font-bold text-slate-700 mt-1">{soaEntries.length}</p>
+      {/* Summary stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <StatCard
+          label="Total requisitos"
+          value={total}
+          icon={<BarChart3 className="w-4 h-4 text-slate-400" />}
+          colorClass="border-slate-200 bg-white"
+          valueClass="text-slate-700"
+        />
+        <StatCard
+          label="Implementados"
+          value={implemented}
+          icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+          colorClass="border-emerald-200 bg-emerald-50"
+          valueClass="text-emerald-700"
+        />
+        <StatCard
+          label="Parciales"
+          value={partial}
+          icon={<CircleDashed className="w-4 h-4 text-amber-500" />}
+          colorClass="border-amber-200 bg-amber-50"
+          valueClass="text-amber-700"
+        />
+        <StatCard
+          label="No implementados"
+          value={notImplemented}
+          icon={<AlertCircle className="w-4 h-4 text-rose-500" />}
+          colorClass="border-rose-200 bg-rose-50"
+          valueClass="text-rose-700"
+        />
+        <StatCard
+          label="No aplicables"
+          value={notApplicable + planned}
+          icon={<MinusCircle className="w-4 h-4 text-slate-400" />}
+          colorClass="border-slate-200 bg-slate-50"
+          valueClass="text-slate-500"
+        />
+      </div>
+
+      {/* Progress bar */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-slate-600">Progreso de cumplimiento</span>
+          <span className="text-sm font-semibold text-sky-600">{implementedPct}%</span>
         </div>
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-          <p className="text-xs text-emerald-400">Implementados</p>
-          <p className="text-3xl font-bold text-emerald-400 mt-1">
-            {soaEntries.filter((e) => e.implementation_status === 'implemented').length}
-          </p>
-        </div>
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-          <p className="text-xs text-amber-400">No Aplicables</p>
-          <p className="text-3xl font-bold text-amber-400 mt-1">
-            {soaEntries.filter((e) => e.applicability === 'not_applicable').length}
-          </p>
+        <meter
+          value={implementedPct}
+          min={0}
+          max={100}
+          title={`${implementedPct}% implementado`}
+          className="w-full h-2.5 [&::-webkit-meter-bar]:rounded-full [&::-webkit-meter-bar]:bg-slate-100 [&::-webkit-meter-optimum-value]:rounded-full [&::-webkit-meter-optimum-value]:bg-sky-500"
+        />
+        <div className="mt-2 flex gap-4 text-xs text-slate-400">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            Implementado: {implemented}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+            Parcial: {partial}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" />
+            Brecha: {notImplemented}
+          </span>
         </div>
       </div>
 
-      {soaEntries.length === 0 ? (
+      {entries.length === 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-sm">
           <p className="text-sm text-slate-500">No hay entradas SOA registradas</p>
-          <p className="text-xs text-slate-400 mt-1">Las entradas SOA se generan al mapear controles a requisitos de frameworks</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Las entradas SOA se generan al mapear controles a requisitos de frameworks.
+          </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Framework</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Requisito</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Control</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Aplicabilidad</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Justificacion</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {soaEntries.map((entry) => {
-                  const req = reqMap.get(entry.requirement_id);
-                  const ctrl = entry.control_id ? ctrlMap.get(entry.control_id) : null;
-                  const fw = req ? (req as unknown as { frameworks?: { name: string } }).frameworks : null;
-
-                  return (
-                    <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-slate-400">{fw?.name || '-'}</td>
-                      <td className="px-4 py-3">
-                        <p className="font-mono text-xs text-sky-600">{req?.code}</p>
-                        <p className="text-sm text-slate-600">{req?.title}</p>
-                      </td>
-                      <td className="px-4 py-3">
-                        {ctrl ? (
-                          <>
-                            <p className="font-mono text-xs text-slate-500">{ctrl.code}</p>
-                            <p className="text-sm text-slate-600">{ctrl.name}</p>
-                          </>
-                        ) : (
-                          <span className="text-slate-400 text-sm">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={entry.applicability || 'applicable'} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={entry.implementation_status} />
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-500 max-w-xs truncate">
-                        {entry.justification || '-'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <SoaTable
+          entries={entries as unknown as Parameters<typeof SoaTable>[0]['entries']}
+          frameworks={frameworks}
+        />
       )}
+    </div>
+  );
+}
+
+interface StatCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  colorClass: string;
+  valueClass: string;
+}
+
+function StatCard({ label, value, icon, colorClass, valueClass }: StatCardProps) {
+  return (
+    <div className={`rounded-xl border p-4 shadow-sm ${colorClass}`}>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs text-slate-500 font-medium">{label}</p>
+        {icon}
+      </div>
+      <p className={`text-2xl font-bold ${valueClass}`}>{value}</p>
     </div>
   );
 }
