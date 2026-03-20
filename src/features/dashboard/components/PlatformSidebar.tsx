@@ -94,7 +94,7 @@ const baseSettingsNav: NavItem[] = [
 
 const clientsNavItem: NavItem = { label: 'Clientes', href: '/settings/clients', icon: Building2 };
 
-export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?: boolean }) {
+export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { isPlatformOwner?: boolean; userEmail?: string }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -207,25 +207,26 @@ export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?:
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="px-4 py-4 border-t border-slate-800/80 space-y-2">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="h-7 w-7 rounded-full bg-slate-700/80 border border-slate-600/50 flex items-center justify-center flex-shrink-0">
-            <Users className="h-3.5 w-3.5 text-slate-400" />
+      {/* Footer - User profile */}
+      <div className="px-3 py-3 border-t border-slate-800/80">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800/30 transition-colors">
+          <div className="h-8 w-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-[12px] font-semibold text-cyan-400 uppercase">
+              {userEmail?.charAt(0) ?? '?'}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-slate-300 truncate">Mi Organización</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Enterprise</p>
+            <p className="text-[13px] font-medium text-slate-300 truncate">{userEmail || 'Usuario'}</p>
           </div>
+          <button
+            type="button"
+            onClick={() => signout()}
+            className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
+            title="Cerrar sesion"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => signout()}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-150"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          <span>Cerrar sesion</span>
-        </button>
       </div>
     </aside>
   );
