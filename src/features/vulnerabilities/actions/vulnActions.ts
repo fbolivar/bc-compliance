@@ -3,9 +3,9 @@
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'name', 'description', 'severity', 'status',
-  'cvss_score', 'cve_id', 'affected_asset_id',
-  'discovery_date', 'due_date', 'remediation_notes',
+  'code', 'title', 'description', 'severity', 'status',
+  'cvss_base_score', 'cve_id', 'source',
+  'due_date', 'remediation',
 ];
 
 export async function createVulnerability(formData: FormData): Promise<ActionResult> {

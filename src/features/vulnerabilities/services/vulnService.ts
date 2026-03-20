@@ -5,16 +5,15 @@ export interface VulnRow {
   id: string;
   organization_id: string;
   code: string;
-  name: string;
+  title: string;
   description: string | null;
   severity: string;
   status: string;
-  cvss_score: number | null;
+  cvss_base_score: number | null;
   cve_id: string | null;
-  affected_asset_id: string | null;
-  discovery_date: string | null;
+  source: string | null;
   due_date: string | null;
-  remediation_notes: string | null;
+  remediation: string | null;
   created_at: string;
   updated_at: string;
 }

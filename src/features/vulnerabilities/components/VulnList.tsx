@@ -29,21 +29,21 @@ const STATUS_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
-  { key: 'name', label: 'Nombre' },
+  { key: 'code', label: 'Codigo', render: (item: VulnRow) => <span className="font-mono text-sky-600 text-xs">{item.code}</span> },
+  { key: 'title', label: 'Nombre', render: (item: VulnRow) => <span className="font-medium text-slate-700">{item.title}</span> },
   {
     key: 'severity',
     label: 'Severidad',
     render: (item: VulnRow) => <StatusBadge status={item.severity} />,
   },
   {
-    key: 'cvss_score',
+    key: 'cvss_base_score',
     label: 'CVSS',
     render: (item: VulnRow) => (
-      <span className="font-mono text-sm">{item.cvss_score ?? '-'}</span>
+      <span className="font-mono text-sm">{item.cvss_base_score ?? '-'}</span>
     ),
   },
-  { key: 'cve_id', label: 'CVE', className: 'font-mono text-xs text-slate-500' },
+  { key: 'cve_id', label: 'CVE', render: (item: VulnRow) => <span className="font-mono text-xs text-slate-500">{item.cve_id || '-'}</span> },
   {
     key: 'status',
     label: 'Estado',
@@ -116,18 +116,17 @@ export function VulnList({ data, count, page, pageSize }: Props) {
             <FormField label="Codigo" name="code" required placeholder="VUL-001" />
             <FormField label="ID CVE" name="cve_id" placeholder="CVE-2024-XXXX" />
           </div>
-          <FormField label="Nombre" name="name" required placeholder="Nombre de la vulnerabilidad" />
+          <FormField label="Nombre" name="title" required placeholder="Nombre de la vulnerabilidad" />
           <FormField label="Descripcion" name="description" type="textarea" placeholder="Descripcion detallada..." />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Severidad" name="severity" type="select" required options={SEVERITY_OPTIONS} />
             <FormField label="Estado" name="status" type="select" options={STATUS_OPTIONS} defaultValue="open" />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Score CVSS" name="cvss_score" type="number" min={0} max={10} step={0.1} placeholder="0.0" />
-            <FormField label="Fecha descubrimiento" name="discovery_date" type="date" />
+            <FormField label="Score CVSS" name="cvss_base_score" type="number" min={0} max={10} step={0.1} placeholder="0.0" />
+            <FormField label="Fecha limite" name="due_date" type="date" />
           </div>
-          <FormField label="Fecha limite" name="due_date" type="date" />
-          <FormField label="Notas de remediacion" name="remediation_notes" type="textarea" placeholder="Plan de remediacion..." />
+          <FormField label="Remediacion" name="remediation" type="textarea" placeholder="Plan de remediacion..." />
 
           {error && (
             <div className="px-3 py-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
