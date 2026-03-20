@@ -5,6 +5,7 @@ import { DataTable } from '@/shared/components/DataTable';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { AssetForm } from './AssetForm';
 import { deleteAsset } from '../actions/assetActions';
+import { FileSpreadsheet } from 'lucide-react';
 import type { AssetRow } from '../services/assetService';
 
 interface AssetListProps {
@@ -76,7 +77,14 @@ export function AssetList({ data, count, page, pageSize }: AssetListProps) {
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <a
+          href="/api/assets/export"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+          Exportar Excel
+        </a>
         <button
           type="button"
           onClick={() => setShowForm((prev) => !prev)}
