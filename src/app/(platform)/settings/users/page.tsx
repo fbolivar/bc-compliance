@@ -14,7 +14,7 @@ export default async function SettingsUsersPage() {
   // Get members with profile and role info - use role_id join instead of role column
   const { data: members } = await supabase
     .from('organization_members')
-    .select('id, role_id, is_owner, is_active, joined_at, user_id, profiles(email, full_name), roles(name)')
+    .select('id, role_id, is_owner, is_active, joined_at, user_id, profiles!left(email, full_name), roles!left(name)')
     .eq('organization_id', orgId)
     .order('joined_at', { ascending: false });
 
