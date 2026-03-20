@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/vulnerabilities/import/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/assets/export/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}

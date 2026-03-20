@@ -10,9 +10,126 @@ const supportedFormats = [
   { ext: '.json', label: 'JSON', desc: 'Array de objetos con name, severity, cvss_score' },
 ];
 
+interface ParsedVuln {
+  name: string;
+  description: string | null;
+  severity: string;
+  cvss_score: number | null;
+  cve_id: string | null;
+}
+
+function mapNessusSeverity(level: number): string {
+  switch (level) {
+    case 4: return 'critical';
+    case 3: return 'high';
+    case 2: return 'medium';
+    case 1: return 'low';
+    default: return 'informational';
+  }
+}
+
+function cvssToSeverity(score: number): string {
+  if (score >= 9.0) return 'critical';
+  if (score >= 7.0) return 'high';
+  if (score >= 4.0) return 'medium';
+  if (score >= 0.1) return 'low';
+  return 'informational';
+}
+
+function parseNessusClient(xml: string): ParsedVuln[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xml, 'text/xml');
+  const items = doc.querySelectorAll('ReportItem');
+  const vulns: ParsedVuln[] = [];
+  const seen = new Set<string>();
+
+  items.forEach(item => {
+    const severity = parseInt(item.getAttribute('severity') || '0');
+    const pluginName = item.getAttribute('pluginName') || 'Unknown';
+    const cve = item.querySelector('cve')?.textContent || null;
+
+    if (severity === 0 && !cve) return;
+
+    const key = `${pluginName}|${cve || ''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+
+    const description = item.querySelector('description')?.textContent || item.querySelector('synopsis')?.textContent || null;
+    const cvss = item.querySelector('cvss3_base_score')?.textContent || item.querySelector('cvss_base_score')?.textContent || null;
+
+    vulns.push({
+      name: pluginName.substring(0, 500),
+      description: description ? description.substring(0, 2000) : null,
+      severity: mapNessusSeverity(severity),
+      cvss_score: cvss ? parseFloat(cvss) : null,
+      cve_id: cve,
+    });
+  });
+
+  return vulns;
+}
+
+function parseCSVClient(content: string): ParsedVuln[] {
+  const lines = content.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
+
+  return lines.slice(1).map(line => {
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (const char of line) {
+      if (char === '"') { inQuotes = !inQuotes; continue; }
+      if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; continue; }
+      current += char;
+    }
+    values.push(current.trim());
+
+    const get = (field: string) => {
+      const idx = headers.indexOf(field);
+      return idx >= 0 && values[idx] ? values[idx] : null;
+    };
+
+    const cvss = get('cvss_score') || get('cvss');
+    const severity = get('severity') || (cvss ? cvssToSeverity(parseFloat(cvss)) : 'medium');
+
+    return {
+      name: get('name') || get('title') || get('plugin_name') || 'Sin nombre',
+      description: get('description') || get('synopsis') || null,
+      severity: severity.toLowerCase(),
+      cvss_score: cvss ? parseFloat(cvss) : null,
+      cve_id: get('cve_id') || get('cve') || null,
+    };
+  }).filter(v => v.name !== 'Sin nombre' || v.cve_id);
+}
+
+function parseJSONClient(content: string): ParsedVuln[] {
+  try {
+    const data = JSON.parse(content);
+    const items = Array.isArray(data) ? data : data.vulnerabilities || data.results || data.findings || [data];
+
+    return items.map((item: Record<string, unknown>) => {
+      const cvss = item.cvss_score || item.cvss || item.cvss3_score;
+      const severity = (item.severity || item.risk || '') as string;
+
+      return {
+        name: ((item.name || item.title || 'Sin nombre') as string).substring(0, 500),
+        description: item.description ? String(item.description).substring(0, 2000) : null,
+        severity: severity.toLowerCase() || (cvss ? cvssToSeverity(Number(cvss)) : 'medium'),
+        cvss_score: cvss ? Number(cvss) : null,
+        cve_id: (item.cve_id || item.cve || null) as string | null,
+      };
+    }).filter((v: ParsedVuln) => v.name !== 'Sin nombre');
+  } catch {
+    return [];
+  }
+}
+
 export function VulnImport() {
   const [isOpen, setIsOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [parseStatus, setParseStatus] = useState('');
   const [result, setResult] = useState<{ inserted: number; errors: number; format: string; total: number } | null>(null);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -23,14 +140,46 @@ export function VulnImport() {
     setUploading(true);
     setError('');
     setResult(null);
-
-    const formData = new FormData();
-    formData.append('file', file);
+    setParseStatus('Leyendo archivo...');
 
     try {
+      const content = await file.text();
+      const fileName = file.name.toLowerCase();
+
+      // Parse in browser
+      let parsed: ParsedVuln[] = [];
+      let format = '';
+
+      setParseStatus('Analizando contenido...');
+
+      if (fileName.endsWith('.nessus') || fileName.endsWith('.xml')) {
+        parsed = parseNessusClient(content);
+        format = 'Nessus (.nessus)';
+      } else if (fileName.endsWith('.csv')) {
+        parsed = parseCSVClient(content);
+        format = 'CSV';
+      } else if (fileName.endsWith('.json')) {
+        parsed = parseJSONClient(content);
+        format = 'JSON';
+      } else {
+        setError('Formato no soportado. Use .nessus, .csv o .json');
+        setUploading(false);
+        return;
+      }
+
+      if (parsed.length === 0) {
+        setError('No se encontraron vulnerabilidades en el archivo');
+        setUploading(false);
+        return;
+      }
+
+      setParseStatus(`${parsed.length} vulnerabilidades encontradas. Importando...`);
+
+      // Send parsed data as JSON (small payload)
       const res = await fetch('/api/vulnerabilities/import', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vulnerabilities: parsed, format }),
       });
 
       let data;
@@ -49,10 +198,11 @@ export function VulnImport() {
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error de conexion al importar');
+      setError(err instanceof Error ? err.message : 'Error al procesar el archivo');
     }
 
     setUploading(false);
+    setParseStatus('');
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +248,6 @@ export function VulnImport() {
       </div>
 
       <div className="p-5 space-y-4">
-        {/* Supported formats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {supportedFormats.map(f => (
             <div key={f.ext} className="flex items-start gap-2 p-3 rounded-lg border border-slate-100 bg-slate-50">
@@ -111,7 +260,6 @@ export function VulnImport() {
           ))}
         </div>
 
-        {/* Result */}
         {result && (
           <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
             <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -127,7 +275,6 @@ export function VulnImport() {
           </div>
         )}
 
-        {/* Error */}
         {error && (
           <div className="flex items-start gap-3 p-4 rounded-lg bg-rose-50 border border-rose-200">
             <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
@@ -135,7 +282,6 @@ export function VulnImport() {
           </div>
         )}
 
-        {/* Drop zone */}
         <div
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -150,7 +296,7 @@ export function VulnImport() {
           {uploading ? (
             <>
               <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
-              <p className="text-sm text-slate-600">Procesando archivo...</p>
+              <p className="text-sm text-slate-600">{parseStatus || 'Procesando...'}</p>
             </>
           ) : (
             <>
@@ -160,7 +306,7 @@ export function VulnImport() {
                   Arrastra un archivo aqui o <span className="text-sky-500 font-medium">haz click para seleccionar</span>
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
-                  Formatos: .nessus, .csv, .json
+                  Formatos: .nessus, .csv, .json (sin limite de tamano)
                 </p>
               </div>
             </>

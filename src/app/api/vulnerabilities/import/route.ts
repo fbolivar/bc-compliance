@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from '@/shared/lib/audit';
 
-// Allow up to 50MB uploads (Vercel Pro limit)
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export const maxDuration = 60; // 60 seconds timeout for large files
+// Vercel Pro: allow large file uploads and longer processing
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 interface ParsedVuln {
   name: string;
@@ -173,34 +168,13 @@ export async function POST(request: NextRequest) {
 
   const orgId = membership.organization_id;
 
-  // Get form data with file
-  const formData = await request.formData();
-  const file = formData.get('file') as File;
-
-  if (!file) return NextResponse.json({ error: 'No se envio archivo' }, { status: 400 });
-
-  const content = await file.text();
-  const fileName = file.name.toLowerCase();
-
-  // Parse based on format
-  let parsed: ParsedVuln[] = [];
-  let format = '';
-
-  if (fileName.endsWith('.nessus') || fileName.endsWith('.xml')) {
-    parsed = parseNessus(content);
-    format = 'Nessus (.nessus)';
-  } else if (fileName.endsWith('.csv')) {
-    parsed = parseCSV(content);
-    format = 'CSV';
-  } else if (fileName.endsWith('.json')) {
-    parsed = parseJSON(content);
-    format = 'JSON';
-  } else {
-    return NextResponse.json({ error: 'Formato no soportado. Use .nessus, .csv o .json' }, { status: 400 });
-  }
+  // Receive pre-parsed JSON from browser (file parsed client-side to avoid size limits)
+  const body = await request.json();
+  const parsed: ParsedVuln[] = body.vulnerabilities || [];
+  const format = body.format || 'Unknown';
 
   if (parsed.length === 0) {
-    return NextResponse.json({ error: 'No se encontraron vulnerabilidades en el archivo' }, { status: 400 });
+    return NextResponse.json({ error: 'No se encontraron vulnerabilidades' }, { status: 400 });
   }
 
   // Get current max code number
