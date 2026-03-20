@@ -137,8 +137,8 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
               className={`
                 w-full flex items-center gap-3 px-3 py-[9px] rounded-md text-[13px] font-medium transition-all duration-150
                 ${active
-                  ? 'border-l-2 border-cyan-400 bg-cyan-500/8 text-cyan-400 pl-[10px]'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] border-l-2 border-transparent'}
+                  ? 'border-l-2 border-sky-500 bg-sky-50 text-sky-600 pl-[10px]'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border-l-2 border-transparent'}
               `}
             >
               <Icon className="h-[18px] w-[18px] flex-shrink-0" />
@@ -154,8 +154,8 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
                       className={`
                         block px-3 py-1.5 rounded-md text-[12px] transition-colors duration-150
                         ${pathname === child.href
-                          ? 'text-cyan-400 font-medium bg-cyan-500/5'
-                          : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/20'}
+                          ? 'text-sky-600 font-medium bg-sky-50'
+                          : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'}
                       `}
                     >
                       {child.label}
@@ -171,8 +171,8 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
             className={`
               flex items-center gap-3 px-3 py-[9px] rounded-md text-[13px] font-medium transition-all duration-150
               ${active
-                ? 'border-l-2 border-cyan-400 bg-cyan-500/8 text-cyan-400 pl-[10px]'
-                : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03] border-l-2 border-transparent'}
+                ? 'border-l-2 border-sky-500 bg-sky-50 text-sky-600 pl-[10px]'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border-l-2 border-transparent'}
             `}
           >
             <Icon className="h-[18px] w-[18px] flex-shrink-0" />
@@ -184,22 +184,22 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
   };
 
   return (
-    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-[#0c1222] shadow-[1px_0_0_0_rgba(30,41,59,0.8)]">
+    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200">
       {/* Logo */}
-      <div className="flex items-center h-14 px-6 border-b border-slate-800/80 bg-gradient-to-r from-slate-900 to-slate-900/80">
+      <div className="flex items-center h-14 px-6 border-b border-slate-200 bg-white">
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
             <Shield className="h-4.5 w-4.5 text-white" />
           </div>
           <div>
-            <span className="text-[14px] font-bold text-white tracking-tight">BC</span>
-            <span className="text-[14px] font-light text-cyan-400 tracking-tight"> Compliance</span>
+            <span className="text-[14px] font-bold text-slate-800 tracking-tight">BC</span>
+            <span className="text-[14px] font-light text-sky-500 tracking-tight"> Compliance</span>
           </div>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700/50">
+      <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300/50">
         <ul className="space-y-0.5">
           {navigation.map(renderNavItem)}
         </ul>
@@ -208,7 +208,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
         <div className="my-4" />
 
         {/* Settings Section */}
-        <p className="px-3 mt-6 mb-2 text-[9px] font-semibold text-slate-600/80 uppercase tracking-[0.15em]">
+        <p className="px-3 mt-6 mb-2 text-[9px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
           Administración
         </p>
         <ul className="space-y-0.5">
@@ -218,20 +218,20 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
       </nav>
 
       {/* Footer - User profile */}
-      <div className="px-3 py-3 border-t border-slate-800/80 relative" ref={profileRef}>
+      <div className="px-3 py-3 border-t border-slate-200 relative" ref={profileRef}>
         {/* Profile popover */}
         {showProfile && (
-          <div className="absolute bottom-full left-3 right-3 mb-2 bg-[#141c2e] border border-slate-700/80 rounded-xl shadow-2xl shadow-black/40 overflow-hidden animate-[fadeIn_0.15s_ease-out]">
-            <div className="p-4 border-b border-slate-700/50">
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-white border border-slate-200 rounded-xl shadow-2xl shadow-slate-300/30 overflow-hidden animate-[fadeIn_0.15s_ease-out]">
+            <div className="p-4 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[14px] font-semibold text-cyan-400 uppercase">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-100 to-blue-100 border border-sky-200 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[14px] font-semibold text-sky-600 uppercase">
                     {userEmail?.charAt(0) ?? '?'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-white truncate">{userEmail || 'Usuario'}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Cuenta activa</p>
+                  <p className="text-[13px] font-medium text-slate-800 truncate">{userEmail || 'Usuario'}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Cuenta activa</p>
                 </div>
               </div>
             </div>
@@ -239,7 +239,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
               <Link
                 href="/settings"
                 onClick={() => setShowProfile(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
               >
                 <Settings className="h-4 w-4" />
                 <span>Configuracion</span>
@@ -247,7 +247,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
               <button
                 type="button"
                 onClick={() => signout()}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-500 hover:text-rose-500 hover:bg-rose-50 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 <span>Cerrar sesion</span>
@@ -260,17 +260,17 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
         <button
           type="button"
           onClick={() => setShowProfile(!showProfile)}
-          className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800/30 transition-colors"
+          className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors"
         >
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-[12px] font-semibold text-cyan-400 uppercase">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-sky-100 to-blue-100 border border-sky-200 flex items-center justify-center flex-shrink-0">
+            <span className="text-[12px] font-semibold text-sky-600 uppercase">
               {userEmail?.charAt(0) ?? '?'}
             </span>
           </div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-[12px] text-slate-500 truncate">{userEmail || 'Usuario'}</p>
           </div>
-          <ChevronDown className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
         </button>
       </div>
     </aside>

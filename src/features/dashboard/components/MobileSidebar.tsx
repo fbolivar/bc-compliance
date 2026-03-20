@@ -131,7 +131,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
             <button
               onClick={() => toggleExpand(item.label)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                active ? 'bg-sky-50 text-sky-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
@@ -145,7 +145,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
                     <Link
                       href={child.href}
                       className={`block px-3 py-2 rounded-md text-sm transition-colors ${
-                        pathname === child.href ? 'text-cyan-400 font-medium' : 'text-slate-500 hover:text-slate-300'
+                        pathname === child.href ? 'text-sky-600 font-medium' : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       {child.label}
@@ -159,7 +159,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
           <Link
             href={item.href}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              active ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              active ? 'bg-sky-50 text-sky-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Icon className="h-5 w-5 flex-shrink-0" />
@@ -175,7 +175,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
       {/* Hamburger button - only visible on mobile */}
       <button
         onClick={() => setIsOpen(true)}
-        className="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+        className="lg:hidden p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
         aria-label="Abrir menu"
       >
         <Menu className="w-6 h-6" />
@@ -184,7 +184,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -194,24 +194,24 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
         ref={sidebarRef}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-cyan-500 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold text-white">BC</span>
-              <span className="text-lg font-light text-cyan-400"> Compliance</span>
+              <span className="text-lg font-bold text-slate-800">BC</span>
+              <span className="text-lg font-light text-sky-500"> Compliance</span>
             </div>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Cerrar menu"
           >
             <X className="w-5 h-5" />
@@ -227,8 +227,8 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
           <ul className="space-y-1">
             {navigation.map(renderNavItem)}
           </ul>
-          <div className="my-4 border-t border-slate-800" />
-          <p className="px-3 mb-2 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+          <div className="my-4 border-t border-slate-200" />
+          <p className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Administracion
           </p>
           <ul className="space-y-1">
@@ -238,11 +238,11 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800 bg-slate-900">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 bg-white">
           <button
             type="button"
             onClick={() => signout()}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:text-rose-400 hover:bg-slate-800/50 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:text-rose-500 hover:bg-rose-50 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             <span>Cerrar sesion</span>

@@ -186,10 +186,10 @@ export default async function DashboardPage() {
 
       {/* Row 1: Alert Banner */}
       {showAlertBanner && (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3">
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" aria-hidden="true" />
-            <p className="text-sm font-medium text-rose-300 truncate">
+            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" aria-hidden="true" />
+            <p className="text-sm font-medium text-rose-600 truncate">
               {criticalRisks > 0 && activeIncidents > 0
                 ? `${criticalRisks} riesgo${criticalRisks !== 1 ? 's' : ''} critico${criticalRisks !== 1 ? 's' : ''} y ${activeIncidents} incidente${activeIncidents !== 1 ? 's' : ''} activo${activeIncidents !== 1 ? 's' : ''} requieren atencion inmediata`
                 : criticalRisks > 0
@@ -199,7 +199,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href={criticalRisks > 0 ? '/risks' : '/incidents'}
-            className="flex items-center gap-1 text-xs font-semibold text-rose-300 hover:text-rose-200 transition-colors shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors shrink-0"
           >
             Ver {criticalRisks > 0 ? 'riesgos' : 'incidentes'}
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -209,8 +209,8 @@ export default async function DashboardPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Estado de seguridad y cumplimiento — ISO 27001:2022
         </p>
       </div>
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
           {/* Card 1: Cumplimiento Global with circular progress */}
           <Link
             href="/compliance"
-            className={`relative overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 transition-all hover:border-slate-700 hover:bg-slate-900/80 group border-l-4 ${complianceBorderClass}`}
+            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${complianceBorderClass}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -241,20 +241,20 @@ export default async function DashboardPage() {
           {/* Card 2: Riesgos Criticos + Altos */}
           <Link
             href="/risks"
-            className={`relative overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 transition-all hover:border-slate-700 hover:bg-slate-900/80 group border-l-4 ${criticalRisks > 0 ? 'border-l-rose-500' : 'border-l-amber-500'}`}
+            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${criticalRisks > 0 ? 'border-l-rose-500' : 'border-l-amber-500'}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Riesgos Criticos + Altos</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${criticalRisks > 0 ? 'text-rose-400' : 'text-amber-400'}`}>
+                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${criticalRisks > 0 ? 'text-rose-500' : 'text-amber-500'}`}>
                   {criticalRisks + highRisks}
                 </p>
                 <p className="mt-1.5 text-xs text-slate-500">
                   {criticalRisks} criticos · {highRisks} altos
                 </p>
               </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${criticalRisks > 0 ? 'bg-rose-500/15' : 'bg-amber-500/15'}`} aria-hidden="true">
-                <ShieldAlert className={`h-5 w-5 ${criticalRisks > 0 ? 'text-rose-400' : 'text-amber-400'}`} />
+              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${criticalRisks > 0 ? 'bg-rose-50' : 'bg-amber-50'}`} aria-hidden="true">
+                <ShieldAlert className={`h-5 w-5 ${criticalRisks > 0 ? 'text-rose-500' : 'text-amber-500'}`} />
               </div>
             </div>
           </Link>
@@ -262,20 +262,20 @@ export default async function DashboardPage() {
           {/* Card 3: Vulnerabilidades Abiertas */}
           <Link
             href="/vulnerabilities"
-            className={`relative overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 transition-all hover:border-slate-700 hover:bg-slate-900/80 group border-l-4 ${openVulns > 10 ? 'border-l-rose-500' : openVulns > 0 ? 'border-l-amber-500' : 'border-l-emerald-500'}`}
+            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${openVulns > 10 ? 'border-l-rose-500' : openVulns > 0 ? 'border-l-amber-500' : 'border-l-emerald-500'}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vulnerabilidades Abiertas</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${openVulns > 10 ? 'text-rose-400' : openVulns > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${openVulns > 10 ? 'text-rose-500' : openVulns > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
                   {openVulns}
                 </p>
                 <p className="mt-1.5 text-xs text-slate-500">
                   {openVulns === 0 ? 'Sin vulnerabilidades abiertas' : openVulns > 10 ? 'Requieren atencion urgente' : 'En revision'}
                 </p>
               </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${openVulns > 10 ? 'bg-rose-500/15' : openVulns > 0 ? 'bg-amber-500/15' : 'bg-emerald-500/15'}`} aria-hidden="true">
-                <Bug className={`h-5 w-5 ${openVulns > 10 ? 'text-rose-400' : openVulns > 0 ? 'text-amber-400' : 'text-emerald-400'}`} />
+              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${openVulns > 10 ? 'bg-rose-50' : openVulns > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`} aria-hidden="true">
+                <Bug className={`h-5 w-5 ${openVulns > 10 ? 'text-rose-500' : openVulns > 0 ? 'text-amber-500' : 'text-emerald-500'}`} />
               </div>
             </div>
           </Link>
@@ -283,20 +283,20 @@ export default async function DashboardPage() {
           {/* Card 4: Incidentes Activos */}
           <Link
             href="/incidents"
-            className={`relative overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 transition-all hover:border-slate-700 hover:bg-slate-900/80 group border-l-4 ${activeIncidents > 0 ? 'border-l-orange-500' : 'border-l-emerald-500'}`}
+            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${activeIncidents > 0 ? 'border-l-orange-500' : 'border-l-emerald-500'}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Incidentes Activos</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${activeIncidents > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${activeIncidents > 0 ? 'text-orange-500' : 'text-emerald-500'}`}>
                   {activeIncidents}
                 </p>
                 <p className="mt-1.5 text-xs text-slate-500">
                   {activeIncidents === 0 ? 'Sin incidentes detectados' : `Estado: detectado`}
                 </p>
               </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${activeIncidents > 0 ? 'bg-orange-500/15' : 'bg-emerald-500/15'}`} aria-hidden="true">
-                <AlertTriangle className={`h-5 w-5 ${activeIncidents > 0 ? 'text-orange-400' : 'text-emerald-400'}`} />
+              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${activeIncidents > 0 ? 'bg-orange-50' : 'bg-emerald-50'}`} aria-hidden="true">
+                <AlertTriangle className={`h-5 w-5 ${activeIncidents > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
               </div>
             </div>
           </Link>
@@ -309,46 +309,46 @@ export default async function DashboardPage() {
 
           <Link
             href="/assets"
-            className="rounded-xl border border-slate-800/80 bg-slate-900/40 px-4 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-900/70 hover:border-slate-700 transition-all group"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
           >
             <div className="min-w-0">
               <p className="text-xs text-slate-500 font-medium truncate">Activos Registrados</p>
-              <p className="mt-0.5 text-2xl font-bold text-cyan-400 tabular-nums">{assetCount}</p>
+              <p className="mt-0.5 text-2xl font-bold text-sky-600 tabular-nums">{assetCount}</p>
             </div>
-            <Server className="h-5 w-5 text-slate-600 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <Server className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
           </Link>
 
           <Link
             href="/controls"
-            className="rounded-xl border border-slate-800/80 bg-slate-900/40 px-4 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-900/70 hover:border-slate-700 transition-all group"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
           >
             <div className="min-w-0">
               <p className="text-xs text-slate-500 font-medium truncate">Controles Implementados</p>
-              <p className="mt-0.5 text-2xl font-bold text-blue-400 tabular-nums font-mono">{controlsRatio}</p>
+              <p className="mt-0.5 text-2xl font-bold text-blue-600 tabular-nums font-mono">{controlsRatio}</p>
             </div>
-            <Shield className="h-5 w-5 text-slate-600 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <Shield className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
           </Link>
 
           <Link
             href="/nonconformities"
-            className="rounded-xl border border-slate-800/80 bg-slate-900/40 px-4 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-900/70 hover:border-slate-700 transition-all group"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
           >
             <div className="min-w-0">
               <p className="text-xs text-slate-500 font-medium truncate">No Conformidades</p>
-              <p className={`mt-0.5 text-2xl font-bold tabular-nums ${openNCs > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{openNCs}</p>
+              <p className={`mt-0.5 text-2xl font-bold tabular-nums ${openNCs > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>{openNCs}</p>
             </div>
-            <FileText className="h-5 w-5 text-slate-600 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <FileText className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
           </Link>
 
           <Link
             href="/settings/users"
-            className="rounded-xl border border-slate-800/80 bg-slate-900/40 px-4 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-900/70 hover:border-slate-700 transition-all group"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
           >
             <div className="min-w-0">
               <p className="text-xs text-slate-500 font-medium truncate">Usuarios en Org</p>
-              <p className="mt-0.5 text-2xl font-bold text-purple-400 tabular-nums">{memberCount}</p>
+              <p className="mt-0.5 text-2xl font-bold text-purple-600 tabular-nums">{memberCount}</p>
             </div>
-            <Users className="h-5 w-5 text-slate-600 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <Users className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
           </Link>
         </div>
       </section>
@@ -357,15 +357,15 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
 
         {/* Left 60%: Cumplimiento por Framework */}
-        <div className="lg:col-span-3 rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 sm:p-6">
+        <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-sm font-semibold text-slate-200">Cumplimiento por Framework</h2>
+              <h2 className="text-sm font-semibold text-slate-700">Cumplimiento por Framework</h2>
               <p className="mt-0.5 text-xs text-slate-500">Controles implementados por estandar</p>
             </div>
             <Link
               href="/compliance"
-              className="flex items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+              className="flex items-center gap-1 text-xs font-medium text-sky-500 hover:text-sky-600 transition-colors"
             >
               Ver detalle
               <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -373,9 +373,9 @@ export default async function DashboardPage() {
           </div>
           {frameworks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <CheckSquare className="h-8 w-8 text-slate-700" aria-hidden="true" />
+              <CheckSquare className="h-8 w-8 text-slate-300" aria-hidden="true" />
               <p className="text-sm text-slate-500">No hay frameworks configurados</p>
-              <Link href="/compliance" className="mt-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+              <Link href="/compliance" className="mt-1 text-xs text-sky-500 hover:text-sky-600 transition-colors">
                 Agregar framework
               </Link>
             </div>
@@ -387,27 +387,27 @@ export default async function DashboardPage() {
                   pct >= 80
                     ? 'bg-emerald-500'
                     : pct >= 60
-                    ? 'bg-cyan-500'
+                    ? 'bg-sky-500'
                     : pct >= 40
                     ? 'bg-amber-500'
                     : 'bg-rose-500';
                 const textColor =
                   pct >= 80
-                    ? 'text-emerald-400'
+                    ? 'text-emerald-600'
                     : pct >= 60
-                    ? 'text-cyan-400'
+                    ? 'text-sky-600'
                     : pct >= 40
-                    ? 'text-amber-400'
-                    : 'text-rose-400';
+                    ? 'text-amber-600'
+                    : 'text-rose-600';
                 return (
                   <div key={fw.id}>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-slate-300 truncate pr-4">{fw.name}</span>
+                      <span className="text-sm font-medium text-slate-700 truncate pr-4">{fw.name}</span>
                       <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${textColor}`}>
                         {pct}%
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                       <progress
                         value={pct}
                         max={100}
@@ -428,15 +428,15 @@ export default async function DashboardPage() {
         </div>
 
         {/* Right 40%: Distribucion de Riesgos */}
-        <div className="lg:col-span-2 rounded-xl border border-slate-800/80 bg-slate-900/50 p-5 sm:p-6">
+        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-sm font-semibold text-slate-200">Estado de Riesgos</h2>
+              <h2 className="text-sm font-semibold text-slate-700">Estado de Riesgos</h2>
               <p className="mt-0.5 text-xs text-slate-500">Distribucion por severidad</p>
             </div>
             <Link
               href="/risks"
-              className="flex items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+              className="flex items-center gap-1 text-xs font-medium text-sky-500 hover:text-sky-600 transition-colors"
             >
               Ver todos
               <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -444,9 +444,9 @@ export default async function DashboardPage() {
           </div>
           {totalRisks === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <Shield className="h-8 w-8 text-slate-700" aria-hidden="true" />
+              <Shield className="h-8 w-8 text-slate-300" aria-hidden="true" />
               <p className="text-sm text-slate-500">No hay riesgos evaluados</p>
-              <Link href="/risks" className="mt-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+              <Link href="/risks" className="mt-1 text-xs text-sky-500 hover:text-sky-600 transition-colors">
                 Registrar riesgo
               </Link>
             </div>
@@ -457,13 +457,13 @@ export default async function DashboardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full shrink-0 ${risk.dotColor}`} aria-hidden="true" />
-                      <span className="text-sm font-medium text-slate-400">{risk.level}</span>
+                      <span className="text-sm font-medium text-slate-600">{risk.level}</span>
                     </div>
                     <span className={`text-sm font-bold font-mono tabular-nums ${risk.textColor}`}>
                       {risk.count}
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                     <progress
                       value={risk.count}
                       max={totalRisks > 0 ? totalRisks : 1}
@@ -478,9 +478,9 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               ))}
-              <div className="pt-4 mt-1 border-t border-slate-800/80 flex items-center justify-between">
+              <div className="pt-4 mt-1 border-t border-slate-200 flex items-center justify-between">
                 <span className="text-xs text-slate-500 uppercase tracking-wider">Total escenarios</span>
-                <span className="text-sm font-bold text-slate-200 font-mono tabular-nums">{totalRisks}</span>
+                <span className="text-sm font-bold text-slate-700 font-mono tabular-nums">{totalRisks}</span>
               </div>
             </div>
           )}
@@ -494,9 +494,9 @@ export default async function DashboardPage() {
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 rounded-lg border border-slate-700/70 bg-slate-900/40 px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-800/70 hover:text-slate-100 hover:border-slate-600 transition-all"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-sky-600 hover:bg-sky-50 hover:border-sky-200 transition-all shadow-sm"
             >
-              <Icon className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
+              <Icon className="h-4 w-4 text-slate-400 group-hover:text-sky-500 shrink-0" aria-hidden="true" />
               {label}
             </Link>
           ))}
