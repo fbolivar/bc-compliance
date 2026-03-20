@@ -1,3 +1,2 @@
-// Threats - Components
-// This module will contain Threats components
-export {};
+export { ThreatsClient } from './ThreatsClient';
+export { ThreatForm } from './ThreatForm';
