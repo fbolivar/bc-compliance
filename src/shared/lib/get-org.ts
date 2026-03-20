@@ -30,11 +30,19 @@ export async function getCurrentOrg() {
     isPlatformOwner = orgData?.is_platform_owner === true;
   }
 
+  // Get user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
   return {
     user,
     orgId,
     organization: membership?.organizations || null,
     isPlatformOwner,
+    userName: profile?.full_name || null,
   };
 }
 

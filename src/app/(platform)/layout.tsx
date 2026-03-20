@@ -14,7 +14,7 @@ export default async function PlatformLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, organization, isPlatformOwner } = await getCurrentOrg();
+  const { user, organization, isPlatformOwner, userName } = await getCurrentOrg();
 
   if (!user) {
     redirect('/login');
@@ -26,7 +26,7 @@ export default async function PlatformLayout({
 
   return (
     <div className="flex h-screen bg-slate-50">
-      <PlatformSidebar isPlatformOwner={isPlatformOwner} userEmail={user.email || ''} />
+      <PlatformSidebar isPlatformOwner={isPlatformOwner} userEmail={user.email || ''} userName={userName || ''} />
       <main className="lg:pl-64 flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 flex items-center h-12 sm:h-14 px-3 sm:px-6 bg-white/95 backdrop-blur-md border-b border-slate-200 gap-3">
           <MobileSidebar isPlatformOwner={isPlatformOwner} />

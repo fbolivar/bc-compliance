@@ -94,7 +94,7 @@ const baseSettingsNav: NavItem[] = [
 
 const clientsNavItem: NavItem = { label: 'Clientes', href: '/settings/clients', icon: Building2 };
 
-export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { isPlatformOwner?: boolean; userEmail?: string }) {
+export function PlatformSidebar({ isPlatformOwner = false, userEmail = '', userName = '' }: { isPlatformOwner?: boolean; userEmail?: string; userName?: string }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [showProfile, setShowProfile] = useState(false);
@@ -224,8 +224,8 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-slate-800 truncate">{userEmail || 'Usuario'}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Cuenta activa</p>
+                  <p className="text-[13px] font-medium text-slate-800 truncate">{userName || 'Usuario'}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">{userEmail}</p>
                 </div>
               </div>
             </div>
@@ -238,6 +238,15 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
                 <Settings className="h-4 w-4" />
                 <span>Configuracion</span>
               </Link>
+              <Link
+                href="/update-password"
+                onClick={() => setShowProfile(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+              >
+                <KeyRound className="h-4 w-4" />
+                <span>Cambiar contrasena</span>
+              </Link>
+              <div className="my-1 border-t border-slate-100" />
               <button
                 type="button"
                 onClick={() => signout()}
@@ -262,7 +271,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
             </span>
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <p className="text-[12px] text-slate-500 truncate">{userEmail || 'Usuario'}</p>
+            <p className="text-[12px] font-medium text-slate-700 truncate">{userName || userEmail || 'Usuario'}</p>
           </div>
           <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
         </button>
