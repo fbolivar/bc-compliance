@@ -188,7 +188,7 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
       {/* Logo */}
       <div className="flex items-center justify-center py-5 px-4 border-b border-slate-200">
         <Link href="/dashboard">
-          <img src="/Logo.png" alt="BC Trust" className="h-14 w-auto mix-blend-multiply" />
+          <img src="/Logo.png" alt="BC Trust" className="h-14 w-auto " />
         </Link>
       </div>
 
