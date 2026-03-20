@@ -69,6 +69,7 @@ const navigation: NavItem[] = [
 
 const settingsNav: NavItem[] = [
   { label: 'Configuracion', href: '/settings', icon: Settings },
+  { label: 'Clientes', href: '/settings/clients', icon: Building2 },
   { label: 'Usuarios', href: '/settings/users', icon: Users },
   { label: 'Roles', href: '/settings/roles', icon: KeyRound },
   { label: 'Log de Auditoria', href: '/settings/audit-log', icon: ScrollText },

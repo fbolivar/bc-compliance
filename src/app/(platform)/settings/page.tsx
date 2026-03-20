@@ -2,7 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import Link from 'next/link';
-import { Users, KeyRound, ScrollText, ChevronRight } from 'lucide-react';
+import { Users, KeyRound, ScrollText, ChevronRight, Building2 } from 'lucide-react';
 import { OrgSettingsForm } from '@/features/organizations/components/OrgSettingsForm';
 
 export default async function SettingsPage() {
@@ -16,6 +16,13 @@ export default async function SettingsPage() {
     .single();
 
   const settingsSections = [
+    {
+      title: 'Gestion de Clientes',
+      description: 'Crea y administra organizaciones cliente',
+      href: '/settings/clients',
+      icon: Building2,
+      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    },
     {
       title: 'Usuarios y Miembros',
       description: 'Gestiona los miembros del equipo e invitaciones',
@@ -53,7 +60,7 @@ export default async function SettingsPage() {
       </div>
 
       {/* Settings Navigation */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {settingsSections.map((section) => {
           const Icon = section.icon;
           return (

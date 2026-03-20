@@ -87,6 +87,7 @@ const navigation: NavItem[] = [
 
 const settingsNav: NavItem[] = [
   { label: 'Configuración', href: '/settings', icon: Settings },
+  { label: 'Clientes', href: '/settings/clients', icon: Building2 },
   { label: 'Usuarios', href: '/settings/users', icon: Users },
   { label: 'Roles', href: '/settings/roles', icon: KeyRound },
   { label: 'Log de Auditoría', href: '/settings/audit-log', icon: ScrollText },
