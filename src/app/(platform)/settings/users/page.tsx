@@ -5,15 +5,16 @@ import { StatusBadge } from '@/shared/components/StatusBadge';
 import Link from 'next/link';
 import { ArrowLeft, UserCircle } from 'lucide-react';
 import { UsersPageClient } from '@/features/organizations/components/UsersPageClient';
+import { MemberActions } from '@/features/organizations/components/MemberActions';
 
 export default async function SettingsUsersPage() {
   const { orgId } = await requireOrg();
   const supabase = await createClient();
 
-  // Get members with profile info
+  // Get members with profile and role info - use role_id join instead of role column
   const { data: members } = await supabase
     .from('organization_members')
-    .select('id, role, is_owner, is_active, joined_at, user_id, profiles(email, full_name)')
+    .select('id, role_id, is_owner, is_active, joined_at, user_id, profiles(email, full_name), roles(name)')
     .eq('organization_id', orgId)
     .order('joined_at', { ascending: false });
 
@@ -40,7 +41,6 @@ export default async function SettingsUsersPage() {
         />
       </div>
 
-      {/* Client wrapper for invite button + modal + invitations list */}
       <UsersPageClient invitations={invitationList} siteUrl={siteUrl} />
 
       {/* Members Table */}
@@ -58,10 +58,12 @@ export default async function SettingsUsersPage() {
           ) : (
             memberList.map((member) => {
               const profile = member.profiles as { email?: string; full_name?: string } | null;
+              const role = member.roles as { name?: string } | null;
+              const roleName = member.is_owner ? 'Owner' : (role?.name?.replace(/_/g, ' ') || 'Sin rol');
               return (
                 <div key={member.id} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <UserCircle className="w-8 h-8 text-slate-600 shrink-0" />
+                    <UserCircle className="w-8 h-8 text-slate-400 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm text-slate-700 font-medium truncate">
                         {profile?.full_name || profile?.email || 'Sin nombre'}
@@ -72,13 +74,9 @@ export default async function SettingsUsersPage() {
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-500">
                     <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 capitalize">
-                      {member.is_owner ? 'Owner' : (member.role?.replace(/_/g, ' ') || 'viewer')}
+                      {roleName}
                     </span>
-                    <span>
-                      {member.joined_at
-                        ? new Date(member.joined_at).toLocaleDateString('es-CO', { dateStyle: 'short' })
-                        : '-'}
-                    </span>
+                    <MemberActions memberId={member.id} isOwner={member.is_owner} isActive={member.is_active} />
                   </div>
                 </div>
               );
@@ -91,28 +89,31 @@ export default async function SettingsUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Usuario</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Rol</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Fecha union</th>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Usuario</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Rol</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha union</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {memberList.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-12 text-center">
+                    <td colSpan={5} className="px-4 py-12 text-center">
                       <p className="text-sm text-slate-500">No hay miembros registrados</p>
                     </td>
                   </tr>
                 ) : (
                   memberList.map((member) => {
                     const profile = member.profiles as { email?: string; full_name?: string } | null;
+                    const role = member.roles as { name?: string } | null;
+                    const roleName = member.is_owner ? 'Owner' : (role?.name?.replace(/_/g, ' ') || 'Sin rol');
                     return (
                       <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <UserCircle className="w-8 h-8 text-slate-600" />
+                            <UserCircle className="w-8 h-8 text-slate-400" />
                             <div>
                               <p className="text-sm text-slate-700 font-medium">
                                 {profile?.full_name || 'Sin nombre'}
@@ -123,16 +124,19 @@ export default async function SettingsUsersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 border border-slate-200 capitalize">
-                            {member.is_owner ? 'Owner' : (member.role?.replace(/_/g, ' ') || 'viewer')}
+                            {roleName}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge status={member.is_active ? 'active' : 'inactive'} />
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-400">
+                        <td className="px-4 py-3 text-sm text-slate-500">
                           {member.joined_at
                             ? new Date(member.joined_at).toLocaleDateString('es-CO', { dateStyle: 'medium' })
                             : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <MemberActions memberId={member.id} isOwner={member.is_owner} isActive={member.is_active} />
                         </td>
                       </tr>
                     );
