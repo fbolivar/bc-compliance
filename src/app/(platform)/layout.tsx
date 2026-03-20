@@ -20,7 +20,9 @@ export default async function PlatformLayout({
     redirect('/login');
   }
 
-  const orgName = (organization as { name?: string } | null)?.name || 'Mi Organizacion';
+  const org = organization as { name?: string; plan?: string } | null;
+  const orgName = org?.name || 'Mi Organizacion';
+  const orgPlan = org?.plan || 'starter';
 
   return (
     <div className="flex h-screen bg-slate-950">
@@ -30,12 +32,9 @@ export default async function PlatformLayout({
           <MobileSidebar isPlatformOwner={isPlatformOwner} />
           <div className="flex-1 min-w-0" />
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block text-right">
               <p className="text-[13px] font-medium text-slate-200 leading-tight">{orgName}</p>
-              <p className="text-[11px] text-slate-500 leading-tight">{user.email}</p>
+              <p className="text-[11px] text-slate-500 leading-tight capitalize">Plan {orgPlan}</p>
             </div>
             <span className="sm:hidden text-[13px] text-slate-300 truncate max-w-[150px]">{orgName}</span>
           </div>
