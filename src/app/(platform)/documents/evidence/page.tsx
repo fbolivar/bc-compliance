@@ -20,7 +20,7 @@ export default async function EvidencePage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/documents" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/documents" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -29,7 +29,7 @@ export default async function EvidencePage({ searchParams }: Props) {
         />
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         {evidence.length === 0 ? (
           <div className="py-16 text-center">
             <FileCheck className="w-8 h-8 text-slate-600 mx-auto mb-3" />
@@ -40,7 +40,7 @@ export default async function EvidencePage({ searchParams }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Codigo</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Nombre</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Tipo</th>
@@ -48,12 +48,12 @@ export default async function EvidencePage({ searchParams }: Props) {
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Fecha</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100">
                 {evidence.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-cyan-400">{ev.code}</td>
+                  <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-sky-600">{ev.code}</td>
                     <td className="px-4 py-3">
-                      <p className="text-sm text-slate-200">{ev.name}</p>
+                      <p className="text-sm text-slate-700">{ev.name}</p>
                       {ev.description && <p className="text-xs text-slate-500 truncate">{ev.description}</p>}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-400 capitalize">

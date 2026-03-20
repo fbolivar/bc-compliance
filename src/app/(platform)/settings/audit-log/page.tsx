@@ -10,7 +10,7 @@ interface Props {
 
 const ACTION_COLORS: Record<string, string> = {
   create: 'text-emerald-400 bg-emerald-400/10',
-  update: 'text-cyan-400 bg-cyan-400/10',
+  update: 'text-sky-600 bg-sky-50',
   delete: 'text-rose-400 bg-rose-400/10',
   login: 'text-blue-400 bg-blue-400/10',
   logout: 'text-slate-400 bg-slate-400/10',
@@ -41,7 +41,7 @@ export default async function AuditLogPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/settings" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/settings" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -57,11 +57,11 @@ export default async function AuditLogPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800">
+              <tr className="border-b border-slate-200">
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Fecha</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Accion</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Tabla</th>
@@ -69,7 +69,7 @@ export default async function AuditLogPage({ searchParams }: Props) {
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Descripcion</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50">
+            <tbody className="divide-y divide-slate-100">
               {logList.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-12 text-center">
@@ -82,7 +82,7 @@ export default async function AuditLogPage({ searchParams }: Props) {
                   const colorClass = ACTION_COLORS[action] || ACTION_COLORS.view;
 
                   return (
-                    <tr key={(log as Record<string, unknown>).id as string} className="hover:bg-slate-800/20 transition-colors">
+                    <tr key={(log as Record<string, unknown>).id as string} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap font-mono">
                         {new Date((log as Record<string, unknown>).created_at as string).toLocaleString('es-CO')}
                       </td>
@@ -109,17 +109,17 @@ export default async function AuditLogPage({ searchParams }: Props) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200">
             <p className="text-xs text-slate-500">{count} registros</p>
             <div className="flex items-center gap-2 text-xs">
               {page > 1 && (
-                <Link href={`/settings/audit-log?page=${page - 1}`} className="px-3 py-1 text-slate-400 border border-slate-700 rounded-lg hover:border-slate-600">
+                <Link href={`/settings/audit-log?page=${page - 1}`} className="px-3 py-1 text-slate-500 border border-slate-200 rounded-lg hover:border-slate-300">
                   Anterior
                 </Link>
               )}
               <span className="text-slate-500">Pagina {page} de {totalPages}</span>
               {page < totalPages && (
-                <Link href={`/settings/audit-log?page=${page + 1}`} className="px-3 py-1 text-slate-400 border border-slate-700 rounded-lg hover:border-slate-600">
+                <Link href={`/settings/audit-log?page=${page + 1}`} className="px-3 py-1 text-slate-500 border border-slate-200 rounded-lg hover:border-slate-300">
                   Siguiente
                 </Link>
               )}

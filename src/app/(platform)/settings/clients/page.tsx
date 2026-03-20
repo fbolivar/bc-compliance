@@ -30,7 +30,7 @@ export default async function SettingsClientsPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3 sm:gap-4">
-        <Link href="/settings" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/settings" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -50,24 +50,24 @@ export default async function SettingsClientsPage() {
         {/* Mobile cards */}
         <div className="md:hidden space-y-2">
           {clients.length === 0 ? (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 text-center">
+            <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-sm">
               <p className="text-sm text-slate-500">No hay clientes registrados</p>
             </div>
           ) : (
             clients.map((client) => (
-              <div key={client.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2">
+              <div key={client.id} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                    <Building2 className="w-5 h-5 text-cyan-400" />
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5 text-sky-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-200 font-medium truncate">{client.name}</p>
+                    <p className="text-sm text-slate-700 font-medium truncate">{client.name}</p>
                     <p className="text-xs text-slate-500 truncate">{client.owner_email || '-'}</p>
                   </div>
                   <StatusBadge status={client.is_active ? 'active' : 'inactive'} />
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 capitalize">{client.plan}</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 capitalize">{client.plan}</span>
                   <span>{new Date(client.created_at).toLocaleDateString('es-CO', { dateStyle: 'short' })}</span>
                 </div>
               </div>
@@ -76,10 +76,10 @@ export default async function SettingsClientsPage() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden md:block rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800">
+              <tr className="border-b border-slate-200">
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Organizacion</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Contacto</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Plan</th>
@@ -87,7 +87,7 @@ export default async function SettingsClientsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Fecha</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50">
+            <tbody className="divide-y divide-slate-100">
               {clients.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-12 text-center">
@@ -96,26 +96,26 @@ export default async function SettingsClientsPage() {
                 </tr>
               ) : (
                 clients.map((client) => (
-                  <tr key={client.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={client.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                          <Building2 className="w-4 h-4 text-cyan-400" />
+                        <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-sky-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-slate-200 font-medium">{client.name}</p>
+                          <p className="text-sm text-slate-700 font-medium">{client.name}</p>
                           <p className="text-xs text-slate-500">{client.industry || '-'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="text-sm text-slate-300">{client.owner_name || '-'}</p>
+                        <p className="text-sm text-slate-600">{client.owner_name || '-'}</p>
                         <p className="text-xs text-slate-500">{client.owner_email || '-'}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 border border-slate-200 capitalize">
                         {client.plan}
                       </span>
                     </td>

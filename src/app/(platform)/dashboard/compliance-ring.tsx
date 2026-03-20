@@ -12,7 +12,7 @@ interface ComplianceRingProps {
  */
 export function ComplianceRing({ value, color }: ComplianceRingProps) {
   const deg = value * 3.6;
-  const gradient = `conic-gradient(${color} ${deg}deg, rgba(30,41,59,0.5) 0deg)`;
+  const gradient = `conic-gradient(${color} ${deg}deg, rgba(226,232,240,0.8) 0deg)`;
 
   return (
     <span
@@ -21,8 +21,8 @@ export function ComplianceRing({ value, color }: ComplianceRingProps) {
       style={{ background: gradient }}
       aria-hidden="true"
     >
-      <span className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-slate-900 flex items-center justify-center">
-        <span className="text-lg sm:text-xl font-bold text-white">{value}%</span>
+      <span className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center">
+        <span className="text-lg sm:text-xl font-bold text-slate-700">{value}%</span>
       </span>
     </span>
   );

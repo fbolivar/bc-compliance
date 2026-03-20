@@ -81,8 +81,8 @@ export function RiskForm({ isOpen, onClose }: RiskFormProps) {
           <FormField label="Amenaza" name="threat_id" type="select" required options={threats} />
         </div>
 
-        <div className="pt-2 border-t border-slate-800">
-          <p className="text-xs font-medium text-cyan-400 uppercase tracking-wider mb-3">Degradacion por dimension (%)</p>
+        <div className="pt-2 border-t border-slate-200">
+          <p className="text-xs font-medium text-sky-600 uppercase tracking-wider mb-3">Degradacion por dimension (%)</p>
           <div className="grid grid-cols-5 gap-3">
             <FormField label="[C]" name="degradation_c" type="number" min={0} max={100} defaultValue={0} />
             <FormField label="[I]" name="degradation_i" type="number" min={0} max={100} defaultValue={0} />
@@ -106,10 +106,10 @@ export function RiskForm({ isOpen, onClose }: RiskFormProps) {
         )}
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
-          <button type="submit" disabled={loading} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50">
             {loading ? 'Guardando...' : 'Crear Riesgo'}
           </button>
         </div>

@@ -12,9 +12,9 @@ interface Props {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 py-3 border-b border-slate-800/50 last:border-0">
+    <div className="flex flex-col gap-1 py-3 border-b border-slate-100 last:border-0">
       <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-      <div className="text-sm text-slate-200">{value || <span className="text-slate-600">-</span>}</div>
+      <div className="text-sm text-slate-700">{value || <span className="text-slate-400">-</span>}</div>
     </div>
   );
 }
@@ -29,7 +29,7 @@ export default async function VendorDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/vendors" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/vendors" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -49,17 +49,17 @@ export default async function VendorDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h2>
-          <div className="divide-y divide-slate-800/50">
-            <DetailRow label="Codigo" value={<span className="font-mono text-cyan-400">{vendor.code}</span>} />
+          <div className="divide-y divide-slate-100">
+            <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{vendor.code}</span>} />
             <DetailRow label="Categoria" value={vendor.category?.replace(/_/g, ' ')} />
             <DetailRow label="Estado" value={<StatusBadge status={vendor.status} />} />
             <DetailRow label="Nivel de riesgo" value={vendor.risk_level ? <StatusBadge status={vendor.risk_level} /> : null} />
             <DetailRow label="Pais" value={vendor.country} />
             {vendor.website && (
               <DetailRow label="Sitio web" value={
-                <a href={vendor.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300">
+                <a href={vendor.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sky-500 hover:text-sky-600">
                   <Globe className="w-3.5 h-3.5" />
                   {vendor.website}
                 </a>
@@ -68,13 +68,13 @@ export default async function VendorDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Contacto y Contrato</h2>
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-slate-100">
             <DetailRow label="Contacto" value={vendor.contact_name} />
             {vendor.contact_email && (
               <DetailRow label="Email" value={
-                <a href={`mailto:${vendor.contact_email}`} className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300">
+                <a href={`mailto:${vendor.contact_email}`} className="flex items-center gap-1 text-sky-500 hover:text-sky-600">
                   <Mail className="w-3.5 h-3.5" />
                   {vendor.contact_email}
                 </a>
@@ -105,16 +105,16 @@ export default async function VendorDetailPage({ params }: Props) {
       </div>
 
       {vendor.description && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{vendor.description}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vendor.description}</p>
         </div>
       )}
 
       {vendor.sla_terms && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Terminos SLA</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{vendor.sla_terms}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vendor.sla_terms}</p>
         </div>
       )}
     </div>

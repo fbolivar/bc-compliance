@@ -30,7 +30,7 @@ export default async function SettingsPage() {
       description: 'Gestiona los miembros del equipo e invitaciones',
       href: '/settings/users',
       icon: Users,
-      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+      color: 'text-sky-600 bg-sky-50 border-sky-200',
     },
     {
       title: 'Roles y Permisos',
@@ -56,8 +56,8 @@ export default async function SettingsPage() {
       />
 
       {/* Organization Profile */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-6">
-        <h2 className="text-base font-semibold text-slate-200 mb-4">Perfil de la Organizacion</h2>
+      <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-700 mb-4">Perfil de la Organizacion</h2>
         {org && <OrgSettingsForm organization={org} />}
       </div>
 
@@ -69,17 +69,17 @@ export default async function SettingsPage() {
             <Link
               key={section.href}
               href={section.href}
-              className="group flex items-start gap-4 p-4 sm:p-5 bg-slate-900/50 border border-slate-800 rounded-xl hover:bg-slate-800/50 hover:border-slate-700 transition-all"
+              className="group flex items-start gap-4 p-4 sm:p-5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
             >
               <div className={`p-2.5 rounded-xl border ${section.color}`}>
                 <Icon className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                  <h3 className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
                     {section.title}
                   </h3>
-                  <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">{section.description}</p>
               </div>

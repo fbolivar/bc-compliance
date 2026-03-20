@@ -62,13 +62,13 @@ export function CreateClientSection() {
     setCopied(false);
   };
 
-  const inputClass = "w-full px-4 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50";
+  const inputClass = "w-full px-4 py-2.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-400";
 
   return (
     <>
       <button
         onClick={() => setShowForm(true)}
-        className="flex items-center gap-2 px-4 py-2.5 sm:py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2.5 sm:py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
       >
         <Plus className="w-4 h-4" />
         Crear cliente
@@ -82,11 +82,11 @@ export function CreateClientSection() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Email:</span>
-                  <span className="text-slate-200 font-mono">{result.email}</span>
+                  <span className="text-slate-700 font-mono">{result.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Password temporal:</span>
-                  <span className="text-slate-200 font-mono">{result.password}</span>
+                  <span className="text-slate-500">Password temporal:</span>
+                  <span className="text-slate-700 font-mono">{result.password}</span>
                 </div>
               </div>
             </div>
@@ -96,14 +96,14 @@ export function CreateClientSection() {
             <div className="flex gap-3">
               <button
                 onClick={copyCredentials}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-400 rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 rounded-lg transition-colors"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copiado' : 'Copiar credenciales'}
               </button>
               <button
                 onClick={handleClose}
-                className="px-4 py-2.5 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
               >
                 Cerrar
               </button>
@@ -118,7 +118,7 @@ export function CreateClientSection() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">
                 Nombre de la organizacion *
               </label>
               <div className="relative">
@@ -129,7 +129,7 @@ export function CreateClientSection() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
                   Email del admin *
                 </label>
                 <div className="relative">
@@ -138,7 +138,7 @@ export function CreateClientSection() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">
                   Nombre del contacto
                 </label>
                 <div className="relative">
@@ -150,14 +150,14 @@ export function CreateClientSection() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Industria</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Industria</label>
                 <select name="industry" className={inputClass}>
                   <option value="">Seleccionar...</option>
                   {industries.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Pais</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1.5">Pais</label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <select name="country" className={`${inputClass} pl-10`}>
@@ -169,16 +169,16 @@ export function CreateClientSection() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Plan</label>
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Plan</label>
               <div className="space-y-2">
                 {plans.map(p => (
                   <label
                     key={p.value}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50 cursor-pointer transition-colors has-[:checked]:border-cyan-500/50 has-[:checked]:bg-cyan-500/5"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white cursor-pointer transition-colors has-[:checked]:border-sky-400 has-[:checked]:bg-sky-50"
                   >
-                    <input type="radio" name="plan" value={p.value} defaultChecked={p.value === 'starter'} className="mt-0.5 accent-cyan-500" />
+                    <input type="radio" name="plan" value={p.value} defaultChecked={p.value === 'starter'} className="mt-0.5 accent-sky-500" />
                     <div>
-                      <p className="text-sm font-medium text-slate-200">{p.label}</p>
+                      <p className="text-sm font-medium text-slate-700">{p.label}</p>
                       <p className="text-xs text-slate-500">{p.desc}</p>
                     </div>
                   </label>
@@ -190,14 +190,14 @@ export function CreateClientSection() {
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {loading ? 'Creando...' : 'Crear cliente'}

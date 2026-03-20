@@ -58,8 +58,8 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
 
   if (checking) {
     return (
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center">
-        <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-8 h-8 border-2 border-sky-200 border-t-sky-500 rounded-full animate-spin mx-auto mb-4" />
         <p className="text-sm text-slate-400">Verificando invitacion...</p>
       </div>
     );
@@ -67,17 +67,17 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
 
   if (!invitation || invitation.status !== 'pending' || new Date(invitation.expires_at) < new Date()) {
     return (
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4 shadow-sm">
         <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto" />
         <div>
-          <h2 className="text-lg font-semibold text-white mb-1">Invitacion no valida</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-semibold text-slate-800 mb-1">Invitacion no valida</h2>
+          <p className="text-sm text-slate-500">
             Esta invitacion ha expirado, fue revocada o ya fue utilizada.
           </p>
         </div>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
         >
           Ir al login
         </Link>
@@ -87,13 +87,13 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
 
   if (success) {
     return (
-      <div className="bg-slate-900/80 border border-emerald-500/20 rounded-2xl p-8 text-center space-y-4">
-        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-          <Check className="w-8 h-8 text-emerald-400" />
+      <div className="bg-white border border-emerald-200 rounded-2xl p-8 text-center space-y-4 shadow-sm">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
+          <Check className="w-8 h-8 text-emerald-500" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white mb-1">Bienvenido</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-semibold text-slate-800 mb-1">Bienvenido</h2>
+          <p className="text-sm text-slate-500">
             Te has unido a {invitation.organizations?.name || 'la organizacion'} exitosamente.
             Redirigiendo al dashboard...
           </p>
@@ -104,17 +104,17 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
 
   if (error === 'login_required') {
     return (
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-4">
-        <LogIn className="w-12 h-12 text-cyan-400 mx-auto" />
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-4 shadow-sm">
+        <LogIn className="w-12 h-12 text-sky-500 mx-auto" />
         <div>
-          <h2 className="text-lg font-semibold text-white mb-1">Inicia sesion primero</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-semibold text-slate-800 mb-1">Inicia sesion primero</h2>
+          <p className="text-sm text-slate-500">
             Necesitas una cuenta para aceptar esta invitacion. Contacta al administrador si no tienes cuenta.
           </p>
         </div>
         <Link
           href={`/login?redirect=/invite/${token}`}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
         >
           <LogIn className="w-4 h-4" />
           Iniciar sesion
@@ -124,24 +124,24 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
   }
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
       <div className="space-y-4">
-        <div className="flex items-start justify-between gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+        <div className="flex items-start justify-between gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div>
             <p className="text-xs text-slate-500 mb-1">Organizacion</p>
-            <p className="text-sm font-medium text-white">{invitation.organizations?.name || '-'}</p>
+            <p className="text-sm font-medium text-slate-800">{invitation.organizations?.name || '-'}</p>
           </div>
-          <Shield className="w-5 h-5 text-cyan-400 shrink-0" />
+          <Shield className="w-5 h-5 text-sky-500 shrink-0" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <p className="text-xs text-slate-500 mb-1">Rol asignado</p>
-            <p className="text-sm font-medium text-white capitalize">{invitation.role.replace(/_/g, ' ')}</p>
+            <p className="text-sm font-medium text-slate-700 capitalize">{invitation.role.replace(/_/g, ' ')}</p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <p className="text-xs text-slate-500 mb-1">Email</p>
-            <p className="text-sm font-medium text-white truncate">{invitation.email}</p>
+            <p className="text-sm font-medium text-slate-700 truncate">{invitation.email}</p>
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@ export function AcceptInvitationClient({ token }: AcceptInvitationClientProps) {
       <button
         onClick={handleAccept}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
       >
         {loading ? (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

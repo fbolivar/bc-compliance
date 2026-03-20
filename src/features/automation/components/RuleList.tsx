@@ -29,7 +29,7 @@ const ACTION_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-cyan-400' },
+  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
   { key: 'name', label: 'Nombre' },
   {
     key: 'trigger_type',
@@ -56,7 +56,7 @@ const columns = [
     key: 'trigger_count',
     label: 'Ejecuciones',
     render: (item: AutomationRuleRow) => (
-      <span className="font-mono text-sm text-slate-300">{item.trigger_count ?? 0}</span>
+      <span className="font-mono text-sm text-slate-600">{item.trigger_count ?? 0}</span>
     ),
   },
 ];
@@ -101,7 +101,7 @@ export function RuleList({ data, count, page, pageSize }: Props) {
       <div className="flex justify-end">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nueva Regla
@@ -131,8 +131,8 @@ export function RuleList({ data, count, page, pageSize }: Props) {
           <FormField label="Descripcion" name="description" type="textarea" placeholder="Descripcion de la regla..." />
           <FormField label="Tipo de accion" name="action_type" type="select" required options={ACTION_OPTIONS} />
           <div className="flex items-center gap-2 pt-1">
-            <input type="checkbox" name="is_active" id="is_active" defaultChecked className="rounded bg-slate-800 border-slate-700 text-cyan-500" />
-            <label htmlFor="is_active" className="text-sm text-slate-400">Regla activa</label>
+            <input type="checkbox" name="is_active" id="is_active" defaultChecked className="rounded bg-white border-slate-300 text-sky-500" />
+            <label htmlFor="is_active" className="text-sm text-slate-600">Regla activa</label>
           </div>
 
           {error && (
@@ -141,13 +141,13 @@ export function RuleList({ data, count, page, pageSize }: Props) {
             </div>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
               {loading ? 'Guardando...' : 'Crear Regla'}
             </button>

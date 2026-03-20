@@ -67,10 +67,10 @@ export default async function DashboardPage() {
       value: String(assetCount),
       href: '/assets',
       icon: Server,
-      color: 'text-cyan-400',
-      bg: 'bg-cyan-400/10',
-      border: 'border-cyan-400/20',
-      accent: 'from-cyan-500/40',
+      color: 'text-sky-500',
+      bg: 'bg-sky-50',
+      border: 'border-sky-200',
+      accent: 'from-sky-400/40',
     },
     {
       label: 'Riesgos Criticos + Altos',
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
     globalCompliance >= 80
       ? 'text-emerald-400'
       : globalCompliance >= 60
-      ? 'text-cyan-400'
+      ? 'text-sky-500'
       : globalCompliance >= 40
       ? 'text-amber-400'
       : 'text-rose-400';

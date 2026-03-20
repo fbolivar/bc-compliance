@@ -28,7 +28,7 @@ export function UsersPageClient({ invitations, siteUrl }: UsersPageClientProps) 
     <>
       <button
         onClick={() => setShowInvite(true)}
-        className="flex items-center gap-2 px-4 py-2.5 sm:py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+        className="flex items-center gap-2 px-4 py-2.5 sm:py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
       >
         <UserPlus className="w-4 h-4" />
         Invitar usuario

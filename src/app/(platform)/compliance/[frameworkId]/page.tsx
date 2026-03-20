@@ -35,7 +35,7 @@ export default async function FrameworkDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/compliance" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/compliance" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -45,23 +45,23 @@ export default async function FrameworkDetailPage({ params }: Props) {
       </div>
 
       {sectionKeys.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 py-16 text-center">
+        <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-sm">
           <p className="text-sm text-slate-500">No hay requisitos registrados para este framework</p>
         </div>
       ) : (
         sectionKeys.map((section) => (
-          <div key={section} className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-800 bg-slate-800/30">
-              <h2 className="text-sm font-semibold text-slate-300">{section}</h2>
+          <div key={section} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+              <h2 className="text-sm font-semibold text-slate-700">{section}</h2>
               <p className="text-xs text-slate-500">{sections[section].length} requisitos</p>
             </div>
-            <div className="divide-y divide-slate-800/50">
+            <div className="divide-y divide-slate-100">
               {sections[section].map((req) => (
-                <div key={req.id} className="px-4 py-3 hover:bg-slate-800/20 transition-colors">
+                <div key={req.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                   <div className="flex items-start gap-4">
-                    <span className="font-mono text-xs text-cyan-400 w-20 shrink-0 mt-0.5">{req.code}</span>
+                    <span className="font-mono text-xs text-sky-600 w-20 shrink-0 mt-0.5">{req.code}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-200">{req.title}</p>
+                      <p className="text-sm font-medium text-slate-700">{req.title}</p>
                       {req.description && (
                         <p className="mt-0.5 text-xs text-slate-500 line-clamp-2">{req.description}</p>
                       )}

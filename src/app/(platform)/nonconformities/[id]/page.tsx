@@ -12,9 +12,9 @@ interface Props {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 py-3 border-b border-slate-800/50 last:border-0">
+    <div className="flex flex-col gap-1 py-3 border-b border-slate-100 last:border-0">
       <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-      <div className="text-sm text-slate-200">{value || <span className="text-slate-600">-</span>}</div>
+      <div className="text-sm text-slate-700">{value || <span className="text-slate-400">-</span>}</div>
     </div>
   );
 }
@@ -29,7 +29,7 @@ export default async function NCDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/nonconformities" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/nonconformities" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -45,10 +45,10 @@ export default async function NCDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h2>
-          <div className="divide-y divide-slate-800/50">
-            <DetailRow label="Codigo" value={<span className="font-mono text-cyan-400">{nc.code}</span>} />
+          <div className="divide-y divide-slate-100">
+            <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{nc.code}</span>} />
             <DetailRow label="Tipo" value={<StatusBadge status={nc.type} />} />
             <DetailRow label="Severidad" value={<StatusBadge status={nc.severity} />} />
             <DetailRow label="Estado" value={<StatusBadge status={nc.status} />} />
@@ -56,9 +56,9 @@ export default async function NCDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Fechas</h2>
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-slate-100">
             <DetailRow label="Fecha de deteccion" value={nc.detected_date ? (
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />
@@ -83,31 +83,31 @@ export default async function NCDetailPage({ params }: Props) {
       </div>
 
       {nc.description && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{nc.description}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{nc.description}</p>
         </div>
       )}
 
       {nc.root_cause && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Causa Raiz</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{nc.root_cause}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{nc.root_cause}</p>
         </div>
       )}
 
       {(nc.corrective_action || nc.preventive_action) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {nc.corrective_action && (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Accion Correctiva</h2>
-              <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{nc.corrective_action}</p>
+              <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{nc.corrective_action}</p>
             </div>
           )}
           {nc.preventive_action && (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Accion Preventiva</h2>
-              <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{nc.preventive_action}</p>
+              <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{nc.preventive_action}</p>
             </div>
           )}
         </div>

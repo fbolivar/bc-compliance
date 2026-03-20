@@ -37,7 +37,7 @@ const RISK_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-cyan-400' },
+  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
   { key: 'name', label: 'Proveedor' },
   {
     key: 'category',
@@ -98,7 +98,7 @@ export function VendorList({ data, count, page, pageSize }: Props) {
       <div className="flex justify-end">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nuevo Proveedor
@@ -142,8 +142,8 @@ export function VendorList({ data, count, page, pageSize }: Props) {
             <FormField label="Fin contrato" name="contract_end" type="date" />
           </div>
           <div className="flex items-center gap-2 pt-1">
-            <input type="checkbox" name="data_processing" id="data_processing" className="rounded bg-slate-800 border-slate-700 text-cyan-500" />
-            <label htmlFor="data_processing" className="text-sm text-slate-400">Procesa datos personales (requiere DPA)</label>
+            <input type="checkbox" name="data_processing" id="data_processing" className="rounded bg-white border-slate-300 text-sky-500" />
+            <label htmlFor="data_processing" className="text-sm text-slate-600">Procesa datos personales (requiere DPA)</label>
           </div>
 
           {error && (
@@ -152,13 +152,13 @@ export function VendorList({ data, count, page, pageSize }: Props) {
             </div>
           )}
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
               {loading ? 'Guardando...' : 'Crear Proveedor'}
             </button>

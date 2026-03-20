@@ -31,7 +31,7 @@ export default async function AssetDetailPage({ params }: Props) {
   if (!asset) notFound();
 
   const mageritValues = [
-    { label: 'Confidencialidad', value: asset.val_confidentiality, color: 'text-cyan-400' },
+    { label: 'Confidencialidad', value: asset.val_confidentiality, color: 'text-sky-600' },
     { label: 'Integridad', value: asset.val_integrity, color: 'text-blue-400' },
     { label: 'Disponibilidad', value: asset.val_availability, color: 'text-emerald-400' },
     { label: 'Autenticidad', value: asset.val_authenticity, color: 'text-amber-400' },
@@ -41,7 +41,7 @@ export default async function AssetDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/assets" className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/assets" className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <PageHeader title={asset.name} description={`${asset.code} - ${asset.asset_type}`} />
@@ -50,12 +50,12 @@ export default async function AssetDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main info */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h3>
             <dl className="grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-xs text-slate-500">Tipo</dt>
-                <dd className="text-sm text-slate-200 capitalize">{asset.asset_type.replace('_', ' ')}</dd>
+                <dd className="text-sm text-slate-700 capitalize">{asset.asset_type.replace('_', ' ')}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Estado</dt>
@@ -67,36 +67,36 @@ export default async function AssetDetailPage({ params }: Props) {
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Departamento</dt>
-                <dd className="text-sm text-slate-200">{asset.department || '-'}</dd>
+                <dd className="text-sm text-slate-700">{asset.department || '-'}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Ubicacion</dt>
-                <dd className="text-sm text-slate-200">{asset.location || '-'}</dd>
+                <dd className="text-sm text-slate-700">{asset.location || '-'}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Clasificacion</dt>
-                <dd className="text-sm text-slate-200 capitalize">{asset.data_classification || '-'}</dd>
+                <dd className="text-sm text-slate-700 capitalize">{asset.data_classification || '-'}</dd>
               </div>
             </dl>
             {asset.description && (
-              <dl className="mt-4 pt-4 border-t border-slate-800">
+              <dl className="mt-4 pt-4 border-t border-slate-200">
                 <dt className="text-xs text-slate-500 mb-1">Descripcion</dt>
-                <dd className="text-sm text-slate-300">{asset.description}</dd>
+                <dd className="text-sm text-slate-600">{asset.description}</dd>
               </dl>
             )}
           </div>
 
           {/* Technical info */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion Tecnica</h3>
             <dl className="grid grid-cols-2 gap-4">
               <div>
                 <dt className="text-xs text-slate-500">IP</dt>
-                <dd className="text-sm font-mono text-slate-200">{asset.ip_address || '-'}</dd>
+                <dd className="text-sm font-mono text-slate-700">{asset.ip_address || '-'}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Hostname</dt>
-                <dd className="text-sm font-mono text-slate-200">{asset.hostname || '-'}</dd>
+                <dd className="text-sm font-mono text-slate-700">{asset.hostname || '-'}</dd>
               </div>
             </dl>
           </div>
@@ -123,14 +123,14 @@ export default async function AssetDetailPage({ params }: Props) {
 
         {/* MAGERIT sidebar */}
         <div className="space-y-6">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-4">Valoracion MAGERIT</h3>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <h3 className="text-sm font-semibold text-sky-600 uppercase tracking-wider mb-4">Valoracion MAGERIT</h3>
             <div className="space-y-3">
               {mageritValues.map(v => (
                 <div key={v.label} className="flex items-center justify-between">
                   <span className="text-xs text-slate-400">{v.label}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 rounded-full bg-slate-800">
+                    <div className="w-24 h-2 rounded-full bg-slate-100">
                       <div
                         className={`h-full rounded-full bg-current ${v.color} ${MAGERIT_WIDTH[Math.min(10, Math.max(0, Math.round(v.value)))] ?? 'w-0'}`}
                       />
@@ -142,7 +142,7 @@ export default async function AssetDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Metadatos</h3>
             <dl className="space-y-2">
               <div className="flex justify-between">

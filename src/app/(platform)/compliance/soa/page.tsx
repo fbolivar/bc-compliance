@@ -41,9 +41,9 @@ export default async function SoaPage() {
       />
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs text-slate-500">Total Entradas SOA</p>
-          <p className="text-3xl font-bold text-slate-200 mt-1">{soaEntries.length}</p>
+          <p className="text-3xl font-bold text-slate-700 mt-1">{soaEntries.length}</p>
         </div>
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <p className="text-xs text-emerald-400">Implementados</p>
@@ -60,16 +60,16 @@ export default async function SoaPage() {
       </div>
 
       {soaEntries.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 py-16 text-center">
+        <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-sm">
           <p className="text-sm text-slate-500">No hay entradas SOA registradas</p>
-          <p className="text-xs text-slate-600 mt-1">Las entradas SOA se generan al mapear controles a requisitos de frameworks</p>
+          <p className="text-xs text-slate-400 mt-1">Las entradas SOA se generan al mapear controles a requisitos de frameworks</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Framework</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Requisito</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Control</th>
@@ -78,27 +78,27 @@ export default async function SoaPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Justificacion</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100">
                 {soaEntries.map((entry) => {
                   const req = reqMap.get(entry.requirement_id);
                   const ctrl = entry.control_id ? ctrlMap.get(entry.control_id) : null;
                   const fw = req ? (req as unknown as { frameworks?: { name: string } }).frameworks : null;
 
                   return (
-                    <tr key={entry.id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3 text-sm text-slate-400">{fw?.name || '-'}</td>
                       <td className="px-4 py-3">
-                        <p className="font-mono text-xs text-cyan-400">{req?.code}</p>
-                        <p className="text-sm text-slate-300">{req?.title}</p>
+                        <p className="font-mono text-xs text-sky-600">{req?.code}</p>
+                        <p className="text-sm text-slate-600">{req?.title}</p>
                       </td>
                       <td className="px-4 py-3">
                         {ctrl ? (
                           <>
                             <p className="font-mono text-xs text-slate-500">{ctrl.code}</p>
-                            <p className="text-sm text-slate-300">{ctrl.name}</p>
+                            <p className="text-sm text-slate-600">{ctrl.name}</p>
                           </>
                         ) : (
-                          <span className="text-slate-600 text-sm">-</span>
+                          <span className="text-slate-400 text-sm">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3">

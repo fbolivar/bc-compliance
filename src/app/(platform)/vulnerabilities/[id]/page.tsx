@@ -12,9 +12,9 @@ interface Props {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 py-3 border-b border-slate-800/50 last:border-0">
+    <div className="flex flex-col gap-1 py-3 border-b border-slate-100 last:border-0">
       <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-      <div className="text-sm text-slate-200">{value || <span className="text-slate-600">-</span>}</div>
+      <div className="text-sm text-slate-700">{value || <span className="text-slate-400">-</span>}</div>
     </div>
   );
 }
@@ -29,7 +29,7 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/vulnerabilities" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/vulnerabilities" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -42,7 +42,7 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
         <StatusBadge status={vuln.severity} />
         <StatusBadge status={vuln.status} />
         {vuln.cvss_score !== null && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-slate-100 text-slate-500 border border-slate-200">
             <Shield className="w-3 h-3" />
             CVSS {vuln.cvss_score}
           </span>
@@ -50,10 +50,10 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h2>
-          <div className="divide-y divide-slate-800/50">
-            <DetailRow label="Codigo" value={<span className="font-mono text-cyan-400">{vuln.code}</span>} />
+          <div className="divide-y divide-slate-100">
+            <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{vuln.code}</span>} />
             <DetailRow label="ID CVE" value={vuln.cve_id ? (
               <span className="font-mono text-amber-400">{vuln.cve_id}</span>
             ) : null} />
@@ -65,9 +65,9 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Fechas</h2>
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-slate-100">
             <DetailRow label="Fecha de descubrimiento" value={vuln.discovery_date ? (
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />
@@ -87,16 +87,16 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
       </div>
 
       {vuln.description && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{vuln.description}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vuln.description}</p>
         </div>
       )}
 
       {vuln.remediation_notes && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Notas de Remediacion</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{vuln.remediation_notes}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{vuln.remediation_notes}</p>
         </div>
       )}
     </div>

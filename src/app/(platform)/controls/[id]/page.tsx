@@ -12,9 +12,9 @@ interface Props {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 py-3 border-b border-slate-800/50 last:border-0">
+    <div className="flex flex-col gap-1 py-3 border-b border-slate-100 last:border-0">
       <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-      <div className="text-sm text-slate-200">{value || <span className="text-slate-600">-</span>}</div>
+      <div className="text-sm text-slate-700">{value || <span className="text-slate-400">-</span>}</div>
     </div>
   );
 }
@@ -29,7 +29,7 @@ export default async function ControlDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/controls" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/controls" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -44,10 +44,10 @@ export default async function ControlDetailPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Informacion General</h2>
-          <div className="divide-y divide-slate-800/50">
-            <DetailRow label="Codigo" value={<span className="font-mono text-cyan-400">{control.code}</span>} />
+          <div className="divide-y divide-slate-100">
+            <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{control.code}</span>} />
             <DetailRow label="Tipo" value={control.control_type?.replace(/_/g, ' ')} />
             <DetailRow label="Categoria" value={control.category} />
             <DetailRow label="Estado" value={<StatusBadge status={control.status} />} />
@@ -57,9 +57,9 @@ export default async function ControlDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Revision y Fechas</h2>
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-slate-100">
             <DetailRow label="Ultima revision" value={control.last_review_date ? (
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />
@@ -82,9 +82,9 @@ export default async function ControlDetailPage({ params }: Props) {
       </div>
 
       {control.description && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{control.description}</p>
+          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{control.description}</p>
         </div>
       )}
     </div>

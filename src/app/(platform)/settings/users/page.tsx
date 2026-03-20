@@ -31,7 +31,7 @@ export default async function SettingsUsersPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3 sm:gap-4">
-        <Link href="/settings" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/settings" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -45,25 +45,25 @@ export default async function SettingsUsersPage() {
 
       {/* Members Table */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider px-1 mb-3">
+        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider px-1 mb-3">
           Miembros activos ({memberList.length})
         </h3>
 
         {/* Mobile cards */}
         <div className="md:hidden space-y-2">
           {memberList.length === 0 ? (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 text-center">
+            <div className="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-sm">
               <p className="text-sm text-slate-500">No hay miembros registrados</p>
             </div>
           ) : (
             memberList.map((member) => {
               const profile = member.profiles as { email?: string; full_name?: string } | null;
               return (
-                <div key={member.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2">
+                <div key={member.id} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-sm">
                   <div className="flex items-center gap-3">
                     <UserCircle className="w-8 h-8 text-slate-600 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-slate-200 font-medium truncate">
+                      <p className="text-sm text-slate-700 font-medium truncate">
                         {profile?.full_name || profile?.email || 'Sin nombre'}
                       </p>
                       <p className="text-xs text-slate-500 truncate">{profile?.email || member.user_id}</p>
@@ -71,7 +71,7 @@ export default async function SettingsUsersPage() {
                     <StatusBadge status={member.is_active ? 'active' : 'inactive'} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 capitalize">
+                    <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 capitalize">
                       {member.is_owner ? 'Owner' : (member.role?.replace(/_/g, ' ') || 'viewer')}
                     </span>
                     <span>
@@ -87,18 +87,18 @@ export default async function SettingsUsersPage() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden md:block rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Usuario</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Rol</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estado</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Fecha union</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100">
                 {memberList.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-4 py-12 text-center">
@@ -109,12 +109,12 @@ export default async function SettingsUsersPage() {
                   memberList.map((member) => {
                     const profile = member.profiles as { email?: string; full_name?: string } | null;
                     return (
-                      <tr key={member.id} className="hover:bg-slate-800/30 transition-colors">
+                      <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <UserCircle className="w-8 h-8 text-slate-600" />
                             <div>
-                              <p className="text-sm text-slate-200 font-medium">
+                              <p className="text-sm text-slate-700 font-medium">
                                 {profile?.full_name || 'Sin nombre'}
                               </p>
                               <p className="text-xs text-slate-500">{profile?.email || member.user_id}</p>
@@ -122,7 +122,7 @@ export default async function SettingsUsersPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                          <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 border border-slate-200 capitalize">
                             {member.is_owner ? 'Owner' : (member.role?.replace(/_/g, ' ') || 'viewer')}
                           </span>
                         </td>

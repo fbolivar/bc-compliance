@@ -32,8 +32,8 @@ export default async function ControlsMappingPage() {
         description="Mapeo de controles a requisitos de frameworks normativos"
       />
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+        <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <p className="text-sm text-slate-400">{items.length} mapeos registrados</p>
         </div>
 
@@ -46,23 +46,23 @@ export default async function ControlsMappingPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Control</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Framework</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Requisito</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Cobertura</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100">
                 {items.map((mapping) => {
                   const control = mapping.controls as unknown as { code: string; name: string; status: string } | null;
                   const req = mapping.framework_requirements as unknown as { code: string; title: string; frameworks: { name: string } | null } | null;
 
                   return (
-                    <tr key={mapping.id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={mapping.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-mono text-xs text-cyan-400">{control?.code}</p>
-                        <p className="text-sm text-slate-300">{control?.name}</p>
+                        <p className="font-mono text-xs text-sky-600">{control?.code}</p>
+                        <p className="text-sm text-slate-600">{control?.name}</p>
                         {control?.status && <StatusBadge status={control.status} />}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-400">
@@ -70,7 +70,7 @@ export default async function ControlsMappingPage() {
                       </td>
                       <td className="px-4 py-3">
                         <p className="font-mono text-xs text-slate-500">{req?.code}</p>
-                        <p className="text-sm text-slate-300">{req?.title}</p>
+                        <p className="text-sm text-slate-600">{req?.title}</p>
                       </td>
                       <td className="px-4 py-3">
                         {mapping.coverage ? <StatusBadge status={mapping.coverage as string} /> : <span className="text-slate-600">-</span>}

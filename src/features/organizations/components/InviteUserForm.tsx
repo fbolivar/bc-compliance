@@ -59,7 +59,7 @@ export function InviteUserForm({ isOpen, onClose }: InviteUserFormProps) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-600 mb-1.5">
             Email del invitado
           </label>
           <div className="relative">
@@ -69,30 +69,30 @@ export function InviteUserForm({ isOpen, onClose }: InviteUserFormProps) {
               name="email"
               required
               placeholder="usuario@empresa.com"
-              className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50"
+              className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-400"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-600 mb-1.5">
             Rol
           </label>
           <div className="space-y-2">
             {roles.map(role => (
               <label
                 key={role.value}
-                className="flex items-start gap-3 p-3 rounded-lg border border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50 cursor-pointer transition-colors has-[:checked]:border-cyan-500/50 has-[:checked]:bg-cyan-500/5"
+                className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white cursor-pointer transition-colors has-[:checked]:border-sky-400 has-[:checked]:bg-sky-50"
               >
                 <input
                   type="radio"
                   name="role"
                   value={role.value}
                   defaultChecked={role.value === 'viewer'}
-                  className="mt-0.5 accent-cyan-500"
+                  className="mt-0.5 accent-sky-500"
                 />
                 <div>
-                  <p className="text-sm font-medium text-slate-200">{role.label}</p>
+                  <p className="text-sm font-medium text-slate-700">{role.label}</p>
                   <p className="text-xs text-slate-500">{role.desc}</p>
                 </div>
               </label>
@@ -101,14 +101,14 @@ export function InviteUserForm({ isOpen, onClose }: InviteUserFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label className="block text-sm font-medium text-slate-600 mb-1.5">
             Mensaje (opcional)
           </label>
           <textarea
             name="message"
             rows={2}
             placeholder="Bienvenido al equipo..."
-            className="w-full px-4 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 resize-none"
+            className="w-full px-4 py-2.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 resize-none"
           />
         </div>
 
@@ -116,14 +116,14 @@ export function InviteUserForm({ isOpen, onClose }: InviteUserFormProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={loading || success}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

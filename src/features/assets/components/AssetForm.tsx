@@ -99,8 +99,8 @@ export function AssetForm({ isOpen, onClose, editData }: AssetFormProps) {
         </div>
 
         {/* MAGERIT Valuation */}
-        <div className="pt-2 border-t border-slate-800">
-          <p className="text-xs font-medium text-cyan-400 uppercase tracking-wider mb-3">Valoracion MAGERIT (0-10)</p>
+        <div className="pt-2 border-t border-slate-200">
+          <p className="text-xs font-medium text-sky-600 uppercase tracking-wider mb-3">Valoracion MAGERIT (0-10)</p>
           <div className="grid grid-cols-5 gap-3">
             <FormField label="[C]" name="val_confidentiality" type="number" min={0} max={10} defaultValue={editData?.val_confidentiality as number || 0} />
             <FormField label="[I]" name="val_integrity" type="number" min={0} max={10} defaultValue={editData?.val_integrity as number || 0} />
@@ -112,16 +112,16 @@ export function AssetForm({ isOpen, onClose, editData }: AssetFormProps) {
 
         {/* Checkboxes */}
         <div className="flex items-center gap-6 pt-2">
-          <label className="flex items-center gap-2 text-sm text-slate-400">
-            <input type="checkbox" name="is_critical" defaultChecked={editData?.is_critical as boolean} className="rounded bg-slate-800 border-slate-700 text-cyan-500" />
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" name="is_critical" defaultChecked={editData?.is_critical as boolean} className="rounded bg-white border-slate-300 text-sky-500" />
             Activo critico
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-400">
-            <input type="checkbox" name="pii_data" defaultChecked={editData?.pii_data as boolean} className="rounded bg-slate-800 border-slate-700 text-cyan-500" />
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" name="pii_data" defaultChecked={editData?.pii_data as boolean} className="rounded bg-white border-slate-300 text-sky-500" />
             Datos PII
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-400">
-            <input type="checkbox" name="financial_data" defaultChecked={editData?.financial_data as boolean} className="rounded bg-slate-800 border-slate-700 text-cyan-500" />
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" name="financial_data" defaultChecked={editData?.financial_data as boolean} className="rounded bg-white border-slate-300 text-sky-500" />
             Datos financieros
           </label>
         </div>
@@ -133,13 +133,13 @@ export function AssetForm({ isOpen, onClose, editData }: AssetFormProps) {
         )}
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? 'Guardando...' : isEdit ? 'Actualizar' : 'Crear Activo'}
           </button>

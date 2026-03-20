@@ -23,7 +23,7 @@ const SYSTEM_ROLES = [
     label: 'Gestor de Compliance',
     description: 'Gestion de frameworks, SOA, auditorias y reportes de cumplimiento.',
     permissions: ['Compliance', 'Auditorias', 'Documentos', 'Riesgos (lectura)'],
-    color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20',
+    color: 'text-sky-600 bg-sky-50 border-sky-200',
   },
   {
     role: 'risk_analyst',
@@ -54,7 +54,7 @@ export default async function SettingsRolesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/settings" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/settings" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -65,20 +65,20 @@ export default async function SettingsRolesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {SYSTEM_ROLES.map((roleInfo) => (
-          <div key={roleInfo.role} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+          <div key={roleInfo.role} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start gap-3 mb-3">
               <div className={`p-2 rounded-lg border ${roleInfo.color}`}>
                 <Shield className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-200">{roleInfo.label}</h3>
+                <h3 className="text-sm font-semibold text-slate-700">{roleInfo.label}</h3>
                 <p className="text-xs font-mono text-slate-500">{roleInfo.role}</p>
               </div>
             </div>
             <p className="text-xs text-slate-400 mb-3">{roleInfo.description}</p>
             <div className="flex flex-wrap gap-1.5">
               {roleInfo.permissions.map((perm) => (
-                <span key={perm} className="px-2 py-0.5 rounded-md text-xs bg-slate-800 text-slate-400 border border-slate-700">
+                <span key={perm} className="px-2 py-0.5 rounded-md text-xs bg-slate-100 text-slate-500 border border-slate-200">
                   {perm}
                 </span>
               ))}

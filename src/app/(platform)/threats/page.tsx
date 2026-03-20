@@ -51,27 +51,27 @@ export default async function ThreatsPage() {
       </div>
 
       {origins.map((origin) => (
-        <div key={origin} className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-3">
+        <div key={origin} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
             <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${ORIGIN_COLORS[origin] || ORIGIN_COLORS.other}`}>
               {ORIGIN_LABELS[origin] || origin}
             </span>
             <span className="text-sm text-slate-500">{grouped[origin].length} amenazas</span>
           </div>
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-slate-100">
             {grouped[origin].map((threat) => (
-              <div key={threat.id} className="px-4 py-3 hover:bg-slate-800/30 transition-colors">
+              <div key={threat.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                 <div className="flex items-start gap-4">
-                  <span className="font-mono text-xs text-cyan-400 w-20 shrink-0 mt-0.5">{threat.code}</span>
+                  <span className="font-mono text-xs text-sky-600 w-20 shrink-0 mt-0.5">{threat.code}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-200">{threat.name}</p>
+                    <p className="text-sm font-medium text-slate-700">{threat.name}</p>
                     {threat.description && (
                       <p className="mt-0.5 text-xs text-slate-500 line-clamp-2">{threat.description}</p>
                     )}
                     {threat.affected_dimensions && threat.affected_dimensions.length > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {threat.affected_dimensions.map((dim) => (
-                          <span key={dim} className="px-1.5 py-0.5 rounded text-xs bg-slate-800 text-slate-400 font-mono">
+                          <span key={dim} className="px-1.5 py-0.5 rounded text-xs bg-slate-100 text-slate-500 font-mono">
                             [{dim}]
                           </span>
                         ))}
@@ -89,9 +89,9 @@ export default async function ThreatsPage() {
       ))}
 
       {threats.length === 0 && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 py-16 text-center">
+        <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-sm">
           <p className="text-slate-500 text-sm">No hay amenazas en el catalogo</p>
-          <p className="text-slate-600 text-xs mt-1">El catalogo MAGERIT se carga durante la configuracion inicial</p>
+          <p className="text-slate-400 text-xs mt-1">El catalogo MAGERIT se carga durante la configuracion inicial</p>
         </div>
       )}
     </div>

@@ -21,12 +21,12 @@ export function RiskList({ data, count, page, pageSize }: RiskListProps) {
     {
       key: 'code',
       label: 'Codigo',
-      render: (item: RiskRow) => <span className="font-mono text-cyan-400">{item.code}</span>,
+      render: (item: RiskRow) => <span className="font-mono text-sky-600">{item.code}</span>,
     },
     {
       key: 'name',
       label: 'Escenario',
-      render: (item: RiskRow) => <span className="font-medium text-slate-200">{item.name}</span>,
+      render: (item: RiskRow) => <span className="font-medium text-slate-700">{item.name}</span>,
     },
     {
       key: 'asset',
@@ -57,8 +57,8 @@ export function RiskList({ data, count, page, pageSize }: RiskListProps) {
       label: 'Valor',
       render: (item: RiskRow) => (
         <div className="text-right">
-          <span className="font-mono text-sm text-slate-300">{Number(item.risk_residual).toFixed(1)}</span>
-          <span className="text-xs text-slate-600 ml-1">/ {Number(item.risk_potential).toFixed(1)}</span>
+          <span className="font-mono text-sm text-slate-600">{Number(item.risk_residual).toFixed(1)}</span>
+          <span className="text-xs text-slate-400 ml-1">/ {Number(item.risk_potential).toFixed(1)}</span>
         </div>
       ),
     },
@@ -76,7 +76,7 @@ export function RiskList({ data, count, page, pageSize }: RiskListProps) {
       <div className="mb-4 flex justify-end">
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
         >
           + Nuevo Riesgo
         </button>

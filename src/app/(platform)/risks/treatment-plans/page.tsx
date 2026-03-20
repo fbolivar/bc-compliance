@@ -24,7 +24,7 @@ export default async function RiskTreatmentPlansPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/risks" className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
+        <Link href="/risks" className="p-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader
@@ -50,7 +50,7 @@ export default async function RiskTreatmentPlansPage() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         {planList.length === 0 ? (
           <div className="py-16 text-center">
             <Shield className="w-8 h-8 text-slate-600 mx-auto mb-3" />
@@ -61,7 +61,7 @@ export default async function RiskTreatmentPlansPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Riesgo</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estrategia</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estado</th>
@@ -69,17 +69,17 @@ export default async function RiskTreatmentPlansPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Vencimiento</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-slate-100">
                 {planList.map((plan) => {
                   const p = plan as Record<string, unknown>;
                   const risk = p.risk_scenarios as { code: string; name: string; risk_level: string } | null;
 
                   return (
-                    <tr key={p.id as string} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={p.id as string} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
                         {risk ? (
                           <>
-                            <Link href={`/risks/${risk.code}`} className="text-sm font-medium text-slate-200 hover:text-cyan-400 transition-colors">
+                            <Link href={`/risks/${risk.code}`} className="text-sm font-medium text-slate-700 hover:text-sky-500 transition-colors">
                               {risk.name}
                             </Link>
                             <div className="mt-0.5">
@@ -91,7 +91,7 @@ export default async function RiskTreatmentPlansPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300 capitalize">
+                        <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600 capitalize">
                           {String(p.treatment_strategy || '-').replace(/_/g, ' ')}
                         </span>
                       </td>

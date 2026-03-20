@@ -152,8 +152,8 @@ export function OrgSettingsForm({ organization }: OrgSettingsFormProps) {
     setLoading(false);
   };
 
-  const inputClass = "w-full px-4 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 transition-colors";
-  const labelClass = "block text-sm font-medium text-slate-300 mb-1.5";
+  const inputClass = "w-full px-4 py-2.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 transition-colors";
+  const labelClass = "block text-sm font-medium text-slate-600 mb-1.5";
 
   return (
     <div className="space-y-6">
@@ -170,7 +170,7 @@ export function OrgSettingsForm({ organization }: OrgSettingsFormProps) {
       {/* Logo Upload */}
       <div className="flex flex-col sm:flex-row items-start gap-4">
         <div className="relative group">
-          <div className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/50 flex items-center justify-center overflow-hidden">
+          <div className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden">
             {logoUrl ? (
               <img
                 src={logoUrl}
@@ -178,7 +178,7 @@ export function OrgSettingsForm({ organization }: OrgSettingsFormProps) {
                 className="w-full h-full object-contain p-1"
               />
             ) : (
-              <ImageIcon className="w-8 h-8 text-slate-600" />
+              <ImageIcon className="w-8 h-8 text-slate-400" />
             )}
           </div>
           {logoUrl && (
@@ -198,7 +198,7 @@ export function OrgSettingsForm({ organization }: OrgSettingsFormProps) {
           <p className="text-xs text-slate-500 mb-2">
             PNG, JPG, SVG o WebP. Maximo 2MB. Se usara en reportes y documentos.
           </p>
-          <label className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg cursor-pointer transition-colors">
+          <label className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg cursor-pointer transition-colors">
             {uploading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
@@ -272,15 +272,15 @@ export function OrgSettingsForm({ organization }: OrgSettingsFormProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Building2 className="w-4 h-4" />
-            <span>Plan: <span className="text-cyan-400 capitalize">{organization.plan}</span></span>
+            <span>Plan: <span className="text-sky-500 capitalize">{organization.plan}</span></span>
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 sm:py-2 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 sm:py-2 text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 rounded-lg transition-colors"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Guardar cambios

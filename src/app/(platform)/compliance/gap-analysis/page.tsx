@@ -37,9 +37,9 @@ export default async function GapAnalysisPage() {
           <p className="text-xs text-amber-400 font-medium uppercase tracking-wider">Parcialmente Implementados</p>
           <p className="text-3xl font-bold text-amber-400 mt-1">{byStatus.partially_implemented.length}</p>
         </div>
-        <div className="rounded-xl border border-slate-500/20 bg-slate-800/50 p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Sin Evaluar</p>
-          <p className="text-3xl font-bold text-slate-300 mt-1">{byStatus.not_assessed.length}</p>
+          <p className="text-3xl font-bold text-slate-600 mt-1">{byStatus.not_assessed.length}</p>
         </div>
       </div>
 
@@ -50,23 +50,23 @@ export default async function GapAnalysisPage() {
         </div>
       ) : (
         Object.entries(byFramework).map(([frameworkName, frameworkGaps]) => (
-          <div key={frameworkName} className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-3">
+          <div key={frameworkName} className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <h2 className="text-sm font-semibold text-slate-200">{frameworkName}</h2>
+              <h2 className="text-sm font-semibold text-slate-700">{frameworkName}</h2>
               <span className="px-2 py-0.5 rounded-full text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20">
                 {frameworkGaps.length} brechas
               </span>
             </div>
-            <div className="divide-y divide-slate-800/50">
+            <div className="divide-y divide-slate-100">
               {frameworkGaps.map((gap, idx) => (
-                <div key={idx} className="px-4 py-3 hover:bg-slate-800/20 transition-colors">
+                <div key={idx} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                   <div className="flex items-start gap-4">
-                    <span className="font-mono text-xs text-cyan-400 w-24 shrink-0 mt-0.5">
+                    <span className="font-mono text-xs text-sky-600 w-24 shrink-0 mt-0.5">
                       {gap.requirement_code}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-200">{gap.requirement_title}</p>
+                      <p className="text-sm text-slate-700">{gap.requirement_title}</p>
                       {gap.gap_description && (
                         <p className="mt-0.5 text-xs text-slate-500">{gap.gap_description}</p>
                       )}

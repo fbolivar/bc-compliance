@@ -57,9 +57,9 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
       {/* Mobile cards */}
       <div className="md:hidden space-y-2">
         {invitations.map((inv) => (
-          <div key={inv.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2">
+          <div key={inv.id} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-200 font-medium">{inv.email}</span>
+              <span className="text-sm text-slate-700 font-medium">{inv.email}</span>
               <StatusBadge status={inv.status === 'pending' && isExpired(inv.expires_at) ? 'expired' : inv.status} />
             </div>
             <div className="flex items-center justify-between text-xs text-slate-500">
@@ -70,10 +70,10 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
               </span>
             </div>
             {inv.status === 'pending' && !isExpired(inv.expires_at) && (
-              <div className="flex gap-2 pt-1 border-t border-slate-800/50">
+              <div className="flex gap-2 pt-1 border-t border-slate-100">
                 <button
                   onClick={() => copyLink(inv.token, inv.id)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-cyan-400 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-sky-500 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   {copiedId === inv.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   {copiedId === inv.id ? 'Copiado' : 'Copiar link'}
@@ -81,7 +81,7 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
                 <button
                   onClick={() => handleResend(inv.id)}
                   disabled={loadingId === inv.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loadingId === inv.id ? 'animate-spin' : ''}`} />
                   Reenviar
@@ -89,7 +89,7 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
                 <button
                   onClick={() => handleRevoke(inv.id)}
                   disabled={loadingId === inv.id}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Revocar
@@ -101,10 +101,10 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+      <div className="hidden md:block rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-800">
+            <tr className="border-b border-slate-200">
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Email</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Rol</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Estado</th>
@@ -112,12 +112,12 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
               <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/50">
+          <tbody className="divide-y divide-slate-100">
             {invitations.map((inv) => (
-              <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-4 py-3 text-sm text-slate-200">{inv.email}</td>
+              <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-4 py-3 text-sm text-slate-700">{inv.email}</td>
                 <td className="px-4 py-3">
-                  <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                  <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-600 border border-slate-200 capitalize">
                     {inv.role.replace(/_/g, ' ')}
                   </span>
                 </td>
@@ -132,7 +132,7 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => copyLink(inv.token, inv.id)}
-                        className="p-1.5 text-slate-500 hover:text-cyan-400 rounded-lg hover:bg-slate-800 transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-sky-500 rounded-lg hover:bg-slate-100 transition-colors"
                         title="Copiar link de invitacion"
                       >
                         {copiedId === inv.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -140,7 +140,7 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
                       <button
                         onClick={() => handleResend(inv.id)}
                         disabled={loadingId === inv.id}
-                        className="p-1.5 text-slate-500 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 transition-colors"
                         title="Reenviar invitacion"
                       >
                         <RefreshCw className={`w-4 h-4 ${loadingId === inv.id ? 'animate-spin' : ''}`} />
@@ -148,7 +148,7 @@ export function InvitationsList({ invitations, siteUrl }: InvitationsListProps) 
                       <button
                         onClick={() => handleRevoke(inv.id)}
                         disabled={loadingId === inv.id}
-                        className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors"
                         title="Revocar invitacion"
                       >
                         <XCircle className="w-4 h-4" />
