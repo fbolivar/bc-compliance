@@ -4,7 +4,8 @@ import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Shield, Calendar, Server, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Shield, Calendar, Server } from 'lucide-react';
+import { ActionPlanEditor } from '@/features/vulnerabilities/components/ActionPlanEditor';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -97,27 +98,16 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Remediation */}
-      {vuln.remediation && (
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-emerald-700 uppercase tracking-wider mb-3">Solucion / Remediacion</h2>
-          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{vuln.remediation}</p>
-        </div>
-      )}
-
-      {/* Action Plan */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-          <ClipboardList className="w-4 h-4" />
-          Plan de Accion
-        </h2>
-        <div className="divide-y divide-slate-100">
-          <DetailRow label="Plan de accion" value={vuln.action_plan} />
-          <DetailRow label="Responsable" value={vuln.action_responsible} />
-          <DetailRow label="Prioridad" value={vuln.action_priority ? <StatusBadge status={vuln.action_priority} /> : null} />
-          <DetailRow label="Estado del plan" value={vuln.action_status ? <StatusBadge status={vuln.action_status} /> : null} />
-        </div>
-      </div>
+      {/* Remediation + Action Plan (editable) */}
+      <ActionPlanEditor
+        vulnId={vuln.id}
+        currentPlan={vuln.action_plan}
+        currentResponsible={vuln.action_responsible}
+        currentPriority={vuln.action_priority}
+        currentStatus={vuln.action_status}
+        currentRemediation={vuln.remediation}
+        currentDueDate={vuln.due_date}
+      />
 
       {/* Dates */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

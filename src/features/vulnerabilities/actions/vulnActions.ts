@@ -6,6 +6,7 @@ const FIELDS = [
   'code', 'title', 'description', 'severity', 'status',
   'cvss_base_score', 'cve_id', 'source',
   'due_date', 'remediation',
+  'action_plan', 'action_responsible', 'action_priority', 'action_status',
 ];
 
 export async function createVulnerability(formData: FormData): Promise<ActionResult> {
