@@ -200,15 +200,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-lg font-bold text-slate-800">BC</span>
-              <span className="text-lg font-light text-sky-500"> Trust</span>
-            </div>
-          </div>
+          <img src="/Logo.png" alt="BC Trust" className="h-8 w-auto" />
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"

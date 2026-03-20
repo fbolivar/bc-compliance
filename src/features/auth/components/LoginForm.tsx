@@ -116,20 +116,10 @@ export function LoginForm() {
           {/* Header */}
           <div className="px-8 pt-8 pb-6 border-b border-slate-800/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                  <Shield className="w-7 h-7 text-white" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center">
-                  <Lock className="w-2.5 h-2.5 text-white" />
-                </div>
-              </div>
+              <img src="/Logo.png" alt="BC Trust" className="h-12 w-auto" />
               <div>
-                <h1 className="text-xl font-bold text-white tracking-tight">
-                  BC <span className="text-cyan-400">Compliance</span>
-                </h1>
                 <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  GRC & SecOps Platform v1.0
+                  SGSI - Gestion de Seguridad Digital
                 </p>
               </div>
             </div>

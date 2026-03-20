@@ -7,7 +7,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#06b6d4',
+  themeColor: '#0ea5e9',
 }
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    apple: '/icons/icon.svg',
+    apple: '/Logo.png',
   },
 }
 

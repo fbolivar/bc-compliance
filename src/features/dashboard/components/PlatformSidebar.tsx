@@ -186,16 +186,10 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200">
       {/* Logo */}
-      <div className="flex items-center h-14 px-6 border-b border-slate-200 bg-white">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-            <Shield className="h-4.5 w-4.5 text-white" />
-          </div>
-          <div>
-            <span className="text-[14px] font-bold text-slate-800 tracking-tight">BC</span>
-            <span className="text-[14px] font-light text-sky-500 tracking-tight"> Trust</span>
-          </div>
-        </div>
+      <div className="flex items-center h-14 px-4 border-b border-slate-200 bg-white">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <img src="/Logo.png" alt="BC Trust" className="h-8 w-auto" />
+        </Link>
       </div>
 
       {/* Main Navigation */}
