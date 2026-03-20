@@ -24,7 +24,7 @@ import {
   ChevronDown,
   LogOut,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { signout } from '@/actions/auth';
 
 interface NavItem {
@@ -97,6 +97,18 @@ const clientsNavItem: NavItem = { label: 'Clientes', href: '/settings/clients', 
 export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { isPlatformOwner?: boolean; userEmail?: string }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [showProfile, setShowProfile] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfile(false);
+      }
+    };
+    if (showProfile) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showProfile]);
 
   const toggleExpand = (label: string) => {
     setExpandedItems(prev =>
@@ -208,25 +220,60 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
       </nav>
 
       {/* Footer - User profile */}
-      <div className="px-3 py-3 border-t border-slate-800/80">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800/30 transition-colors">
+      <div className="px-3 py-3 border-t border-slate-800/80 relative" ref={profileRef}>
+        {/* Profile popover */}
+        {showProfile && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-slate-800 border border-slate-700/80 rounded-xl shadow-2xl shadow-black/40 overflow-hidden animate-[fadeIn_0.15s_ease-out]">
+            <div className="p-4 border-b border-slate-700/50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[14px] font-semibold text-cyan-400 uppercase">
+                    {userEmail?.charAt(0) ?? '?'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-white truncate">{userEmail || 'Usuario'}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Cuenta activa</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-1.5">
+              <Link
+                href="/settings"
+                onClick={() => setShowProfile(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Configuracion</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => signout()}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Cerrar sesion</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Avatar button */}
+        <button
+          type="button"
+          onClick={() => setShowProfile(!showProfile)}
+          className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800/30 transition-colors"
+        >
           <div className="h-8 w-8 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
             <span className="text-[12px] font-semibold text-cyan-400 uppercase">
               {userEmail?.charAt(0) ?? '?'}
             </span>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text-left">
             <p className="text-[13px] font-medium text-slate-300 truncate">{userEmail || 'Usuario'}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => signout()}
-            className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
-            title="Cerrar sesion"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </button>
-        </div>
+          <ChevronDown className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${showProfile ? 'rotate-180' : ''}`} />
+        </button>
       </div>
     </aside>
   );
