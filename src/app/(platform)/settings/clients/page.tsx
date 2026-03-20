@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { requireOrg } from '@/shared/lib/get-org';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { StatusBadge } from '@/shared/components/StatusBadge';

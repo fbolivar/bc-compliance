@@ -121,17 +121,27 @@ function generateTempPassword(): string {
 }
 
 export async function listClients() {
+  // Try service client first (can see all orgs), fallback to regular client (sees own org only)
   try {
     const serviceClient = createServiceClient();
-
     const { data, error } = await serviceClient
       .from('organizations')
       .select('id, name, slug, industry, country, plan, is_active, created_at, organization_members(user_id, is_owner, profiles(email, full_name))')
       .order('created_at', { ascending: false });
 
-    if (error) return [];
+    if (error) throw error;
     return data || [];
   } catch {
-    return [];
+    // Fallback: use regular client (RLS-scoped, will only show user's own org)
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from('organizations')
+        .select('id, name, slug, industry, country, plan, is_active, created_at, organization_members(user_id, is_owner, profiles(email, full_name))')
+        .order('created_at', { ascending: false });
+      return data || [];
+    } catch {
+      return [];
+    }
   }
 }
