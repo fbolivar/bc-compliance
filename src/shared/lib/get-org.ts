@@ -9,7 +9,6 @@ export async function getCurrentOrg() {
     redirect('/login');
   }
 
-  // Get the user's first organization
   const { data: membership } = await supabase
     .from('organization_members')
     .select('organization_id, organizations(id, name, slug, plan)')
@@ -29,8 +28,9 @@ export async function requireOrg() {
   const { user, orgId, organization } = await getCurrentOrg();
 
   if (!orgId) {
-    // If user has no org, redirect to setup
-    redirect('/setup');
+    // User has no org - this shouldn't happen with the auto-provision trigger
+    // but redirect to login as fallback
+    redirect('/login');
   }
 
   return { user, orgId, organization };
