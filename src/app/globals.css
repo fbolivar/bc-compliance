@@ -1,63 +1,46 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
-@tailwind components;
 @tailwind utilities;
+@tailwind components;
 
 /* ============================================
    BC COMPLIANCE - GRC & SecOps Platform
-   Theme: Cybersecurity Dark
+   Theme: Cybersecurity Dark (ISO 27001)
    ============================================ */
 
 :root {
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
+  --color-background: #0a0f1a;
+  --color-surface: #111827;
+  --color-surface-elevated: #1a2234;
   --color-foreground: #f1f5f9;
   --color-foreground-secondary: #94a3b8;
   --color-foreground-muted: #64748b;
-  --color-border: #334155;
+  --color-border: #1e293b;
   --color-accent: #06b6d4;
+  --color-muted: #64748b;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
 }
 
 body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--color-background);
   color: var(--color-foreground);
   line-height: 1.6;
-}
-
-*:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-::selection {
-  background-color: #06b6d4;
-  color: white;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1e293b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -65,11 +48,94 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-code, .font-mono {
+code, pre, .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.5);
+}
+
+/* ============================================
+   FOCUS & SELECTION
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: rgba(6, 182, 212, 0.2);
+  color: #f1f5f9;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; translate: 0 4px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; translate: 0 8px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes scan {
+  0%   { translate: 0 -100%; }
+  100% { translate: 0  100%; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-ring {
+  0%   { scale: 0.8; opacity: 1; }
+  100% { scale: 1.8; opacity: 0; }
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+
+main {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
 @layer utilities {
+  /* Hide scrollbar while keeping scroll functionality */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -77,40 +143,94 @@ code, .font-mono {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Tabular number alignment */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Fade-in animation helper */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Slide-up animation helper */
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* Gradient text - brand accent */
+  .text-gradient {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
-/* Login scan animation */
-@keyframes scan {
-  0%, 100% { top: 0%; }
-  50% { top: 100%; }
+/* ============================================
+   COMPONENT PATTERNS
+   ============================================ */
+
+/* Glass morphism surface */
+.glass {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Skeleton loading shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 41, 59, 0.5) 25%,
+    rgba(51, 65, 85, 0.3) 50%,
+    rgba(30, 41, 59, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
-/* Improved transitions */
-* {
-  -webkit-tap-highlight-color: transparent;
+/* Interactive card - subtle lift on hover */
+.card-hover,
+.card-interactive {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Better table styling */
-table {
-  border-collapse: separate;
-  border-spacing: 0;
+.card-hover:hover,
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.4);
 }
 
-/* Smooth page transitions */
-main {
-  animation: fadeIn 0.2s ease-out;
+/* ============================================
+   STATUS & RISK INDICATORS
+   ============================================ */
+
+/* Critical risk pulse ring */
+.pulse-critical {
+  position: relative;
 }
 
-/* Card hover effect */
-.card-hover {
-  transition: all 0.2s ease;
+.pulse-critical::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border: 2px solid rgba(244, 63, 94, 0.4);
 }
-.card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3);
+
+/* Active status dot ring */
+.status-dot-active {
+  position: relative;
+}
+
+.status-dot-active::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+  border: 1px solid currentColor;
 }

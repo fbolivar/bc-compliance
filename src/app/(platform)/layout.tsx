@@ -28,18 +28,18 @@ export default async function PlatformLayout({
     <div className="flex h-screen bg-slate-950">
       <PlatformSidebar isPlatformOwner={isPlatformOwner} userEmail={user.email || ''} />
       <main className="lg:pl-64 flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex items-center h-14 sm:h-16 px-3 sm:px-6 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 shadow-[0_1px_12px_0_rgba(0,0,0,0.4)] gap-3">
+        <header className="sticky top-0 z-30 flex items-center h-12 sm:h-14 px-3 sm:px-6 bg-[#0c1222]/95 backdrop-blur-md border-b border-slate-800/50 gap-3">
           <MobileSidebar isPlatformOwner={isPlatformOwner} />
           <div className="flex-1 min-w-0" />
           <div className="flex items-center gap-2.5">
             <div className="hidden sm:block text-right">
-              <p className="text-[13px] font-medium text-slate-200 leading-tight">{orgName}</p>
-              <p className="text-[11px] text-slate-500 leading-tight capitalize">Plan {orgPlan}</p>
+              <p className="text-[13px] font-medium text-slate-300 leading-tight">{orgName}</p>
+              <p className="text-[10px] text-slate-600 leading-tight uppercase tracking-wider">Plan {orgPlan}</p>
             </div>
             <span className="sm:hidden text-[13px] text-slate-300 truncate max-w-[150px]">{orgName}</span>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">
           {children}
         </div>
       </main>
