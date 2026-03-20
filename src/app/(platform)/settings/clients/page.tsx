@@ -8,9 +8,22 @@ import Link from 'next/link';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import { CreateClientSection } from '@/features/organizations/components/CreateClientSection';
 
+interface ClientRow {
+  id: string;
+  name: string;
+  slug: string;
+  industry: string | null;
+  country: string | null;
+  plan: string;
+  is_active: boolean;
+  created_at: string;
+  owner_email: string | null;
+  owner_name: string | null;
+}
+
 export default async function SettingsClientsPage() {
   await requireOrg();
-  const clients = await listClients();
+  const clients = (await listClients()) as ClientRow[];
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -39,30 +52,24 @@ export default async function SettingsClientsPage() {
               <p className="text-sm text-slate-500">No hay clientes registrados</p>
             </div>
           ) : (
-            clients.map((client) => {
-              const owner = (client.organization_members as unknown as Array<{
-                is_owner: boolean;
-                profiles: { email: string; full_name: string | null } | null;
-              }>)?.find(m => m.is_owner);
-              return (
-                <div key={client.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                      <Building2 className="w-5 h-5 text-cyan-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-slate-200 font-medium truncate">{client.name}</p>
-                      <p className="text-xs text-slate-500 truncate">{owner?.profiles?.email || '-'}</p>
-                    </div>
-                    <StatusBadge status={client.is_active ? 'active' : 'inactive'} />
+            clients.map((client) => (
+              <div key={client.id} className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5 text-cyan-400" />
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 capitalize">{client.plan}</span>
-                    <span>{new Date(client.created_at).toLocaleDateString('es-CO', { dateStyle: 'short' })}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-slate-200 font-medium truncate">{client.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{client.owner_email || '-'}</p>
                   </div>
+                  <StatusBadge status={client.is_active ? 'active' : 'inactive'} />
                 </div>
-              );
-            })
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 capitalize">{client.plan}</span>
+                  <span>{new Date(client.created_at).toLocaleDateString('es-CO', { dateStyle: 'short' })}</span>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
@@ -86,44 +93,38 @@ export default async function SettingsClientsPage() {
                   </td>
                 </tr>
               ) : (
-                clients.map((client) => {
-                  const owner = (client.organization_members as unknown as Array<{
-                    is_owner: boolean;
-                    profiles: { email: string; full_name: string | null } | null;
-                  }>)?.find(m => m.is_owner);
-                  return (
-                    <tr key={client.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                            <Building2 className="w-4 h-4 text-cyan-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-200 font-medium">{client.name}</p>
-                            <p className="text-xs text-slate-500">{client.industry || '-'}</p>
-                          </div>
+                clients.map((client) => (
+                  <tr key={client.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-cyan-400" />
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm text-slate-300">{owner?.profiles?.full_name || '-'}</p>
-                          <p className="text-xs text-slate-500">{owner?.profiles?.email || '-'}</p>
+                          <p className="text-sm text-slate-200 font-medium">{client.name}</p>
+                          <p className="text-xs text-slate-500">{client.industry || '-'}</p>
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 capitalize">
-                          {client.plan}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={client.is_active ? 'active' : 'inactive'} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-400">
-                        {new Date(client.created_at).toLocaleDateString('es-CO', { dateStyle: 'medium' })}
-                      </td>
-                    </tr>
-                  );
-                })
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div>
+                        <p className="text-sm text-slate-300">{client.owner_name || '-'}</p>
+                        <p className="text-xs text-slate-500">{client.owner_email || '-'}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                        {client.plan}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={client.is_active ? 'active' : 'inactive'} />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-400">
+                      {new Date(client.created_at).toLocaleDateString('es-CO', { dateStyle: 'medium' })}
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
