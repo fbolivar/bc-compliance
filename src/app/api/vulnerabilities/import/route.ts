@@ -192,17 +192,17 @@ export async function POST(request: NextRequest) {
     if (match) nextNum = parseInt(match[1]) + 1;
   }
 
-  // Prepare records
+  // Prepare records - map to actual DB column names
   const records = parsed.map((v, i) => ({
     organization_id: orgId,
     code: `VUL-${String(nextNum + i).padStart(4, '0')}`,
-    name: v.name,
+    title: v.name,
     description: v.description,
     severity: v.severity,
     status: 'open',
-    cvss_score: v.cvss_score,
+    cvss_base_score: v.cvss_score,
     cve_id: v.cve_id,
-    discovery_date: v.discovery_date,
+    source: format,
     created_by: user.id,
   }));
 
