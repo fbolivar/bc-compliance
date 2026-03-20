@@ -14,14 +14,11 @@ export default async function PlatformLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, organization } = await getCurrentOrg();
+  const { user, isPlatformOwner } = await getCurrentOrg();
 
   if (!user) {
     redirect('/login');
   }
-
-  const org = organization as { is_platform_owner?: boolean } | null;
-  const isPlatformOwner = org?.is_platform_owner === true;
 
   return (
     <div className="flex h-screen bg-slate-950">

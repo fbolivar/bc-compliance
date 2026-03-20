@@ -17,10 +17,24 @@ export async function getCurrentOrg() {
     .limit(1)
     .single();
 
+  const orgId = membership?.organization_id || null;
+
+  // Check if this org is the platform owner
+  let isPlatformOwner = false;
+  if (orgId) {
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('is_platform_owner')
+      .eq('id', orgId)
+      .single();
+    isPlatformOwner = orgData?.is_platform_owner === true;
+  }
+
   return {
     user,
-    orgId: membership?.organization_id || null,
+    orgId,
     organization: membership?.organizations || null,
+    isPlatformOwner,
   };
 }
 

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import { requireOrg } from '@/shared/lib/get-org';
+import { getCurrentOrg } from '@/shared/lib/get-org';
+import { redirect } from 'next/navigation';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { listClients } from '@/actions/clients';
@@ -22,7 +23,8 @@ interface ClientRow {
 }
 
 export default async function SettingsClientsPage() {
-  await requireOrg();
+  const { isPlatformOwner } = await getCurrentOrg();
+  if (!isPlatformOwner) redirect('/dashboard');
   const clients = (await listClients()) as ClientRow[];
 
   return (
