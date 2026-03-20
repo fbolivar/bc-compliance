@@ -1,3 +1,2 @@
-export { Sidebar } from './sidebar'
-export { Header } from './header'
-export { DashboardLayout } from './dashboard-layout'
+// Layout components barrel - legacy exports removed
+export {}
