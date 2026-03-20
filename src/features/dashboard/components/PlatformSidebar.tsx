@@ -186,9 +186,9 @@ export function PlatformSidebar({ isPlatformOwner = false, userEmail = '' }: { i
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 px-4 border-b border-slate-200 bg-white">
+      <div className="flex items-center justify-center py-5 px-4 border-b border-slate-200">
         <Link href="/dashboard">
-          <img src="/Logo.png" alt="BC Trust" className="h-11 w-auto" />
+          <img src="/Logo.png" alt="BC Trust" className="h-14 w-auto mix-blend-multiply" />
         </Link>
       </div>
 
