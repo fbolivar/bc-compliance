@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PlatformSidebar } from '@/features/dashboard/components/PlatformSidebar';
+import { LogoutButton } from '@/features/auth/components/LogoutButton';
 
 export const metadata = {
   title: 'BC Compliance - GRC & SecOps Platform',
@@ -27,6 +28,7 @@ export default async function PlatformLayout({
           <div className="flex-1" />
           <div className="flex items-center gap-4">
             <span className="text-sm text-slate-400">{user.email}</span>
+            <LogoutButton />
           </div>
         </header>
         <div className="p-6">
