@@ -9,6 +9,7 @@ import { FormField } from '@/shared/components/FormField';
 import { createVulnerability, deleteVulnerability } from '../actions/vulnActions';
 import type { VulnRow } from '../services/vulnService';
 import { Plus } from 'lucide-react';
+import { VulnImport } from './VulnImport';
 
 const SEVERITY_OPTIONS = [
   { value: 'critical', label: 'Critica' },
@@ -86,7 +87,8 @@ export function VulnList({ data, count, page, pageSize }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <VulnImport />
         <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors"
