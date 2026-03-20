@@ -35,14 +35,15 @@ export function FormModal({ isOpen, onClose, title, children }: FormModalProps) 
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] max-h-[90vh] sm:max-h-[85vh] sm:mx-4 flex flex-col">
-        <div className="relative flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800 shrink-0">
+      <div className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl shadow-black/40 overflow-hidden animate-[fadeIn_0.15s_ease-out] max-h-[90vh] sm:max-h-[85vh] sm:mx-4 flex flex-col">
+        <div className="relative flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800 bg-slate-800/40 shrink-0">
           {/* Mobile drag indicator */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-700 rounded-full sm:hidden" />
-          <h3 className="text-base sm:text-lg font-semibold text-slate-200 pt-1 sm:pt-0">{title}</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-slate-100 pt-1 sm:pt-0">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 transition-colors"
+            aria-label="Cerrar"
           >
             <X className="w-5 h-5" />
           </button>

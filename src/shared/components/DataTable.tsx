@@ -67,13 +67,13 @@ export function DataTable<T extends Record<string, any>>({
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/50 rounded-xl text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
           />
         </div>
         {createPath && (
           <Link
             href={createPath}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-cyan-500/20 transition-all shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span className="sm:inline">{createLabel}</span>
@@ -84,14 +84,18 @@ export function DataTable<T extends Record<string, any>>({
       {/* Mobile Card View (< md) */}
       <div className="md:hidden space-y-2">
         {filteredData.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 text-center">
-            <p className="text-sm text-slate-500">{emptyMessage}</p>
+          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-10 text-center">
+            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
+              <Search className="w-5 h-5 text-slate-600" />
+            </div>
+            <p className="text-sm font-medium text-slate-400">{emptyMessage}</p>
+            <p className="text-xs text-slate-600 mt-1">Intenta ajustar los filtros de busqueda</p>
           </div>
         ) : (
           filteredData.map((item, idx) => (
             <div
               key={String(item[idField]) || idx}
-              className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 space-y-2"
+              className="bg-slate-900/50 border border-slate-800 border-l-2 border-l-cyan-500/30 rounded-xl p-3 space-y-2 hover:bg-slate-800/30 transition-colors"
             >
               {columns.slice(0, 4).map(col => (
                 <div key={col.key} className="flex items-start justify-between gap-2">
@@ -130,18 +134,18 @@ export function DataTable<T extends Record<string, any>>({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800">
+              <tr className="border-b border-slate-800 bg-slate-800/30">
                 {columns.map(col => (
                   <th
                     key={col.key}
-                    className={`px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider ${
+                    className={`px-4 py-3.5 text-left text-xs font-medium text-slate-500 uppercase tracking-widest ${
                       col.hideOnMobile ? 'hidden lg:table-cell' : ''
                     } ${col.className || ''}`}
                   >
                     {col.label}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider w-24">
+                <th className="px-4 py-3.5 text-right text-xs font-medium text-slate-500 uppercase tracking-widest w-24">
                   Acciones
                 </th>
               </tr>
@@ -149,28 +153,35 @@ export function DataTable<T extends Record<string, any>>({
             <tbody className="divide-y divide-slate-800/50">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length + 1} className="px-4 py-12 text-center">
-                    <p className="text-sm text-slate-500">{emptyMessage}</p>
+                  <td colSpan={columns.length + 1} className="px-4 py-16 text-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-6 h-6 text-slate-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-400">{emptyMessage}</p>
+                    <p className="text-xs text-slate-600 mt-1">Intenta ajustar los filtros de busqueda</p>
                   </td>
                 </tr>
               ) : (
                 filteredData.map((item, idx) => (
-                  <tr key={String(item[idField]) || idx} className="hover:bg-slate-800/30 transition-colors">
+                  <tr
+                    key={String(item[idField]) || idx}
+                    className={`hover:bg-cyan-500/5 transition-colors ${idx % 2 === 1 ? 'bg-slate-800/10' : ''}`}
+                  >
                     {columns.map(col => (
                       <td
                         key={col.key}
-                        className={`px-4 py-3 text-sm text-slate-300 ${
+                        className={`px-4 py-3.5 text-sm text-slate-300 ${
                           col.hideOnMobile ? 'hidden lg:table-cell' : ''
                         } ${col.className || ''}`}
                       >
                         {col.render ? col.render(item) : String(item[col.key] ?? '-')}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`${basePath}/${item[idField]}`}
-                          className="p-1.5 text-slate-500 hover:text-cyan-400 rounded-lg hover:bg-slate-800 transition-colors"
+                          className="p-2 text-slate-500 hover:text-cyan-400 rounded-lg hover:bg-slate-700/60 transition-colors"
                           title="Ver detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -178,7 +189,7 @@ export function DataTable<T extends Record<string, any>>({
                         {onDelete && (
                           <button
                             onClick={() => onDelete(String(item[idField]))}
-                            className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors"
+                            className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-700/60 transition-colors"
                             title="Eliminar"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -195,20 +206,38 @@ export function DataTable<T extends Record<string, any>>({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800 bg-slate-800/20">
             <p className="text-xs text-slate-500">
-              {count} registros &middot; Pagina {page} de {totalPages}
+              <span className="font-medium text-slate-400">{count}</span> registros &middot; Pagina{' '}
+              <span className="font-medium text-slate-400">{page}</span> de{' '}
+              <span className="font-medium text-slate-400">{totalPages}</span>
             </p>
             <div className="flex items-center gap-1">
               <Link
                 href={`${basePath}?page=${Math.max(1, page - 1)}`}
-                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 border border-transparent hover:border-slate-600 transition-all"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Link>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+                return (
+                  <Link
+                    key={pageNum}
+                    href={`${basePath}?page=${pageNum}`}
+                    className={`w-7 h-7 flex items-center justify-center text-xs rounded-lg border transition-all ${
+                      pageNum === page
+                        ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 font-medium'
+                        : 'text-slate-500 hover:text-white border-transparent hover:border-slate-600 hover:bg-slate-700'
+                    }`}
+                  >
+                    {pageNum}
+                  </Link>
+                );
+              })}
               <Link
                 href={`${basePath}?page=${Math.min(totalPages, page + 1)}`}
-                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-700 border border-transparent hover:border-slate-600 transition-all"
               >
                 <ChevronRight className="w-4 h-4" />
               </Link>
@@ -221,18 +250,22 @@ export function DataTable<T extends Record<string, any>>({
       {totalPages > 1 && (
         <div className="md:hidden flex items-center justify-between px-1">
           <p className="text-xs text-slate-500">
-            {count} registros &middot; {page}/{totalPages}
+            <span className="font-medium text-slate-400">{count}</span> registros &middot;{' '}
+            <span className="font-medium text-slate-400">{page}</span>/{totalPages}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <Link
               href={`${basePath}?page=${Math.max(1, page - 1)}`}
-              className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+              className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
             </Link>
+            <span className="text-xs text-slate-400 px-1">
+              {page} / {totalPages}
+            </span>
             <Link
               href={`${basePath}?page=${Math.min(totalPages, page + 1)}`}
-              className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+              className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all"
             >
               <ChevronRight className="w-5 h-5" />
             </Link>

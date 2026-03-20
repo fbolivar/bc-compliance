@@ -123,27 +123,27 @@ export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?:
             <button
               onClick={() => toggleExpand(item.label)}
               className={`
-                w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150
                 ${active
-                  ? 'bg-slate-800 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}
+                  ? 'border-l-2 border-cyan-500 bg-slate-800/40 text-white pl-[10px]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 border-l-2 border-transparent'}
               `}
             >
-              <Icon className="h-5 w-5 flex-shrink-0" />
+              <Icon className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">{item.label}</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
             </button>
             {expanded && (
-              <ul className="mt-1 ml-8 space-y-1">
+              <ul className="mt-0.5 ml-8 space-y-0.5 pb-1">
                 {item.children.map(child => (
                   <li key={child.href}>
                     <Link
                       href={child.href}
                       className={`
-                        block px-3 py-1.5 rounded-md text-sm transition-colors
+                        block px-3 py-1.5 rounded-md text-[12px] transition-colors duration-150
                         ${pathname === child.href
-                          ? 'text-cyan-400 font-medium'
-                          : 'text-slate-500 hover:text-slate-300'}
+                          ? 'text-cyan-400 font-medium bg-cyan-500/5'
+                          : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/20'}
                       `}
                     >
                       {child.label}
@@ -157,13 +157,13 @@ export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?:
           <Link
             href={item.href}
             className={`
-              flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+              flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150
               ${active
-                ? 'bg-slate-800 text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}
+                ? 'border-l-2 border-cyan-500 bg-slate-800/40 text-white pl-[10px]'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/20 border-l-2 border-transparent'}
             `}
           >
-            <Icon className="h-5 w-5 flex-shrink-0" />
+            <Icon className="h-4 w-4 flex-shrink-0" />
             <span>{item.label}</span>
           </Link>
         )}
@@ -172,56 +172,58 @@ export function PlatformSidebar({ isPlatformOwner = false }: { isPlatformOwner?:
   };
 
   return (
-    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-slate-900 border-r border-slate-800">
+    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-slate-900 border-r border-slate-800/80">
       {/* Logo */}
-      <div className="flex items-center h-16 px-6 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-cyan-500 flex items-center justify-center">
-            <Shield className="h-5 w-5 text-white" />
+      <div className="flex items-center h-16 px-6 border-b border-slate-800/80 bg-gradient-to-r from-slate-900 to-slate-900/80">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <Shield className="h-4.5 w-4.5 text-white" />
           </div>
           <div>
-            <span className="text-lg font-bold text-white">BC</span>
-            <span className="text-lg font-light text-cyan-400"> Compliance</span>
+            <span className="text-[15px] font-bold text-white tracking-tight">BC</span>
+            <span className="text-[15px] font-light text-cyan-400 tracking-tight"> Compliance</span>
           </div>
         </div>
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-3 py-5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-700/50">
+        <ul className="space-y-0.5">
           {navigation.map(renderNavItem)}
         </ul>
 
         {/* Divider */}
-        <div className="my-4 border-t border-slate-800" />
+        <div className="my-5 flex items-center gap-2 px-3">
+          <div className="flex-1 border-t border-slate-800/80" />
+        </div>
 
         {/* Settings Section */}
-        <p className="px-3 mb-2 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+        <p className="px-3 mb-2.5 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
           Administración
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {isPlatformOwner && renderNavItem(clientsNavItem)}
           {baseSettingsNav.map(renderNavItem)}
         </ul>
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-800 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center">
-            <Users className="h-4 w-4 text-slate-400" />
+      <div className="px-4 py-4 border-t border-slate-800/80 space-y-2">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="h-7 w-7 rounded-full bg-slate-700/80 border border-slate-600/50 flex items-center justify-center flex-shrink-0">
+            <Users className="h-3.5 w-3.5 text-slate-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-300 truncate">Mi Organización</p>
-            <p className="text-xs text-slate-500">Enterprise</p>
+            <p className="text-[13px] font-medium text-slate-300 truncate">Mi Organización</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Enterprise</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => signout()}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-rose-400 hover:bg-slate-800/50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-150"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           <span>Cerrar sesion</span>
         </button>
       </div>

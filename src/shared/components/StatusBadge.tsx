@@ -97,7 +97,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const label = labelMap[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${colors}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${colors}`}
+      title={status}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full bg-current`} />
       {label}
     </span>
   );
