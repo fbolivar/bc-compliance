@@ -1,4 +1,5 @@
-import { requireOrg } from '@/shared/lib/get-org';
+import { getCurrentOrg } from '@/shared/lib/get-org';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import Link from 'next/link';
@@ -6,7 +7,8 @@ import { Users, KeyRound, ScrollText, ChevronRight, Building2 } from 'lucide-rea
 import { OrgSettingsForm } from '@/features/organizations/components/OrgSettingsForm';
 
 export default async function SettingsPage() {
-  const { orgId } = await requireOrg();
+  const { orgId, isPlatformOwner } = await getCurrentOrg();
+  if (!orgId) redirect('/login');
   const supabase = await createClient();
 
   const { data: org } = await supabase
@@ -16,13 +18,13 @@ export default async function SettingsPage() {
     .single();
 
   const settingsSections = [
-    {
+    ...(isPlatformOwner ? [{
       title: 'Gestion de Clientes',
       description: 'Crea y administra organizaciones cliente',
       href: '/settings/clients',
       icon: Building2,
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    },
+    }] : []),
     {
       title: 'Usuarios y Miembros',
       description: 'Gestiona los miembros del equipo e invitaciones',
