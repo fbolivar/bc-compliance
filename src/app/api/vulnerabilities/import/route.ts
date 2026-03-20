@@ -147,6 +147,7 @@ function parseJSON(content: string): ParsedVuln[] {
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
@@ -249,4 +250,10 @@ export async function POST(request: NextRequest) {
     inserted,
     errors,
   });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Error interno del servidor' },
+      { status: 500 }
+    );
+  }
 }

@@ -33,16 +33,23 @@ export function VulnImport() {
         body: formData,
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError(`Error del servidor (${res.status})`);
+        setUploading(false);
+        return;
+      }
 
       if (!res.ok || data.error) {
-        setError(data.error || 'Error al importar');
+        setError(data.error || `Error al importar (${res.status})`);
       } else {
         setResult(data);
         router.refresh();
       }
-    } catch {
-      setError('Error de conexion al importar');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error de conexion al importar');
     }
 
     setUploading(false);
