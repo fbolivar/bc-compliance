@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#020617"/>
+  <rect x="32" y="32" width="448" height="448" rx="80" fill="#0f172a" stroke="#06b6d4" stroke-width="4"/>
+  <path d="M256 100c-50 0-95 25-120 65l-5 8c-15 25-25 55-25 87 0 90 67 160 150 160s150-70 150-160c0-32-10-62-25-87l-5-8c-25-40-70-65-120-65z" fill="none" stroke="#06b6d4" stroke-width="20" stroke-linecap="round"/>
+  <path d="M256 160v80l50 50" fill="none" stroke="#06b6d4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="240" r="12" fill="#06b6d4"/>
+  <text x="256" y="440" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="60" fill="#e2e8f0">BC</text>
+</svg>

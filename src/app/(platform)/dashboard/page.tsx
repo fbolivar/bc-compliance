@@ -132,28 +132,28 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100">Centro de Comando</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-100">Centro de Comando</h1>
         <p className="mt-1 text-sm text-slate-400">
           Vision unificada del estado de ciberseguridad y cumplimiento normativo
         </p>
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
             <Link
               key={kpi.label}
               href={kpi.href}
-              className={`rounded-xl border ${kpi.border} ${kpi.bg} p-5 transition-all hover:scale-[1.02] hover:shadow-lg`}
+              className={`rounded-xl border ${kpi.border} ${kpi.bg} p-4 sm:p-5 transition-all hover:scale-[1.02] hover:shadow-lg`}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-slate-400">{kpi.label}</p>
-                  <p className={`mt-2 text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
+                  <p className={`mt-2 text-2xl sm:text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
                 </div>
                 <div className={`rounded-lg ${kpi.bg} p-3`}>
                   <Icon className={`h-6 w-6 ${kpi.color}`} />
@@ -165,9 +165,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Compliance by Framework */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-200">Cumplimiento por Framework</h2>
             <Link href="/compliance" className="text-xs text-cyan-400 hover:text-cyan-300">Ver detalle</Link>
@@ -199,7 +199,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Risk Distribution */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-200">Distribucion de Riesgos</h2>
             <Link href="/risks" className="text-xs text-cyan-400 hover:text-cyan-300">Ver todos</Link>

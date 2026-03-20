@@ -17,8 +17,14 @@ export function FormModal({ isOpen, onClose, title, children }: FormModalProps) 
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) document.addEventListener('keydown', handleEsc);
-    return () => document.removeEventListener('keydown', handleEsc);
+    if (isOpen) {
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = '';
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -26,12 +32,14 @@ export function FormModal({ isOpen, onClose, title, children }: FormModalProps) 
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <h3 className="text-lg font-semibold text-slate-200">{title}</h3>
+      <div className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-[fadeIn_0.2s_ease-out] max-h-[90vh] sm:max-h-[85vh] sm:mx-4 flex flex-col">
+        <div className="relative flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800 shrink-0">
+          {/* Mobile drag indicator */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-700 rounded-full sm:hidden" />
+          <h3 className="text-base sm:text-lg font-semibold text-slate-200 pt-1 sm:pt-0">{title}</h3>
           <button
             onClick={onClose}
             className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
@@ -39,7 +47,7 @@ export function FormModal({ isOpen, onClose, title, children }: FormModalProps) 
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+        <div className="px-4 sm:px-6 py-4 overflow-y-auto flex-1">
           {children}
         </div>
       </div>
