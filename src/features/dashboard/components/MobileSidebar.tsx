@@ -200,7 +200,7 @@ export function MobileSidebar({ isPlatformOwner = false }: { isPlatformOwner?: b
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
-          <img src="/Logo.png" alt="BC Trust" className="h-12 w-auto " />
+          <img src="/Logo.png" alt="BC Trust" className="h-12 w-auto rounded-lg bg-gradient-to-br from-slate-50 to-slate-100" />
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
