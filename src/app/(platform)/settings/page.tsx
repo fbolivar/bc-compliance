@@ -1,87 +1,79 @@
 import { requireOrg } from '@/shared/lib/get-org';
+import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import Link from 'next/link';
-import { Users, Shield, FileText, ChevronRight } from 'lucide-react';
-
-const SETTINGS_SECTIONS = [
-  {
-    href: '/settings/users',
-    icon: Users,
-    title: 'Usuarios y Miembros',
-    description: 'Gestion de usuarios, invitaciones y asignacion de roles',
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-400/10',
-    border: 'border-cyan-400/20',
-  },
-  {
-    href: '/settings/roles',
-    icon: Shield,
-    title: 'Roles y Permisos',
-    description: 'Configuracion de roles RBAC y permisos por modulo',
-    color: 'text-purple-400',
-    bg: 'bg-purple-400/10',
-    border: 'border-purple-400/20',
-  },
-  {
-    href: '/settings/audit-log',
-    icon: FileText,
-    title: 'Log de Auditoria',
-    description: 'Registro inmutable de todas las acciones realizadas en el sistema',
-    color: 'text-amber-400',
-    bg: 'bg-amber-400/10',
-    border: 'border-amber-400/20',
-  },
-];
+import { Users, KeyRound, ScrollText, ChevronRight } from 'lucide-react';
+import { OrgSettingsForm } from '@/features/organizations/components/OrgSettingsForm';
 
 export default async function SettingsPage() {
-  const { organization } = await requireOrg();
+  const { orgId } = await requireOrg();
+  const supabase = await createClient();
+
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('id, name, slug, tax_id, industry, country, address, plan')
+    .eq('id', orgId)
+    .single();
+
+  const settingsSections = [
+    {
+      title: 'Usuarios y Miembros',
+      description: 'Gestiona los miembros del equipo e invitaciones',
+      href: '/settings/users',
+      icon: Users,
+      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+    },
+    {
+      title: 'Roles y Permisos',
+      description: 'Configura roles y permisos de acceso',
+      href: '/settings/roles',
+      icon: KeyRound,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    },
+    {
+      title: 'Log de Auditoria',
+      description: 'Registro inmutable de todas las acciones',
+      href: '/settings/audit-log',
+      icon: ScrollText,
+      color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title="Configuracion"
-        description="Ajustes de la organizacion, usuarios y seguridad del sistema"
+        description="Administra tu organizacion, usuarios y preferencias"
       />
 
-      {/* Organization info */}
-      {organization && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Organizacion</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Nombre</p>
-              <p className="text-sm font-medium text-slate-200">{(organization as { name?: string }).name || '-'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Identificador (Slug)</p>
-              <p className="text-sm font-mono text-cyan-400">{(organization as { slug?: string }).slug || '-'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Plan</p>
-              <p className="text-sm font-medium text-slate-200 capitalize">{(organization as { plan?: string }).plan || 'starter'}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Organization Profile */}
+      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-6">
+        <h2 className="text-base font-semibold text-slate-200 mb-4">Perfil de la Organizacion</h2>
+        {org && <OrgSettingsForm organization={org} />}
+      </div>
 
-      {/* Settings sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SETTINGS_SECTIONS.map((section) => {
+      {/* Settings Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {settingsSections.map((section) => {
           const Icon = section.icon;
           return (
             <Link
               key={section.href}
               href={section.href}
-              className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 hover:border-slate-700 hover:bg-slate-800/50 transition-all group"
+              className="group flex items-start gap-4 p-4 sm:p-5 bg-slate-900/50 border border-slate-800 rounded-xl hover:bg-slate-800/50 hover:border-slate-700 transition-all"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-2 rounded-lg ${section.bg} border ${section.border}`}>
-                  <Icon className={`w-5 h-5 ${section.color}`} />
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              <div className={`p-2.5 rounded-xl border ${section.color}`}>
+                <Icon className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-semibold text-slate-200 mb-1">{section.title}</h3>
-              <p className="text-xs text-slate-500">{section.description}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                    {section.title}
+                  </h3>
+                  <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">{section.description}</p>
+              </div>
             </Link>
           );
         })}

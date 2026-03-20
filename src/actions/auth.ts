@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { writeAuditLog } from '@/shared/lib/audit'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -15,6 +16,12 @@ export async function login(formData: FormData) {
   if (error) {
     return { error: error.message }
   }
+
+  await writeAuditLog({
+    action: 'login',
+    tableName: 'auth',
+    description: 'Inicio de sesion exitoso',
+  })
 
   revalidatePath('/', 'layout')
   redirect('/dashboard')
@@ -38,6 +45,13 @@ export async function signup(formData: FormData) {
 
 export async function signout() {
   const supabase = await createClient()
+
+  await writeAuditLog({
+    action: 'logout',
+    tableName: 'auth',
+    description: 'Cierre de sesion',
+  })
+
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/login')

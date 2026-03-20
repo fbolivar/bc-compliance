@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { writeAuditLog } from '@/shared/lib/audit';
 
 export type InvitationResult = {
   success?: boolean;
@@ -82,6 +83,12 @@ export async function sendInvitation(formData: FormData): Promise<InvitationResu
 
   if (error) return { error: error.message };
 
+  await writeAuditLog({
+    action: 'create',
+    tableName: 'invitations',
+    description: `Invitacion enviada a ${email} con rol ${role}`,
+  });
+
   revalidatePath('/settings/users');
   return { success: true };
 }
@@ -98,6 +105,13 @@ export async function revokeInvitation(invitationId: string): Promise<Invitation
     .eq('status', 'pending');
 
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    action: 'update',
+    tableName: 'invitations',
+    recordId: invitationId,
+    description: 'Invitacion revocada',
+  });
 
   revalidatePath('/settings/users');
   return { success: true };

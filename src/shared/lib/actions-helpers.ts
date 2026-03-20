@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { writeAuditLog } from './audit';
 
 export type ActionResult = {
   success?: boolean;
@@ -64,6 +65,14 @@ export async function createEntity(
 
   if (error) return { error: error.message };
 
+  await writeAuditLog({
+    action: 'create',
+    tableName: table,
+    recordId: (data as Record<string, unknown>)?.id as string,
+    description: `Registro creado en ${table}`,
+    newValues: record,
+  });
+
   revalidatePath(revalidate);
   return { success: true, data: data as Record<string, unknown> };
 }
@@ -97,6 +106,14 @@ export async function updateEntity(
 
   if (error) return { error: error.message };
 
+  await writeAuditLog({
+    action: 'update',
+    tableName: table,
+    recordId: id,
+    description: `Registro actualizado en ${table}`,
+    newValues: updates,
+  });
+
   revalidatePath(revalidate);
   return { success: true };
 }
@@ -113,6 +130,13 @@ export async function deleteEntity(
     .eq('id', id);
 
   if (error) return { error: error.message };
+
+  await writeAuditLog({
+    action: 'delete',
+    tableName: table,
+    recordId: id,
+    description: `Registro eliminado de ${table}`,
+  });
 
   revalidatePath(revalidate);
   return { success: true };
