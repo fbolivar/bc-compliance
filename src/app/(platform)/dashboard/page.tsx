@@ -1,14 +1,62 @@
 import React from 'react';
-import { requireOrg } from '@/shared/lib/get-org';
+import { redirect } from 'next/navigation';
+import { getCurrentOrg } from '@/shared/lib/get-org';
 import { countRecords } from '@/shared/lib/service-helpers';
 import { getFrameworksWithCompliance } from '@/features/compliance/services/complianceService';
 import { createClient } from '@/lib/supabase/server';
-import { Shield, ShieldAlert, Server, Bug, AlertTriangle, CheckSquare, FileText, Users, ClipboardCheck, ChevronRight } from 'lucide-react';
+import {
+  Shield,
+  ShieldAlert,
+  Server,
+  Bug,
+  AlertTriangle,
+  CheckSquare,
+  FileText,
+  Users,
+  ClipboardCheck,
+  ChevronRight,
+  ArrowRight,
+  Building2,
+  Lock,
+  Layers,
+  BookOpen,
+} from 'lucide-react';
 import Link from 'next/link';
 import { ComplianceRing } from './compliance-ring';
+import { ProgressBar } from './progress-bar';
+
+// --- Helpers ---
+
+function getGreeting(): string {
+  // Server component: use UTC offset approximation for Colombia (UTC-5)
+  const now = new Date();
+  const hour = (now.getUTCHours() - 5 + 24) % 24;
+  if (hour >= 5 && hour < 12) return 'Buenos dias';
+  if (hour >= 12 && hour < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+
+function getSpanishDate(): string {
+  const now = new Date();
+  const days = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+  const months = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  ];
+  const dayName = days[now.getUTCDay()];
+  const day = now.getUTCDate();
+  const month = months[now.getUTCMonth()];
+  const year = now.getUTCFullYear();
+  return `${dayName}, ${day} de ${month} de ${year}`;
+}
 
 export default async function DashboardPage() {
-  const { orgId } = await requireOrg();
+  const { orgId, isPlatformOwner, userName } = await getCurrentOrg();
+
+  if (!orgId) {
+    redirect('/login');
+  }
+
   const supabase = await createClient();
 
   const [
@@ -16,6 +64,8 @@ export default async function DashboardPage() {
     totalRisks,
     criticalRisks,
     highRisks,
+    mediumRisks,
+    lowRisks,
     openVulns,
     activeIncidents,
     implementedControls,
@@ -23,12 +73,15 @@ export default async function DashboardPage() {
     openNCs,
     docCount,
     memberCount,
+    vendorCount,
     frameworks,
   ] = await Promise.all([
     countRecords('assets', orgId),
     countRecords('risk_scenarios', orgId),
     countRecords('risk_scenarios', orgId, { risk_level: 'critical' }),
     countRecords('risk_scenarios', orgId, { risk_level: 'high' }),
+    countRecords('risk_scenarios', orgId, { risk_level: 'medium' }),
+    countRecords('risk_scenarios', orgId, { risk_level: 'low' }),
     countRecords('vulnerabilities', orgId, { status: 'open' }),
     countRecords('incidents', orgId, { status: 'detected' }),
     countRecords('controls', orgId, { status: 'implemented' }),
@@ -37,6 +90,11 @@ export default async function DashboardPage() {
     countRecords('documents', orgId),
     supabase
       .from('organization_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', orgId)
+      .then(({ count }) => count || 0),
+    supabase
+      .from('vendors')
       .select('id', { count: 'exact', head: true })
       .eq('organization_id', orgId)
       .then(({ count }) => count || 0),
@@ -51,453 +109,510 @@ export default async function DashboardPage() {
     ? Math.round(frameworks.reduce((sum, fw) => sum + fw.compliance_percentage, 0) / frameworks.length)
     : 0;
 
-  const kpis = [
-    {
-      label: 'Cumplimiento Global',
-      value: `${avgCompliance}%`,
-      href: '/compliance',
-      icon: CheckSquare,
-      color: avgCompliance >= 70 ? 'text-emerald-400' : avgCompliance >= 50 ? 'text-amber-400' : 'text-rose-400',
-      bg: avgCompliance >= 70 ? 'bg-emerald-400/10' : avgCompliance >= 50 ? 'bg-amber-400/10' : 'bg-rose-400/10',
-      border: avgCompliance >= 70 ? 'border-emerald-400/20' : avgCompliance >= 50 ? 'border-amber-400/20' : 'border-rose-400/20',
-      accent: avgCompliance >= 70 ? 'from-emerald-500/40' : avgCompliance >= 50 ? 'from-amber-500/40' : 'from-rose-500/40',
-    },
-    {
-      label: 'Activos Registrados',
-      value: String(assetCount),
-      href: '/assets',
-      icon: Server,
-      color: 'text-sky-500',
-      bg: 'bg-sky-50',
-      border: 'border-sky-200',
-      accent: 'from-sky-400/40',
-    },
-    {
-      label: 'Riesgos Criticos + Altos',
-      value: String(criticalRisks + highRisks),
-      href: '/risks',
-      icon: ShieldAlert,
-      color: criticalRisks > 0 ? 'text-rose-400' : 'text-amber-400',
-      bg: criticalRisks > 0 ? 'bg-rose-400/10' : 'bg-amber-400/10',
-      border: criticalRisks > 0 ? 'border-rose-400/20' : 'border-amber-400/20',
-      accent: criticalRisks > 0 ? 'from-rose-500/40' : 'from-amber-500/40',
-    },
-    {
-      label: 'Vulnerabilidades Abiertas',
-      value: String(openVulns),
-      href: '/vulnerabilities',
-      icon: Bug,
-      color: openVulns > 10 ? 'text-rose-400' : openVulns > 0 ? 'text-amber-400' : 'text-emerald-400',
-      bg: openVulns > 10 ? 'bg-rose-400/10' : openVulns > 0 ? 'bg-amber-400/10' : 'bg-emerald-400/10',
-      border: openVulns > 10 ? 'border-rose-400/20' : openVulns > 0 ? 'border-amber-400/20' : 'border-emerald-400/20',
-      accent: openVulns > 10 ? 'from-rose-500/40' : openVulns > 0 ? 'from-amber-500/40' : 'from-emerald-500/40',
-    },
-    {
-      label: 'Incidentes Activos',
-      value: String(activeIncidents),
-      href: '/incidents',
-      icon: AlertTriangle,
-      color: activeIncidents > 0 ? 'text-orange-400' : 'text-emerald-400',
-      bg: activeIncidents > 0 ? 'bg-orange-400/10' : 'bg-emerald-400/10',
-      border: activeIncidents > 0 ? 'border-orange-400/20' : 'border-emerald-400/20',
-      accent: activeIncidents > 0 ? 'from-orange-500/40' : 'from-emerald-500/40',
-    },
-    {
-      label: 'Controles Implementados',
-      value: controlsRatio,
-      href: '/controls',
-      icon: Shield,
-      color: 'text-blue-400',
-      bg: 'bg-blue-400/10',
-      border: 'border-blue-400/20',
-      accent: 'from-blue-500/40',
-    },
-    {
-      label: 'No Conformidades Abiertas',
-      value: String(openNCs),
-      href: '/nonconformities',
-      icon: FileText,
-      color: openNCs > 0 ? 'text-amber-400' : 'text-emerald-400',
-      bg: openNCs > 0 ? 'bg-amber-400/10' : 'bg-emerald-400/10',
-      border: openNCs > 0 ? 'border-amber-400/20' : 'border-emerald-400/20',
-      accent: openNCs > 0 ? 'from-amber-500/40' : 'from-emerald-500/40',
-    },
-    {
-      label: 'Usuarios en Org',
-      value: String(memberCount),
-      href: '/settings/users',
-      icon: Users,
-      color: 'text-purple-400',
-      bg: 'bg-purple-400/10',
-      border: 'border-purple-400/20',
-      accent: 'from-purple-500/40',
-    },
-  ];
-
-  const riskDistribution = [
-    { level: 'Critico', count: criticalRisks, color: 'bg-rose-500', textColor: 'text-rose-400', dotColor: 'bg-rose-500' },
-    { level: 'Alto', count: highRisks, color: 'bg-orange-500', textColor: 'text-orange-400', dotColor: 'bg-orange-500' },
-    { level: 'Medio', count: totalRisks - criticalRisks - highRisks, color: 'bg-amber-500', textColor: 'text-amber-400', dotColor: 'bg-amber-500' },
-  ];
-
-  // --- New design computed values ---
-  const globalCompliance = avgCompliance;
-
-  // Tailwind classes derived from compliance threshold (no inline style needed)
-  const complianceBorderClass =
-    globalCompliance >= 80
-      ? 'border-l-emerald-500'
-      : globalCompliance >= 60
-      ? 'border-l-cyan-500'
-      : globalCompliance >= 40
-      ? 'border-l-amber-500'
-      : 'border-l-rose-500';
-
-  const complianceTextClass =
-    globalCompliance >= 80
-      ? 'text-emerald-400'
-      : globalCompliance >= 60
-      ? 'text-sky-500'
-      : globalCompliance >= 40
-      ? 'text-amber-400'
-      : 'text-rose-400';
-
   // Hex color only used for conic-gradient (CSS custom property, unavoidable dynamic value)
   const complianceHex =
-    globalCompliance >= 80
-      ? '#10b981'
-      : globalCompliance >= 60
-      ? '#06b6d4'
-      : globalCompliance >= 40
-      ? '#f59e0b'
-      : '#f43f5e';
+    avgCompliance >= 80 ? '#10b981'
+    : avgCompliance >= 60 ? '#06b6d4'
+    : avgCompliance >= 40 ? '#f59e0b'
+    : '#f43f5e';
 
-  const showAlertBanner = criticalRisks > 0 || activeIncidents > 0;
+  const greeting = getGreeting();
+  const dateString = getSpanishDate();
+  const displayName = userName || 'Usuario';
 
-  const quickActions = [
-    { label: 'Registrar Activo', href: '/assets', icon: Server },
-    { label: 'Reportar Incidente', href: '/incidents', icon: AlertTriangle },
-    { label: 'Crear Control', href: '/controls', icon: Shield },
-    { label: 'Nueva Auditoria', href: '/audits', icon: ClipboardCheck },
+  const riskDistribution = [
+    { level: 'Critico', count: criticalRisks, barColor: 'bg-rose-500', textColor: 'text-rose-600', dotColor: 'bg-rose-500' },
+    { level: 'Alto', count: highRisks, barColor: 'bg-orange-500', textColor: 'text-orange-600', dotColor: 'bg-orange-500' },
+    { level: 'Medio', count: mediumRisks, barColor: 'bg-amber-400', textColor: 'text-amber-600', dotColor: 'bg-amber-400' },
+    { level: 'Bajo', count: lowRisks, barColor: 'bg-emerald-500', textColor: 'text-emerald-600', dotColor: 'bg-emerald-500' },
+  ];
+
+  const quickLinks = [
+    { label: 'Activos', href: '/assets', icon: Server, color: 'text-sky-600', bg: 'bg-sky-50' },
+    { label: 'Riesgos', href: '/risks', icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Controles', href: '/controls', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Cumplimiento', href: '/compliance', icon: CheckSquare, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Incidentes', href: '/incidents', icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Proveedores', href: '/vendors', icon: Building2, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'No Conformidades', href: '/nonconformities', icon: ClipboardCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Documentos', href: '/documents', icon: BookOpen, color: 'text-teal-600', bg: 'bg-teal-50' },
   ];
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="space-y-6 pb-10">
 
-      {/* Row 1: Alert Banner */}
-      {showAlertBanner && (
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" aria-hidden="true" />
-            <p className="text-sm font-medium text-rose-600 truncate">
-              {criticalRisks > 0 && activeIncidents > 0
-                ? `${criticalRisks} riesgo${criticalRisks !== 1 ? 's' : ''} critico${criticalRisks !== 1 ? 's' : ''} y ${activeIncidents} incidente${activeIncidents !== 1 ? 's' : ''} activo${activeIncidents !== 1 ? 's' : ''} requieren atencion inmediata`
-                : criticalRisks > 0
-                ? `${criticalRisks} riesgo${criticalRisks !== 1 ? 's' : ''} critico${criticalRisks !== 1 ? 's' : ''} requiere${criticalRisks !== 1 ? 'n' : ''} atencion inmediata`
-                : `${activeIncidents} incidente${activeIncidents !== 1 ? 's' : ''} activo${activeIncidents !== 1 ? 's' : ''} requiere${activeIncidents !== 1 ? 'n' : ''} atencion`}
-            </p>
-          </div>
-          <Link
-            href={criticalRisks > 0 ? '/risks' : '/incidents'}
-            className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors shrink-0"
-          >
-            Ver {criticalRisks > 0 ? 'riesgos' : 'incidentes'}
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
+      {/* ── 1. Header ─────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-0.5">
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{dateString}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
+          {greeting}, {displayName}
+        </h1>
+        <p className="text-sm text-slate-500">Panel de control — BC Trust</p>
+      </div>
+
+      {/* ── 2. Alert Banners ──────────────────────────────────────── */}
+      {(criticalRisks > 0 || activeIncidents > 0 || openNCs > 0 || openVulns > 0) && (
+        <div className="flex flex-wrap gap-2" role="alert" aria-label="Alertas activas">
+          {criticalRisks > 0 && (
+            <Link
+              href="/risks"
+              className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" aria-hidden="true" />
+              {criticalRisks} riesgo{criticalRisks !== 1 ? 's' : ''} critico{criticalRisks !== 1 ? 's' : ''}
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" aria-hidden="true" />
+            </Link>
+          )}
+          {activeIncidents > 0 && (
+            <Link
+              href="/incidents"
+              className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" aria-hidden="true" />
+              {activeIncidents} incidente{activeIncidents !== 1 ? 's' : ''} abierto{activeIncidents !== 1 ? 's' : ''}
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" aria-hidden="true" />
+            </Link>
+          )}
+          {openNCs > 0 && (
+            <Link
+              href="/nonconformities"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" aria-hidden="true" />
+              {openNCs} no conformidad{openNCs !== 1 ? 'es' : ''} abierta{openNCs !== 1 ? 's' : ''}
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" aria-hidden="true" />
+            </Link>
+          )}
+          {openVulns > 0 && (
+            <Link
+              href="/vulnerabilities"
+              className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" aria-hidden="true" />
+              {openVulns} vulnerabilidad{openVulns !== 1 ? 'es' : ''} abierta{openVulns !== 1 ? 's' : ''}
+              <ArrowRight className="h-3.5 w-3.5 ml-0.5" aria-hidden="true" />
+            </Link>
+          )}
         </div>
       )}
 
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Estado de seguridad y cumplimiento — ISO 27001:2022
-        </p>
-      </div>
+      {/* ── 3. KPI Row 1 — Primary metrics ───────────────────────── */}
+      <section aria-label="Metricas primarias">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-      {/* Row 2: Primary KPIs */}
-      <section aria-label="Indicadores primarios">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          {/* Card 1: Cumplimiento Global with circular progress */}
-          <Link
-            href="/compliance"
-            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${complianceBorderClass}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cumplimiento Global</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${complianceTextClass}`}>
-                  {globalCompliance}%
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  {frameworks.length} framework{frameworks.length !== 1 ? 's' : ''} activo{frameworks.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <ComplianceRing value={globalCompliance} color={complianceHex} />
-            </div>
-          </Link>
-
-          {/* Card 2: Riesgos Criticos + Altos */}
-          <Link
-            href="/risks"
-            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${criticalRisks > 0 ? 'border-l-rose-500' : 'border-l-amber-500'}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Riesgos Criticos + Altos</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${criticalRisks > 0 ? 'text-rose-500' : 'text-amber-500'}`}>
-                  {criticalRisks + highRisks}
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  {criticalRisks} criticos · {highRisks} altos
-                </p>
-              </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${criticalRisks > 0 ? 'bg-rose-50' : 'bg-amber-50'}`} aria-hidden="true">
-                <ShieldAlert className={`h-5 w-5 ${criticalRisks > 0 ? 'text-rose-500' : 'text-amber-500'}`} />
-              </div>
-            </div>
-          </Link>
-
-          {/* Card 3: Vulnerabilidades Abiertas */}
-          <Link
-            href="/vulnerabilities"
-            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${openVulns > 10 ? 'border-l-rose-500' : openVulns > 0 ? 'border-l-amber-500' : 'border-l-emerald-500'}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vulnerabilidades Abiertas</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${openVulns > 10 ? 'text-rose-500' : openVulns > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                  {openVulns}
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  {openVulns === 0 ? 'Sin vulnerabilidades abiertas' : openVulns > 10 ? 'Requieren atencion urgente' : 'En revision'}
-                </p>
-              </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${openVulns > 10 ? 'bg-rose-50' : openVulns > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`} aria-hidden="true">
-                <Bug className={`h-5 w-5 ${openVulns > 10 ? 'text-rose-500' : openVulns > 0 ? 'text-amber-500' : 'text-emerald-500'}`} />
-              </div>
-            </div>
-          </Link>
-
-          {/* Card 4: Incidentes Activos */}
-          <Link
-            href="/incidents"
-            className={`relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-sm group border-l-4 shadow-sm ${activeIncidents > 0 ? 'border-l-orange-500' : 'border-l-emerald-500'}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Incidentes Activos</p>
-                <p className={`mt-2 text-4xl sm:text-5xl font-bold tracking-tight ${activeIncidents > 0 ? 'text-orange-500' : 'text-emerald-500'}`}>
-                  {activeIncidents}
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  {activeIncidents === 0 ? 'Sin incidentes detectados' : `Estado: detectado`}
-                </p>
-              </div>
-              <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${activeIncidents > 0 ? 'bg-orange-50' : 'bg-emerald-50'}`} aria-hidden="true">
-                <AlertTriangle className={`h-5 w-5 ${activeIncidents > 0 ? 'text-orange-500' : 'text-emerald-500'}`} />
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Row 3: Secondary KPIs */}
-      <section aria-label="Indicadores secundarios">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-
+          {/* Activos */}
           <Link
             href="/assets"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
           >
-            <div className="min-w-0">
-              <p className="text-xs text-slate-500 font-medium truncate">Activos Registrados</p>
-              <p className="mt-0.5 text-2xl font-bold text-sky-600 tabular-nums">{assetCount}</p>
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0" aria-hidden="true">
+                <Server className="h-5 w-5 text-emerald-600" />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
             </div>
-            <Server className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{assetCount}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Activos</p>
+              <p className="text-xs text-slate-400 mt-0.5">Registrados</p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver activos →</span>
           </Link>
 
+          {/* Riesgos */}
           <Link
-            href="/controls"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
+            href="/risks"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
           >
-            <div className="min-w-0">
-              <p className="text-xs text-slate-500 font-medium truncate">Controles Implementados</p>
-              <p className="mt-0.5 text-2xl font-bold text-blue-600 tabular-nums font-mono">{controlsRatio}</p>
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${criticalRisks > 0 ? 'bg-rose-50' : 'bg-amber-50'}`} aria-hidden="true">
+                <ShieldAlert className={`h-5 w-5 ${criticalRisks > 0 ? 'text-rose-600' : 'text-amber-600'}`} />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
             </div>
-            <Shield className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{totalRisks}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Riesgos</p>
+              <p className={`text-xs mt-0.5 ${criticalRisks > 0 ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
+                {criticalRisks > 0 ? `${criticalRisks} critico${criticalRisks !== 1 ? 's' : ''}` : 'Sin criticos'}
+              </p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver riesgos →</span>
           </Link>
 
+          {/* Incidentes */}
+          <Link
+            href="/incidents"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative ${activeIncidents > 0 ? 'bg-orange-50' : 'bg-slate-50'}`} aria-hidden="true">
+                <AlertTriangle className={`h-5 w-5 ${activeIncidents > 0 ? 'text-orange-600' : 'text-slate-400'}`} />
+                {activeIncidents > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white" />
+                )}
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{activeIncidents}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Incidentes</p>
+              <p className={`text-xs mt-0.5 ${activeIncidents > 0 ? 'text-orange-500 font-medium' : 'text-slate-400'}`}>
+                {activeIncidents > 0 ? `${activeIncidents} abierto${activeIncidents !== 1 ? 's' : ''}` : 'Sin incidentes'}
+              </p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver incidentes →</span>
+          </Link>
+
+          {/* No Conformidades */}
           <Link
             href="/nonconformities"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
           >
-            <div className="min-w-0">
-              <p className="text-xs text-slate-500 font-medium truncate">No Conformidades</p>
-              <p className={`mt-0.5 text-2xl font-bold tabular-nums ${openNCs > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>{openNCs}</p>
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${openNCs > 0 ? 'bg-amber-50' : 'bg-blue-50'}`} aria-hidden="true">
+                <ClipboardCheck className={`h-5 w-5 ${openNCs > 0 ? 'text-amber-600' : 'text-blue-600'}`} />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
             </div>
-            <FileText className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
-          </Link>
-
-          <Link
-            href="/settings/users"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 flex items-center justify-between gap-3 hover:border-slate-300 hover:shadow-sm transition-all group shadow-sm"
-          >
-            <div className="min-w-0">
-              <p className="text-xs text-slate-500 font-medium truncate">Usuarios en Org</p>
-              <p className="mt-0.5 text-2xl font-bold text-purple-600 tabular-nums">{memberCount}</p>
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{openNCs}</p>
+              <p className="text-sm text-slate-500 mt-0.5">No Conformidades</p>
+              <p className={`text-xs mt-0.5 ${openNCs > 0 ? 'text-amber-500 font-medium' : 'text-slate-400'}`}>
+                {openNCs > 0 ? `${openNCs} abierta${openNCs !== 1 ? 's' : ''}` : 'Sin abiertas'}
+              </p>
             </div>
-            <Users className="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors shrink-0" aria-hidden="true" />
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver no conformidades →</span>
           </Link>
         </div>
       </section>
 
-      {/* Row 4: Two-column analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+      {/* ── 4. KPI Row 2 — Secondary metrics ─────────────────────── */}
+      <section aria-label="Metricas secundarias">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* Left 60%: Cumplimiento por Framework */}
-        <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-700">Cumplimiento por Framework</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Controles implementados por estandar</p>
+          {/* Vulnerabilidades */}
+          <Link
+            href="/vulnerabilities"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${openVulns > 0 ? 'bg-rose-50' : 'bg-slate-50'}`} aria-hidden="true">
+                <Bug className={`h-5 w-5 ${openVulns > 0 ? 'text-rose-500' : 'text-slate-400'}`} />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
             </div>
-            <Link
-              href="/compliance"
-              className="flex items-center gap-1 text-xs font-medium text-sky-500 hover:text-sky-600 transition-colors"
-            >
-              Ver detalle
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{openVulns}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Vulnerabilidades</p>
+              <p className="text-xs text-slate-400 mt-0.5">Abiertas</p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver vulnerabilidades →</span>
+          </Link>
+
+          {/* Controles */}
+          <Link
+            href="/controls"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0" aria-hidden="true">
+                <Shield className="h-5 w-5 text-blue-600" />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums font-mono">{controlsRatio}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Controles</p>
+              <p className="text-xs text-slate-400 mt-0.5">Implementados</p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver controles →</span>
+          </Link>
+
+          {/* Documentos */}
+          <Link
+            href="/documents"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0" aria-hidden="true">
+                <BookOpen className="h-5 w-5 text-teal-600" />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{docCount}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Documentos</p>
+              <p className="text-xs text-slate-400 mt-0.5">En biblioteca</p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver biblioteca →</span>
+          </Link>
+
+          {/* Usuarios */}
+          <Link
+            href="/settings/users"
+            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0" aria-hidden="true">
+                <Users className="h-5 w-5 text-purple-600" />
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-slate-800 tabular-nums">{memberCount}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Usuarios</p>
+              <p className="text-xs text-slate-400 mt-0.5">En organizacion</p>
+            </div>
+            <span className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto">Ver usuarios →</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 5. Postura de Seguridad — Frameworks ─────────────────── */}
+      <section aria-label="Postura de seguridad por framework">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          Postura de Seguridad
+        </p>
+        {frameworks.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center gap-2">
+            <Lock className="h-8 w-8 text-slate-300" aria-hidden="true" />
+            <p className="text-sm text-slate-500">No hay frameworks configurados</p>
+            <Link href="/compliance" className="text-xs text-sky-500 hover:text-sky-600 transition-colors">
+              Agregar framework →
             </Link>
           </div>
-          {frameworks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <CheckSquare className="h-8 w-8 text-slate-300" aria-hidden="true" />
-              <p className="text-sm text-slate-500">No hay frameworks configurados</p>
-              <Link href="/compliance" className="mt-1 text-xs text-sky-500 hover:text-sky-600 transition-colors">
-                Agregar framework
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {frameworks.slice(0, 6).map((fw) => {
-                const pct = fw.compliance_percentage;
-                const barColor =
-                  pct >= 80
-                    ? 'bg-emerald-500'
-                    : pct >= 60
-                    ? 'bg-sky-500'
-                    : pct >= 40
-                    ? 'bg-amber-500'
-                    : 'bg-rose-500';
-                const textColor =
-                  pct >= 80
-                    ? 'text-emerald-600'
-                    : pct >= 60
-                    ? 'text-sky-600'
-                    : pct >= 40
-                    ? 'text-amber-600'
-                    : 'text-rose-600';
-                return (
-                  <div key={fw.id}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-slate-700 truncate pr-4">{fw.name}</span>
-                      <span className={`text-sm font-bold font-mono tabular-nums shrink-0 ${textColor}`}>
-                        {pct}%
-                      </span>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {frameworks.map((fw) => {
+              const pct = fw.compliance_percentage;
+              const barColor =
+                pct >= 80 ? 'bg-emerald-500'
+                : pct >= 60 ? 'bg-sky-500'
+                : pct >= 40 ? 'bg-amber-500'
+                : 'bg-rose-500';
+              const textColor =
+                pct >= 80 ? 'text-emerald-600'
+                : pct >= 60 ? 'text-sky-600'
+                : pct >= 40 ? 'text-amber-500'
+                : 'text-rose-500';
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const fwAny = fw as any;
+              const implemented = fwAny.implemented_controls ?? 0;
+              const total = fwAny.total_controls ?? 0;
+              const partial = fwAny.partial_controls ?? 0;
+              const notImpl = Math.max(0, total - implemented - partial);
+
+              return (
+                <Link
+                  key={fw.id}
+                  href="/compliance"
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3 hover:border-slate-300 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0" aria-hidden="true">
+                      <Layers className="h-4 w-4 text-slate-500" />
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <progress
-                        value={pct}
-                        max={100}
-                        aria-label={`${fw.name}: ${pct}%`}
-                        className={[
-                          'block h-full w-full appearance-none bg-transparent',
-                          '[&::-webkit-progress-bar]:bg-transparent',
-                          `[&::-webkit-progress-value]:${barColor} [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-700`,
-                          `[&::-moz-progress-bar]:${barColor} [&::-moz-progress-bar]:rounded-full`,
-                        ].join(' ')}
-                      />
+                    <span className={`text-2xl font-bold tabular-nums ${textColor}`}>{pct}%</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 truncate">{fw.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{total} controles</p>
+                  </div>
+                  <div>
+                    <ProgressBar
+                      value={pct}
+                      max={100}
+                      label={`${fw.name}: ${pct}% cumplimiento`}
+                      colorClass={barColor}
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      {implemented > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                          {implemented}
+                        </span>
+                      )}
+                      {partial > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden="true" />
+                          {partial}
+                        </span>
+                      )}
+                      {notImpl > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
+                          {notImpl}
+                        </span>
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                  <span className="text-xs text-sky-500 group-hover:text-sky-600 font-medium">
+                    Ver modulo →
+                  </span>
+                </Link>
+              );
+            })}
+            {/* Global Compliance summary card */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0" aria-hidden="true">
+                  <CheckSquare className="h-4 w-4 text-slate-500" />
+                </div>
+                <ComplianceRing value={avgCompliance} color={complianceHex} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-700">Cumplimiento Global</p>
+                <p className="text-xs text-slate-400 mt-0.5">{frameworks.length} framework{frameworks.length !== 1 ? 's' : ''} activo{frameworks.length !== 1 ? 's' : ''}</p>
+              </div>
+              <Link
+                href="/compliance"
+                className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto"
+              >
+                Ver detalle →
+              </Link>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </section>
 
-        {/* Right 40%: Distribucion de Riesgos */}
-        <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
+      {/* ── 6. Bottom Analytics Row ───────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Riesgos por nivel */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-4">
+          <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-700">Estado de Riesgos</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Distribucion por severidad</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Riesgos por Nivel</p>
+              <p className="text-2xl font-bold text-slate-800 mt-1 tabular-nums">{totalRisks}</p>
+              <p className="text-xs text-slate-400">Escenarios totales</p>
             </div>
-            <Link
-              href="/risks"
-              className="flex items-center gap-1 text-xs font-medium text-sky-500 hover:text-sky-600 transition-colors"
-            >
-              Ver todos
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <div className="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center shrink-0" aria-hidden="true">
+              <ShieldAlert className="h-4 w-4 text-rose-500" />
+            </div>
           </div>
           {totalRisks === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <Shield className="h-8 w-8 text-slate-300" aria-hidden="true" />
-              <p className="text-sm text-slate-500">No hay riesgos evaluados</p>
-              <Link href="/risks" className="mt-1 text-xs text-sky-500 hover:text-sky-600 transition-colors">
-                Registrar riesgo
-              </Link>
-            </div>
+            <p className="text-sm text-slate-400 text-center py-4">Sin riesgos registrados</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5" role="list" aria-label="Distribucion de riesgos">
               {riskDistribution.map((risk) => (
-                <div key={risk.level}>
-                  <div className="flex items-center justify-between mb-1.5">
+                <div key={risk.level} role="listitem">
+                  <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full shrink-0 ${risk.dotColor}`} aria-hidden="true" />
-                      <span className="text-sm font-medium text-slate-600">{risk.level}</span>
+                      <span className="text-xs font-medium text-slate-600">{risk.level}</span>
                     </div>
-                    <span className={`text-sm font-bold font-mono tabular-nums ${risk.textColor}`}>
-                      {risk.count}
-                    </span>
+                    <span className={`text-xs font-bold tabular-nums ${risk.textColor}`}>{risk.count}</span>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <progress
-                      value={risk.count}
-                      max={totalRisks > 0 ? totalRisks : 1}
-                      aria-label={`${risk.level}: ${risk.count} de ${totalRisks}`}
-                      className={[
-                        'block h-full w-full appearance-none bg-transparent',
-                        '[&::-webkit-progress-bar]:bg-transparent',
-                        `[&::-webkit-progress-value]:${risk.color} [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-700`,
-                        `[&::-moz-progress-bar]:${risk.color} [&::-moz-progress-bar]:rounded-full`,
-                      ].join(' ')}
-                    />
-                  </div>
+                  <ProgressBar
+                    value={risk.count}
+                    max={totalRisks}
+                    label={`${risk.level}: ${risk.count}`}
+                    colorClass={risk.barColor}
+                  />
                 </div>
               ))}
-              <div className="pt-4 mt-1 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-xs text-slate-500 uppercase tracking-wider">Total escenarios</span>
-                <span className="text-sm font-bold text-slate-700 font-mono tabular-nums">{totalRisks}</span>
-              </div>
             </div>
           )}
+          <Link
+            href="/risks"
+            className="text-xs text-sky-500 hover:text-sky-600 font-medium mt-auto"
+          >
+            Gestionar riesgos →
+          </Link>
+        </div>
+
+        {/* No Conformidades */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">No Conformidades</p>
+              <p className="text-2xl font-bold text-slate-800 mt-1 tabular-nums">{openNCs}</p>
+              <p className="text-xs text-slate-400">Abiertas actualmente</p>
+            </div>
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${openNCs > 0 ? 'bg-amber-50' : 'bg-slate-50'}`} aria-hidden="true">
+              <ClipboardCheck className={`h-4 w-4 ${openNCs > 0 ? 'text-amber-500' : 'text-slate-400'}`} />
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col justify-center">
+            {openNCs === 0 ? (
+              <div className="flex flex-col items-center gap-1.5 py-4">
+                <span className="text-2xl" aria-hidden="true">✓</span>
+                <p className="text-sm font-medium text-emerald-600">Sin no conformidades abiertas</p>
+                <p className="text-xs text-slate-400">Excelente estado de cumplimiento</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-100">
+                  <span className="text-xs font-medium text-amber-700">Abiertas</span>
+                  <span className="text-sm font-bold text-amber-700 tabular-nums">{openNCs}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
+                  <span className="text-xs font-medium text-slate-600">Total registradas</span>
+                  <span className="text-sm font-bold text-slate-700 tabular-nums">{openNCs}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <Link
+            href="/nonconformities"
+            className="text-xs text-sky-500 hover:text-sky-600 font-medium"
+          >
+            Ver no conformidades →
+          </Link>
+        </div>
+
+        {/* Proveedores */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Proveedores</p>
+              <p className="text-2xl font-bold text-slate-800 mt-1 tabular-nums">{vendorCount}</p>
+              <p className="text-xs text-slate-400">Registrados en sistema</p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0" aria-hidden="true">
+              <Building2 className="h-4 w-4 text-purple-500" />
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col justify-center">
+            {vendorCount === 0 ? (
+              <div className="flex flex-col items-center gap-1.5 py-4">
+                <Building2 className="h-8 w-8 text-slate-200" aria-hidden="true" />
+                <p className="text-sm text-slate-400 text-center">Sin proveedores registrados</p>
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg bg-purple-50 border border-purple-100">
+                <p className="text-xs font-medium text-purple-700">Proveedores activos en gestion</p>
+                <p className="text-2xl font-bold text-purple-700 mt-1 tabular-nums">{vendorCount}</p>
+              </div>
+            )}
+          </div>
+          <Link
+            href="/vendors"
+            className="text-xs text-sky-500 hover:text-sky-600 font-medium"
+          >
+            Ver proveedores →
+          </Link>
         </div>
       </div>
 
-      {/* Row 5: Quick Actions */}
-      <section aria-label="Acciones rapidas">
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {quickActions.map(({ label, href, icon: Icon }) => (
+      {/* ── 7. Accesos Rapidos ────────────────────────────────────── */}
+      <section aria-label="Accesos rapidos">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          Accesos Rapidos
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {quickLinks.map(({ label, href, icon: Icon, color, bg }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-sky-600 hover:bg-sky-50 hover:border-sky-200 transition-all shadow-sm"
+              className="bg-white border border-slate-200 rounded-lg p-4 flex items-center gap-3 hover:border-slate-300 hover:shadow-sm transition-all group"
             >
-              <Icon className="h-4 w-4 text-slate-400 group-hover:text-sky-500 shrink-0" aria-hidden="true" />
-              {label}
+              <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center shrink-0`} aria-hidden="true">
+                <Icon className={`h-4 w-4 ${color}`} />
+              </div>
+              <span className="text-sm font-medium text-slate-700 flex-1 truncate">{label}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-400 shrink-0 transition-colors" aria-hidden="true" />
             </Link>
           ))}
         </div>
