@@ -10,6 +10,14 @@ export interface AssetRow {
   asset_type: string;
   status: string;
   criticality: string;
+  criticality_cid: string | null;
+  process_type: string | null;
+  process_name: string | null;
+  sede: string | null;
+  info_owner: string | null;
+  confidentiality: string | null;
+  integrity: string | null;
+  availability: string | null;
   department: string | null;
   location: string | null;
   ip_address: string | null;
@@ -28,12 +36,15 @@ export interface AssetRow {
   updated_at: string;
 }
 
+const ASSET_SELECT =
+  'id, code, name, description, asset_type, status, criticality, process_type, process_name, sede, criticality_cid, info_owner, confidentiality, integrity, availability, department, location, ip_address, hostname, val_confidentiality, val_integrity, val_availability, val_authenticity, val_traceability, is_critical, data_classification, pii_data, financial_data, tags, created_at, updated_at';
+
 export async function getAssets(
   orgId: string,
   params: PaginationParams = {},
   filters?: { asset_type?: string; status?: string; criticality?: string }
 ): Promise<PaginatedResult<AssetRow>> {
-  return paginatedQuery<AssetRow>('assets', orgId, params, '*', filters);
+  return paginatedQuery<AssetRow>('assets', orgId, params, ASSET_SELECT, filters);
 }
 
 export async function getAssetById(id: string): Promise<AssetRow | null> {
