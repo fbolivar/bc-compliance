@@ -1,3 +1,2 @@
-// Risks - Components
-// This module will contain Risks components
-export {};
+export { RiskList } from './RiskList';
+export { RiskForm } from './RiskForm';

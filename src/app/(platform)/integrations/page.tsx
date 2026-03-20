@@ -1,8 +1,104 @@
-export default function IntegrationsPage() {
+import { requireOrg } from '@/shared/lib/get-org';
+import { getIntegrations, CONNECTOR_CATALOG } from '@/features/integrations/services/integrationService';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { StatusBadge } from '@/shared/components/StatusBadge';
+
+export default async function IntegrationsPage() {
+  const { orgId } = await requireOrg();
+  const integrationsResult = await getIntegrations(orgId);
+  const activeIntegrations = integrationsResult.data;
+
+  const activeByType = new Map(activeIntegrations.map((i) => [i.integration_type, i]));
+
+  const byCategory = CONNECTOR_CATALOG.reduce<Record<string, typeof CONNECTOR_CATALOG>>((acc, connector) => {
+    if (!acc[connector.category]) acc[connector.category] = [];
+    acc[connector.category].push(connector);
+    return acc;
+  }, {});
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-slate-900">Hub de Integraciones</h1>
-      <p className="mt-2 text-slate-600">Conexiones con SIEM, escáneres y EDR</p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Hub de Integraciones"
+        description="Conectores con SIEM, escáneres de vulnerabilidades, EDR y herramientas de ITSM"
+      />
+
+      {/* Active integrations summary */}
+      {activeIntegrations.length > 0 && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Integraciones Activas</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {activeIntegrations.map((integration) => (
+              <div
+                key={integration.id}
+                className="flex items-center justify-between p-3 rounded-lg border border-slate-700 bg-slate-800/30"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-200">{integration.name}</p>
+                  <p className="text-xs text-slate-500">
+                    {integration.last_sync_at
+                      ? `Sync: ${new Date(integration.last_sync_at).toLocaleDateString('es-CO')}`
+                      : 'Sin sincronizacion'}
+                  </p>
+                </div>
+                <StatusBadge status={integration.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Connector catalog by category */}
+      {Object.entries(byCategory).map(([category, connectors]) => (
+        <div key={category}>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">{category}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {connectors.map((connector) => {
+              const active = activeByType.get(connector.id);
+
+              return (
+                <div
+                  key={connector.id}
+                  className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 hover:border-slate-700 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-2xl">{connector.icon}</span>
+                    {connector.status === 'coming_soon' ? (
+                      <span className="px-2 py-0.5 text-xs bg-slate-800 text-slate-500 border border-slate-700 rounded">
+                        Proximamente
+                      </span>
+                    ) : active ? (
+                      <StatusBadge status={active.status} />
+                    ) : (
+                      <span className="px-2 py-0.5 text-xs bg-slate-800 text-slate-400 border border-slate-700 rounded">
+                        Disponible
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-200 mb-1">{connector.name}</h3>
+                  <p className="text-xs text-slate-500 mb-4">{connector.description}</p>
+                  <button
+                    disabled={connector.status === 'coming_soon'}
+                    className={`w-full px-3 py-2 text-xs rounded-lg border transition-colors ${
+                      connector.status === 'coming_soon'
+                        ? 'text-slate-600 border-slate-800 cursor-not-allowed'
+                        : active
+                          ? 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10'
+                          : 'text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10'
+                    }`}
+                  >
+                    {connector.status === 'coming_soon'
+                      ? 'Proximamente'
+                      : active
+                        ? 'Configurar'
+                        : 'Conectar'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
