@@ -115,10 +115,10 @@ export function LoginForm() {
 
           {/* Header */}
           <div className="px-8 pt-8 pb-6 border-b border-slate-800/50">
-            <div className="flex items-center gap-4 mb-6">
-              <img src="/Logo.png" alt="BC Trust" className="h-12 w-auto" />
-              <div>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <img src="/Logo.png" alt="BC Trust" className="h-16 w-auto" />
+              <div className="text-center">
+                <p className="text-xs text-slate-500 font-mono">
                   SGSI - Gestion de Seguridad Digital
                 </p>
               </div>
