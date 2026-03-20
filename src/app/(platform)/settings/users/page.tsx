@@ -11,12 +11,20 @@ export default async function SettingsUsersPage() {
   const { orgId } = await requireOrg();
   const supabase = await createClient();
 
-  // Get members with profile and role info - use role_id join instead of role column
+  // Get members - simple query without joins to avoid null FK issues
   const { data: members } = await supabase
     .from('organization_members')
-    .select('id, role_id, is_owner, is_active, joined_at, user_id, profiles!left(email, full_name), roles!left(name)')
+    .select('id, role_id, is_owner, is_active, joined_at, user_id')
     .eq('organization_id', orgId)
     .order('joined_at', { ascending: false });
+
+  // Get profiles for these members
+  const memberIds = (members || []).map(m => m.user_id);
+  const { data: profiles } = memberIds.length > 0
+    ? await supabase.from('profiles').select('id, email, full_name').in('id', memberIds)
+    : { data: [] };
+
+  const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
   // Get invitations
   const { data: invitations } = await supabase
@@ -57,9 +65,8 @@ export default async function SettingsUsersPage() {
             </div>
           ) : (
             memberList.map((member) => {
-              const profile = member.profiles as { email?: string; full_name?: string } | null;
-              const role = member.roles as { name?: string } | null;
-              const roleName = member.is_owner ? 'Owner' : (role?.name?.replace(/_/g, ' ') || 'Sin rol');
+              const profile = profileMap.get(member.user_id);
+              const roleName = member.is_owner ? 'Owner' : 'Sin rol';
               return (
                 <div key={member.id} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-sm">
                   <div className="flex items-center gap-3">
@@ -106,9 +113,8 @@ export default async function SettingsUsersPage() {
                   </tr>
                 ) : (
                   memberList.map((member) => {
-                    const profile = member.profiles as { email?: string; full_name?: string } | null;
-                    const role = member.roles as { name?: string } | null;
-                    const roleName = member.is_owner ? 'Owner' : (role?.name?.replace(/_/g, ' ') || 'Sin rol');
+                    const profile = profileMap.get(member.user_id);
+                    const roleName = member.is_owner ? 'Owner' : 'Sin rol';
                     return (
                       <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3">
