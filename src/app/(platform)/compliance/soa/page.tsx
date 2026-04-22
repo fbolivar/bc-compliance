@@ -2,6 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SoaTable } from '@/features/compliance/components/SoaTable';
+import { getControlMappingsByRequirements } from '@/features/compliance/services/complianceService';
 import { CheckCircle2, CircleDashed, AlertCircle, MinusCircle, BarChart3 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +20,12 @@ export default async function SoaPage() {
     .order('created_at');
 
   const entries = soaData ?? [];
+
+  // Fetch control mappings for all requirements in SOA
+  const requirementIds = entries
+    .map((e) => e.requirement_id)
+    .filter((id): id is string => Boolean(id));
+  const controlMappings = await getControlMappingsByRequirements(requirementIds);
 
   // Derive unique frameworks for the filter
   const frameworkMap = new Map<string, { id: string; name: string }>();
@@ -134,6 +141,7 @@ export default async function SoaPage() {
         <SoaTable
           entries={entries as unknown as Parameters<typeof SoaTable>[0]['entries']}
           frameworks={frameworks}
+          controlMappings={controlMappings}
         />
       )}
     </div>

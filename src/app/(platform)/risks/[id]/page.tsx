@@ -1,8 +1,22 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getRiskById } from '@/features/risks/services/riskService';
+import {
+  getRiskById,
+  getMitigatingControlsForRisk,
+  getAvailableControlsForRisk,
+} from '@/features/risks/services/riskService';
+import {
+  getVulnerabilitiesForRisk,
+  getAvailableVulnerabilitiesForRisk,
+  getTreatmentPlansForRisk,
+  getAvailableTreatmentPlansForRisk,
+} from '@/features/compliance/services/relationshipService';
+import { requireOrg } from '@/shared/lib/get-org';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { MitigatingControlsPanel } from '@/features/risks/components/MitigatingControlsPanel';
+import { RiskVulnerabilitiesPanel } from '@/features/risks/components/RiskVulnerabilitiesPanel';
+import { RiskTreatmentPlansPanel } from '@/features/risks/components/RiskTreatmentPlansPanel';
 import { ArrowLeft } from 'lucide-react';
 
 interface Props {
@@ -11,7 +25,24 @@ interface Props {
 
 export default async function RiskDetailPage({ params }: Props) {
   const { id } = await params;
-  const risk = await getRiskById(id);
+  const { orgId } = await requireOrg();
+  const [
+    risk,
+    mitigatingControls,
+    availableControls,
+    vulnerabilities,
+    availableVulns,
+    treatmentPlans,
+    availablePlans,
+  ] = await Promise.all([
+    getRiskById(id),
+    getMitigatingControlsForRisk(id),
+    getAvailableControlsForRisk(orgId, id),
+    getVulnerabilitiesForRisk(id),
+    getAvailableVulnerabilitiesForRisk(orgId, id),
+    getTreatmentPlansForRisk(id),
+    getAvailableTreatmentPlansForRisk(orgId, id),
+  ]);
   if (!risk) notFound();
 
   const dimensions = [
@@ -124,6 +155,27 @@ export default async function RiskDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Controles Mitigantes - integración Riesgos ↔ Controles */}
+      <MitigatingControlsPanel
+        riskId={risk.id}
+        mitigatingControls={mitigatingControls}
+        availableControls={availableControls}
+      />
+
+      {/* Vulnerabilidades - integración Riesgos ↔ Vulnerabilidades */}
+      <RiskVulnerabilitiesPanel
+        riskId={risk.id}
+        items={vulnerabilities}
+        availableVulns={availableVulns}
+      />
+
+      {/* Planes de Tratamiento - integración Riesgos ↔ Treatment Plans */}
+      <RiskTreatmentPlansPanel
+        riskId={risk.id}
+        items={treatmentPlans}
+        availablePlans={availablePlans}
+      />
     </div>
   );
 }

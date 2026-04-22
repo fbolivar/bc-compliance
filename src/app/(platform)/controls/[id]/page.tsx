@@ -1,7 +1,15 @@
 import { requireOrg } from '@/shared/lib/get-org';
-import { getControlById } from '@/features/controls/services/controlService';
+import {
+  getControlById,
+  getRisksForControl,
+  getRequirementsForControl,
+  getAvailableRisksForControl,
+  getAvailableRequirementsForControl,
+} from '@/features/controls/services/controlService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { MitigatedRisksPanel } from '@/features/controls/components/MitigatedRisksPanel';
+import { CoveredRequirementsPanel } from '@/features/controls/components/CoveredRequirementsPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar } from 'lucide-react';
@@ -21,8 +29,15 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export default async function ControlDetailPage({ params }: Props) {
   const { id } = await params;
-  await requireOrg();
-  const control = await getControlById(id);
+  const { orgId } = await requireOrg();
+  const [control, mitigatedRisks, coveredRequirements, availableRisks, availableRequirements] =
+    await Promise.all([
+      getControlById(id),
+      getRisksForControl(id),
+      getRequirementsForControl(id),
+      getAvailableRisksForControl(orgId, id),
+      getAvailableRequirementsForControl(id),
+    ]);
 
   if (!control) notFound();
 
@@ -87,6 +102,20 @@ export default async function ControlDetailPage({ params }: Props) {
           <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{control.description}</p>
         </div>
       )}
+
+      {/* Riesgos Mitigados - integración Controles ↔ Riesgos */}
+      <MitigatedRisksPanel
+        controlId={control.id}
+        mitigatedRisks={mitigatedRisks}
+        availableRisks={availableRisks}
+      />
+
+      {/* Requisitos Cubiertos - integración Controles ↔ Compliance */}
+      <CoveredRequirementsPanel
+        controlId={control.id}
+        coveredRequirements={coveredRequirements}
+        availableRequirements={availableRequirements}
+      />
     </div>
   );
 }

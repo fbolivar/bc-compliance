@@ -82,6 +82,88 @@ export async function getRiskById(id: string): Promise<RiskRow | null> {
   return data as RiskRow | null;
 }
 
+export interface MitigatingControl {
+  mapping_id: string;
+  control_id: string;
+  code: string;
+  name: string;
+  status: string;
+  effectiveness_rating: string | null;
+  effectiveness: number;
+  notes: string | null;
+}
+
+export interface AvailableControlOption {
+  id: string;
+  code: string;
+  name: string;
+  status: string;
+}
+
+export async function getAvailableControlsForRisk(
+  orgId: string,
+  riskId: string,
+): Promise<AvailableControlOption[]> {
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from('control_risk_mappings')
+    .select('control_id')
+    .eq('risk_scenario_id', riskId);
+
+  const excludedIds = (existing ?? []).map((r) => r.control_id);
+
+  let query = supabase
+    .from('controls')
+    .select('id, code, name, status')
+    .eq('organization_id', orgId)
+    .order('code');
+
+  if (excludedIds.length > 0) {
+    query = query.not('id', 'in', `(${excludedIds.join(',')})`);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return data as AvailableControlOption[];
+}
+
+export async function getMitigatingControlsForRisk(riskId: string): Promise<MitigatingControl[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('control_risk_mappings')
+    .select(`
+      id,
+      effectiveness,
+      notes,
+      controls(id, code, name, status, effectiveness)
+    `)
+    .eq('risk_scenario_id', riskId)
+    .order('effectiveness', { ascending: false });
+
+  if (error || !data) return [];
+
+  type Row = {
+    id: string;
+    effectiveness: number;
+    notes: string | null;
+    controls: { id: string; code: string; name: string; status: string; effectiveness: string | null } | null;
+  };
+
+  return (data as unknown as Row[])
+    .filter((row) => row.controls)
+    .map((row) => ({
+      mapping_id: row.id,
+      control_id: row.controls!.id,
+      code: row.controls!.code,
+      name: row.controls!.name,
+      status: row.controls!.status,
+      effectiveness_rating: row.controls!.effectiveness,
+      effectiveness: row.effectiveness,
+      notes: row.notes,
+    }));
+}
+
 export async function getRiskCount(orgId: string): Promise<number> {
   return countRecords('risk_scenarios', orgId);
 }

@@ -2,6 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import {
   getFrameworkById,
   getFrameworkRequirements,
+  getControlMappingsByRequirements,
 } from '@/features/compliance/services/complianceService';
 import { createClient } from '@/lib/supabase/server';
 import { FrameworkDetailClient } from '@/features/compliance/components/FrameworkDetailClient';
@@ -33,6 +34,8 @@ export default async function FrameworkDetailPage({ params }: Props) {
         .in('requirement_id', reqIds)
     : { data: [] };
 
+  const controlMappings = await getControlMappingsByRequirements(reqIds);
+
   return (
     <div className="space-y-1">
       {/* Back navigation */}
@@ -53,6 +56,7 @@ export default async function FrameworkDetailPage({ params }: Props) {
         framework={framework}
         requirements={requirements}
         soaEntries={soaEntries ?? []}
+        controlMappings={controlMappings}
       />
     </div>
   );

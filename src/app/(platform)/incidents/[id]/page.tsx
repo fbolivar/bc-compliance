@@ -1,7 +1,15 @@
 import { requireOrg } from '@/shared/lib/get-org';
 import { getIncidentById, getIncidentTimeline } from '@/features/incidents/services/incidentService';
+import {
+  getRisksForIncident,
+  getAvailableRisksForIncident,
+  getAssetsForIncident,
+  getAvailableAssetsForIncident,
+} from '@/features/compliance/services/relationshipService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { IncidentRisksPanel } from '@/features/incidents/components/IncidentRisksPanel';
+import { IncidentAssetsPanel } from '@/features/incidents/components/IncidentAssetsPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Clock } from 'lucide-react';
@@ -21,12 +29,18 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export default async function IncidentDetailPage({ params }: Props) {
   const { id } = await params;
-  await requireOrg();
-  const incident = await getIncidentById(id);
+  const { orgId } = await requireOrg();
+  const [incident, timeline, incidentRisks, availableRisks, incidentAssets, availableAssets] =
+    await Promise.all([
+      getIncidentById(id),
+      getIncidentTimeline(id),
+      getRisksForIncident(id),
+      getAvailableRisksForIncident(orgId, id),
+      getAssetsForIncident(id),
+      getAvailableAssetsForIncident(orgId, id),
+    ]);
 
   if (!incident) notFound();
-
-  const timeline = await getIncidentTimeline(id);
 
   return (
     <div className="space-y-6">
@@ -92,6 +106,20 @@ export default async function IncidentDetailPage({ params }: Props) {
           <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{incident.root_cause}</p>
         </div>
       )}
+
+      {/* Integración: Activos afectados */}
+      <IncidentAssetsPanel
+        incidentId={incident.id}
+        items={incidentAssets}
+        availableAssets={availableAssets}
+      />
+
+      {/* Integración: Riesgos materializados */}
+      <IncidentRisksPanel
+        incidentId={incident.id}
+        items={incidentRisks}
+        availableRisks={availableRisks}
+      />
 
       {/* Timeline */}
       {timeline.length > 0 && (

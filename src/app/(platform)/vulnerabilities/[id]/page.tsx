@@ -1,7 +1,12 @@
 import { requireOrg } from '@/shared/lib/get-org';
 import { getVulnerabilityById } from '@/features/vulnerabilities/services/vulnService';
+import {
+  getRisksForVulnerability,
+  getAvailableRisksForVulnerability,
+} from '@/features/compliance/services/relationshipService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { VulnRisksPanel } from '@/features/vulnerabilities/components/VulnRisksPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Shield, Calendar, Server } from 'lucide-react';
@@ -22,8 +27,12 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export default async function VulnerabilityDetailPage({ params }: Props) {
   const { id } = await params;
-  await requireOrg();
-  const vuln = await getVulnerabilityById(id);
+  const { orgId } = await requireOrg();
+  const [vuln, associatedRisks, availableRisks] = await Promise.all([
+    getVulnerabilityById(id),
+    getRisksForVulnerability(id),
+    getAvailableRisksForVulnerability(orgId, id),
+  ]);
 
   if (!vuln) notFound();
 
@@ -107,6 +116,13 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
         currentStatus={vuln.action_status}
         currentRemediation={vuln.remediation}
         currentDueDate={vuln.due_date}
+      />
+
+      {/* Integración: riesgos asociados */}
+      <VulnRisksPanel
+        vulnerabilityId={vuln.id}
+        items={associatedRisks}
+        availableRisks={availableRisks}
       />
 
       {/* Dates */}

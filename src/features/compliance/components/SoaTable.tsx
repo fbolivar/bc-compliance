@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useTransition, useCallback } from 'react';
-import { ChevronDown, Check, AlertCircle, Loader2, Filter } from 'lucide-react';
-import { updateSoaEntry } from '@/features/compliance/actions/complianceActions';
+import { Fragment, useState, useTransition, useCallback, useMemo } from 'react';
+import Link from 'next/link';
+import { ChevronDown, Check, AlertCircle, Loader2, Filter, Sparkles, Link2 } from 'lucide-react';
+import {
+  updateSoaEntry,
+  deriveSoaFromControls,
+  deriveSoaBulk,
+} from '@/features/compliance/actions/complianceActions';
 
 export interface SoaEntryEnriched {
   id: string;
@@ -25,9 +30,20 @@ export interface SoaEntryEnriched {
   } | null;
 }
 
+export interface SoaControlMapping {
+  requirement_id: string;
+  control_id: string;
+  control_code: string;
+  control_name: string;
+  control_status: string;
+  coverage_percentage: number;
+  compliance_status: string;
+}
+
 interface Props {
   entries: SoaEntryEnriched[];
   frameworks: { id: string; name: string }[];
+  controlMappings?: SoaControlMapping[];
 }
 
 const IMPL_STATUS_OPTIONS = [
@@ -61,9 +77,21 @@ interface RowState {
   expanded: boolean;
 }
 
-export function SoaTable({ entries, frameworks }: Props) {
+export function SoaTable({ entries, frameworks, controlMappings = [] }: Props) {
   const [selectedFramework, setSelectedFramework] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [expandedControls, setExpandedControls] = useState<Record<string, boolean>>({});
+  const [bulkDeriving, setBulkDeriving] = useState(false);
+
+  const controlsByRequirement = useMemo(() => {
+    const map = new Map<string, SoaControlMapping[]>();
+    for (const m of controlMappings) {
+      if (!map.has(m.requirement_id)) map.set(m.requirement_id, []);
+      map.get(m.requirement_id)!.push(m);
+    }
+    return map;
+  }, [controlMappings]);
+
   const [rowStates, setRowStates] = useState<Record<string, RowState>>(() => {
     const init: Record<string, RowState> = {};
     for (const e of entries) {
@@ -153,6 +181,58 @@ export function SoaTable({ entries, frameworks }: Props) {
     return true;
   });
 
+  const handleDeriveRow = useCallback(
+    (entry: SoaEntryEnriched) => {
+      updateRow(entry.id, { saving: true, saved: false, error: null });
+      startTransition(async () => {
+        const res = await deriveSoaFromControls(entry.id);
+        if (res.error) {
+          updateRow(entry.id, { saving: false, error: res.error });
+          return;
+        }
+        if (res.outcome) {
+          updateRow(entry.id, {
+            saving: false,
+            saved: true,
+            implementation_status: res.outcome.implementation_status,
+          });
+          setTimeout(() => updateRow(entry.id, { saved: false }), 2000);
+        } else {
+          updateRow(entry.id, { saving: false, saved: true });
+          setTimeout(() => updateRow(entry.id, { saved: false }), 2000);
+        }
+      });
+    },
+    [updateRow],
+  );
+
+  const handleBulkDerive = useCallback(() => {
+    const candidateIds = filtered
+      .filter((e) => (controlsByRequirement.get(e.requirement_id)?.length ?? 0) > 0)
+      .map((e) => e.id);
+    if (candidateIds.length === 0) {
+      alert('No hay entradas visibles con controles mapeados para derivar.');
+      return;
+    }
+    if (!confirm(`Derivar el estado de ${candidateIds.length} entradas visibles a partir de sus controles mapeados?`)) return;
+
+    setBulkDeriving(true);
+    startTransition(async () => {
+      const res = await deriveSoaBulk(candidateIds);
+      setBulkDeriving(false);
+      if (res.error) {
+        alert(`Error: ${res.error}`);
+        return;
+      }
+      // Reload to get fresh server state for all rows
+      window.location.reload();
+    });
+  }, [filtered, controlsByRequirement]);
+
+  const toggleControls = (entryId: string) => {
+    setExpandedControls((prev) => ({ ...prev, [entryId]: !prev[entryId] }));
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -194,6 +274,17 @@ export function SoaTable({ entries, frameworks }: Props) {
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
         </div>
 
+        <button
+          type="button"
+          onClick={handleBulkDerive}
+          disabled={bulkDeriving || controlMappings.length === 0}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-500 text-white hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+          title={controlMappings.length === 0 ? 'No hay controles mapeados a requisitos' : 'Derivar estado desde controles mapeados'}
+        >
+          {bulkDeriving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+          Derivar visibles desde controles
+        </button>
+
         <span className="ml-auto text-xs text-slate-400">
           {filtered.length} de {entries.length} entradas
         </span>
@@ -211,6 +302,9 @@ export function SoaTable({ entries, frameworks }: Props) {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Requisito
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-32">
+                  Controles
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-52">
                   Estado implementacion
                 </th>
@@ -220,13 +314,13 @@ export function SoaTable({ entries, frameworks }: Props) {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Justificacion
                 </th>
-                <th className="px-4 py-3 w-16" />
+                <th className="px-4 py-3 w-20" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-400">
+                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-slate-400">
                     No hay entradas que coincidan con los filtros seleccionados.
                   </td>
                 </tr>
@@ -235,12 +329,12 @@ export function SoaTable({ entries, frameworks }: Props) {
                   const row = rowStates[entry.id];
                   if (!row) return null;
                   const req = entry.framework_requirements;
+                  const mappedControls = controlsByRequirement.get(entry.requirement_id) ?? [];
+                  const isControlsExpanded = !!expandedControls[entry.id];
 
                   return (
-                    <tr
-                      key={entry.id}
-                      className="hover:bg-slate-50/60 transition-colors"
-                    >
+                    <Fragment key={entry.id}>
+                    <tr className="hover:bg-slate-50/60 transition-colors">
                       {/* Code */}
                       <td className="px-4 py-3">
                         <span className="font-mono text-xs font-semibold text-sky-600">
@@ -257,6 +351,23 @@ export function SoaTable({ entries, frameworks }: Props) {
                           <p className="mt-0.5 text-xs text-slate-400 line-clamp-1">
                             {req.description}
                           </p>
+                        )}
+                      </td>
+
+                      {/* Controles mapeados */}
+                      <td className="px-4 py-3">
+                        {mappedControls.length === 0 ? (
+                          <span className="text-[11px] text-slate-400 italic">Sin controles</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => toggleControls(entry.id)}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded-md border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
+                          >
+                            <Link2 className="w-3 h-3" />
+                            {mappedControls.length} {mappedControls.length === 1 ? 'control' : 'controles'}
+                            <ChevronDown className={`w-3 h-3 transition-transform ${isControlsExpanded ? 'rotate-180' : ''}`} />
+                          </button>
                         )}
                       </td>
 
@@ -342,16 +453,67 @@ export function SoaTable({ entries, frameworks }: Props) {
                         />
                       </td>
 
-                      {/* Save indicator */}
+                      {/* Save indicator + derive button */}
                       <td className="px-4 py-3 text-center">
-                        {row.saving && (
-                          <Loader2 className="w-4 h-4 text-sky-500 animate-spin mx-auto" />
-                        )}
-                        {row.saved && !row.saving && (
-                          <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                        )}
+                        <div className="flex items-center justify-center gap-1">
+                          {row.saving ? (
+                            <Loader2 className="w-4 h-4 text-sky-500 animate-spin" />
+                          ) : row.saved ? (
+                            <Check className="w-4 h-4 text-emerald-500" />
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleDeriveRow(entry)}
+                            disabled={row.saving || mappedControls.length === 0 || !row.is_applicable}
+                            title={
+                              !row.is_applicable
+                                ? 'No aplica'
+                                : mappedControls.length === 0
+                                  ? 'No hay controles mapeados'
+                                  : 'Derivar estado desde controles mapeados'
+                            }
+                            className="p-1 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
+
+                    {/* Expanded controls row */}
+                    {isControlsExpanded && mappedControls.length > 0 && (
+                      <tr className="bg-slate-50/40">
+                        <td colSpan={7} className="px-4 py-3">
+                          <div className="ml-28 rounded-lg border border-slate-200 bg-white overflow-hidden">
+                            {mappedControls.map((ctrl) => (
+                              <Link
+                                key={ctrl.control_id}
+                                href={`/controls/${ctrl.control_id}`}
+                                className="flex items-center gap-3 px-3 py-2 text-xs hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                              >
+                                <span className="font-mono font-semibold text-sky-600 w-24 flex-shrink-0">
+                                  {ctrl.control_code}
+                                </span>
+                                <span className="flex-1 text-slate-700 truncate">{ctrl.control_name}</span>
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  ctrl.control_status === 'implemented' ? 'bg-emerald-100 text-emerald-700' :
+                                  ctrl.control_status === 'partially_implemented' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {ctrl.control_status === 'implemented' ? 'OK' :
+                                   ctrl.control_status === 'partially_implemented' ? 'Parcial' :
+                                   ctrl.control_status === 'not_implemented' ? 'Pendiente' : ctrl.control_status}
+                                </span>
+                                <span className="font-mono text-slate-500 w-10 text-right flex-shrink-0">
+                                  {ctrl.coverage_percentage}%
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })
               )}

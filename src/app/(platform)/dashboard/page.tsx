@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentOrg } from '@/shared/lib/get-org';
 import { countRecords } from '@/shared/lib/service-helpers';
 import { getFrameworksWithCompliance } from '@/features/compliance/services/complianceService';
+import { getIntegrationKPIs } from '@/features/compliance/services/integrationMetricsService';
 import { createClient } from '@/lib/supabase/server';
 import {
   Shield,
@@ -20,6 +21,7 @@ import {
   Lock,
   Layers,
   BookOpen,
+  Link2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { ComplianceRing } from './compliance-ring';
@@ -75,6 +77,7 @@ export default async function DashboardPage() {
     memberCount,
     vendorCount,
     frameworks,
+    integrationKPIs,
   ] = await Promise.all([
     countRecords('assets', orgId),
     countRecords('risk_scenarios', orgId),
@@ -99,6 +102,7 @@ export default async function DashboardPage() {
       .eq('organization_id', orgId)
       .then(({ count }) => count || 0),
     getFrameworksWithCompliance(orgId),
+    getIntegrationKPIs(orgId),
   ]);
 
   const controlsRatio = totalControls > 0
@@ -596,6 +600,108 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ── 6b. Integración GRC — salud del grafo ─────────────────── */}
+      <section aria-label="Integración GRC">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Integración GRC
+          </p>
+          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+            <Link2 className="w-3 h-3" /> Conectividad del grafo riesgo-control-requisito
+          </span>
+        </div>
+
+        {/* KPI row */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+          <IntegrationKPI
+            label="Riesgos con controles"
+            current={integrationKPIs.risksWithControls}
+            total={integrationKPIs.totalRisks}
+            good
+            href="/risks"
+          />
+          <IntegrationKPI
+            label="Riesgos con plan"
+            current={integrationKPIs.risksWithTreatmentPlan}
+            total={integrationKPIs.totalRisks}
+            good
+            href="/risks/treatment-plans"
+          />
+          <IntegrationKPI
+            label="Controles en framework"
+            current={integrationKPIs.controlsWithRequirement}
+            total={integrationKPIs.totalControls}
+            good
+            href="/controls/mapping"
+          />
+          <IntegrationKPI
+            label="Vulns asociadas a riesgo"
+            current={integrationKPIs.vulnerabilitiesLinkedToRisks}
+            total={integrationKPIs.totalVulnerabilities}
+            good
+            href="/vulnerabilities"
+          />
+          <IntegrationKPI
+            label="Incidentes con riesgo"
+            current={integrationKPIs.incidentsLinkedToRisks}
+            total={integrationKPIs.totalIncidents}
+            good
+            href="/incidents"
+          />
+        </div>
+
+        {/* Gaps lists */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GapList
+            title="Riesgos sin controles mitigantes"
+            description="Priorizados por nivel residual. Vincula controles desde el detalle del riesgo."
+            items={integrationKPIs.topRisksWithoutControls.map((r) => ({
+              id: r.id,
+              code: r.code,
+              label: r.name,
+              meta: r.risk_level_residual,
+              href: `/risks/${r.id}`,
+            }))}
+            emptyMessage="✓ Todos los riesgos tienen al menos un control mitigante."
+            accentColor="rose"
+          />
+          <GapList
+            title="Controles sin requisito asignado"
+            description="Controles sueltos que no cubren ningún framework normativo."
+            items={integrationKPIs.topControlsWithoutRequirement.map((c) => ({
+              id: c.id,
+              code: c.code,
+              label: c.name,
+              meta: c.status,
+              href: `/controls/${c.id}`,
+            }))}
+            emptyMessage="✓ Todos los controles están mapeados a al menos un requisito."
+            accentColor="amber"
+          />
+        </div>
+
+        {/* Cross-framework summary */}
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Mapeos cross-framework
+            </p>
+            <p className="text-2xl font-bold text-slate-800 tabular-nums mt-0.5">
+              {integrationKPIs.crossFrameworkMappings}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Equivalencias entre requisitos de distintos marcos normativos.
+            </p>
+          </div>
+          <Link
+            href="/compliance/cross-framework"
+            className="inline-flex items-center gap-1 text-sm text-sky-600 hover:text-sky-700 font-medium"
+          >
+            Gestionar <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </section>
+
       {/* ── 7. Accesos Rapidos ────────────────────────────────────── */}
       <section aria-label="Accesos rapidos">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
@@ -618,6 +724,101 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+    </div>
+  );
+}
+
+// ─── Integration helpers ─────────────────────────────────────────────────────
+
+function IntegrationKPI({
+  label,
+  current,
+  total,
+  href,
+}: {
+  label: string;
+  current: number;
+  total: number;
+  good?: boolean;
+  href: string;
+}) {
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  const color =
+    total === 0
+      ? 'text-slate-400'
+      : pct >= 80
+        ? 'text-emerald-600'
+        : pct >= 50
+          ? 'text-amber-500'
+          : 'text-rose-500';
+  const bar =
+    total === 0
+      ? 'bg-slate-200'
+      : pct >= 80
+        ? 'bg-emerald-500'
+        : pct >= 50
+          ? 'bg-amber-500'
+          : 'bg-rose-400';
+
+  return (
+    <Link
+      href={href}
+      className="bg-white border border-slate-200 rounded-xl p-3 hover:border-slate-300 hover:shadow-sm transition-all flex flex-col gap-1.5"
+    >
+      <p className="text-[11px] text-slate-500 uppercase tracking-wide leading-tight">{label}</p>
+      <div className="flex items-baseline gap-1">
+        <span className="text-xl font-bold text-slate-800 tabular-nums">{current}</span>
+        <span className="text-xs text-slate-400 tabular-nums">/ {total}</span>
+        <span className={`ml-auto text-xs font-bold tabular-nums ${color}`}>{pct}%</span>
+      </div>
+      <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div className={`h-full ${bar} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+    </Link>
+  );
+}
+
+function GapList({
+  title,
+  description,
+  items,
+  emptyMessage,
+  accentColor,
+}: {
+  title: string;
+  description: string;
+  items: Array<{ id: string; code: string; label: string; meta: string; href: string }>;
+  emptyMessage: string;
+  accentColor: 'rose' | 'amber';
+}) {
+  const dotColor = accentColor === 'rose' ? 'bg-rose-400' : 'bg-amber-400';
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-2">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${dotColor}`} aria-hidden="true" />
+          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{title}</p>
+        </div>
+        <p className="text-[11px] text-slate-400 mt-0.5">{description}</p>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-emerald-600 py-3">{emptyMessage}</p>
+      ) : (
+        <ul className="space-y-1">
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                href={item.href}
+                className="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-50 transition-colors"
+              >
+                <span className="font-mono text-xs text-sky-600 w-20 flex-shrink-0">{item.code}</span>
+                <span className="text-sm text-slate-700 truncate flex-1">{item.label}</span>
+                <span className="text-[11px] text-slate-400 capitalize">{item.meta.replace(/_/g, ' ')}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

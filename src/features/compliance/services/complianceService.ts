@@ -120,7 +120,11 @@ export async function getFrameworkRequirements(frameworkId: string): Promise<Req
     .order('code');
 
   if (error) return [];
-  return (data || []) as RequirementRow[];
+  // DB column is `name`; interface uses `title` — alias for backward compat
+  return (data ?? []).map((r) => ({
+    ...r,
+    title: (r as { name?: string; title?: string }).name ?? (r as { title?: string }).title ?? '',
+  })) as RequirementRow[];
 }
 
 export async function getSoaEntries(orgId: string): Promise<SoaEntryRow[]> {
@@ -143,6 +147,53 @@ export interface GapAnalysisItem {
   gap_description: string | null;
 }
 
+export interface RequirementControlMapping {
+  requirement_id: string;
+  control_id: string;
+  control_code: string;
+  control_name: string;
+  control_status: string;
+  coverage_percentage: number;
+  compliance_status: string;
+}
+
+export async function getControlMappingsByRequirements(
+  requirementIds: string[],
+): Promise<RequirementControlMapping[]> {
+  if (requirementIds.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('control_requirement_mappings')
+    .select(`
+      requirement_id,
+      coverage_percentage,
+      compliance_status,
+      controls(id, code, name, status)
+    `)
+    .in('requirement_id', requirementIds);
+
+  if (error || !data) return [];
+
+  type Row = {
+    requirement_id: string;
+    coverage_percentage: number;
+    compliance_status: string;
+    controls: { id: string; code: string; name: string; status: string } | null;
+  };
+
+  return (data as unknown as Row[])
+    .filter((row) => row.controls)
+    .map((row) => ({
+      requirement_id: row.requirement_id,
+      control_id: row.controls!.id,
+      control_code: row.controls!.code,
+      control_name: row.controls!.name,
+      control_status: row.controls!.status,
+      coverage_percentage: row.coverage_percentage,
+      compliance_status: row.compliance_status,
+    }));
+}
+
 export async function getGapAnalysis(orgId: string): Promise<GapAnalysisItem[]> {
   const supabase = await createClient();
 
@@ -158,7 +209,7 @@ export async function getGapAnalysis(orgId: string): Promise<GapAnalysisItem[]> 
   for (const fw of frameworks) {
     const { data: requirements } = await supabase
       .from('framework_requirements')
-      .select('id, code, title')
+      .select('id, code, name')
       .eq('framework_id', fw.id);
 
     if (!requirements) continue;
@@ -181,7 +232,7 @@ export async function getGapAnalysis(orgId: string): Promise<GapAnalysisItem[]> 
         gaps.push({
           framework_name: fw.name,
           requirement_code: req.code,
-          requirement_title: req.title,
+          requirement_title: req.name,
           compliance_status: status,
           gap_description: entry?.justification || null,
         });
