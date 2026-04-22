@@ -2,6 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { ControlsMappingTable, type MappingRow } from '@/features/compliance/components/ControlsMappingTable';
+import { Download } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,10 +55,19 @@ export default async function ControlsMappingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Mapeo de Controles"
-        description="Mapeo de controles a requisitos de frameworks normativos. Gestiona los vínculos desde el detalle de cada control."
-      />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title="Mapeo de Controles"
+          description="Mapeo de controles a requisitos de frameworks normativos. Gestiona los vínculos desde el detalle de cada control."
+        />
+        <a
+          href="/api/compliance/mappings-export"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Exportar Excel
+        </a>
+      </div>
 
       <ControlsMappingTable items={rows} />
     </div>

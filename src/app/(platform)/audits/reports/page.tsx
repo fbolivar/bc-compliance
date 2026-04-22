@@ -110,22 +110,17 @@ export default async function AuditReportsPage() {
                         <span className="font-mono text-xs text-sky-600">{audit.code}</span>
                         <StatusBadge status={audit.status} />
                       </div>
-                      <p className="text-sm font-medium text-slate-700">{audit.name}</p>
+                      <p className="text-sm font-medium text-slate-700">{audit.title}</p>
                       <p className="text-xs text-slate-500">
                         {audit.actual_end ? new Date(audit.actual_end).toLocaleDateString('es-CO', { dateStyle: 'long' }) : ''}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {audit.report_url ? (
-                        <a
-                          href={audit.report_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-sky-500 border border-sky-200 rounded-lg hover:bg-sky-50 transition-colors"
-                        >
+                      {audit.certificate_number ? (
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-lg">
                           <Download className="w-3.5 h-3.5" />
-                          Descargar
-                        </a>
+                          Cert. {audit.certificate_number}
+                        </span>
                       ) : (
                         <Link
                           href={`/audits/${audit.id}`}

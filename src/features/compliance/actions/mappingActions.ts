@@ -367,6 +367,129 @@ export async function linkTreatmentPlanToRisk(input: {
   return { success: true };
 }
 
+// ─── Auto-propagate control-requirement via cross-framework ─────────────────
+
+const STRENGTH_COVERAGE_MULTIPLIER: Record<string, number> = {
+  equivalent: 1.0,
+  superset: 1.0,
+  subset: 0.6,
+  partial: 0.5,
+  related: 0.3,
+};
+
+/**
+ * Para un control dado, busca todos sus mapeos existentes a requisitos, luego
+ * para cada requisito cubierto busca `requirement_mappings` que lo vinculen
+ * a otros frameworks, y propone/crea nuevos `control_requirement_mappings`
+ * con el mismo control a los requisitos equivalentes (cobertura ajustada
+ * según el tipo de relación cross-framework).
+ *
+ * Retorna cuántos mapeos nuevos creó (no modifica los existentes).
+ */
+export async function propagateControlAcrossFrameworks(
+  controlId: string,
+): Promise<ActionResult & { created?: number; skipped?: number }> {
+  const supabase = await createClient();
+  const orgId = await getUserOrgId();
+  if (!orgId) return { error: 'Sin organizacion' };
+
+  // Existing mappings for this control
+  const { data: currentMaps } = await supabase
+    .from('control_requirement_mappings')
+    .select('requirement_id, coverage_percentage, justification')
+    .eq('control_id', controlId)
+    .eq('organization_id', orgId);
+
+  const currentByReq = new Map(
+    (currentMaps ?? []).map((r) => [r.requirement_id, r]),
+  );
+
+  if (currentByReq.size === 0) {
+    return { success: true, created: 0, skipped: 0 };
+  }
+
+  const sourceReqIds = Array.from(currentByReq.keys());
+
+  // Cross-framework mappings FROM any of the current requirements
+  const { data: crossMaps } = await supabase
+    .from('requirement_mappings')
+    .select('source_requirement_id, target_requirement_id, mapping_strength')
+    .or(
+      `source_requirement_id.in.(${sourceReqIds.join(',')}),target_requirement_id.in.(${sourceReqIds.join(',')})`,
+    );
+
+  if (!crossMaps || crossMaps.length === 0) {
+    return { success: true, created: 0, skipped: 0 };
+  }
+
+  // Build candidates: for each cross-link, the "other side" is a new target
+  type Candidate = { targetReqId: string; sourceReqId: string; strength: string };
+  const candidates: Candidate[] = [];
+  for (const m of crossMaps) {
+    if (sourceReqIds.includes(m.source_requirement_id)) {
+      candidates.push({
+        sourceReqId: m.source_requirement_id,
+        targetReqId: m.target_requirement_id,
+        strength: m.mapping_strength ?? 'related',
+      });
+    }
+    if (sourceReqIds.includes(m.target_requirement_id)) {
+      candidates.push({
+        sourceReqId: m.target_requirement_id,
+        targetReqId: m.source_requirement_id,
+        strength: m.mapping_strength ?? 'related',
+      });
+    }
+  }
+
+  // Filter out targets the control already covers
+  const newTargets = candidates.filter((c) => !currentByReq.has(c.targetReqId));
+  if (newTargets.length === 0) return { success: true, created: 0, skipped: candidates.length };
+
+  // Build upsert rows
+  type InsertRow = {
+    organization_id: string;
+    control_id: string;
+    requirement_id: string;
+    coverage_percentage: number;
+    compliance_status: string;
+    justification: string | null;
+  };
+
+  const rows: InsertRow[] = [];
+  for (const c of newTargets) {
+    const sourceMap = currentByReq.get(c.sourceReqId)!;
+    const multiplier = STRENGTH_COVERAGE_MULTIPLIER[c.strength] ?? 0.3;
+    const coverage = Math.round((sourceMap.coverage_percentage ?? 100) * multiplier);
+    const complianceStatus = COMPLIANCE_FROM_COVERAGE(coverage);
+
+    rows.push({
+      organization_id: orgId,
+      control_id: controlId,
+      requirement_id: c.targetReqId,
+      coverage_percentage: coverage,
+      compliance_status: complianceStatus,
+      justification: `Auto-propagado vía cross-framework (relación: ${c.strength})`,
+    });
+  }
+
+  const { error } = await supabase
+    .from('control_requirement_mappings')
+    .upsert(rows, { onConflict: 'control_id,requirement_id', ignoreDuplicates: true });
+
+  if (error) return { error: error.message };
+
+  await writeAuditLog({
+    action: 'create',
+    tableName: 'control_requirement_mappings',
+    description: `Auto-propagados ${rows.length} mapeos vía cross-framework`,
+  });
+
+  revalidatePath(`/controls/${controlId}`);
+  revalidatePath('/compliance');
+  return { success: true, created: rows.length, skipped: candidates.length - newTargets.length };
+}
+
 // ─── Cross-framework Requirement Mapping ─────────────────────────────────────
 
 export async function linkRequirements(input: {

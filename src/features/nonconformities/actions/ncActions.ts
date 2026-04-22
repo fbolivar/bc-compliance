@@ -3,9 +3,14 @@
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'title', 'description', 'type', 'severity', 'status',
-  'source', 'detected_date', 'due_date', 'closure_date',
-  'root_cause', 'corrective_action', 'preventive_action', 'responsible_id',
+  'code', 'title', 'description', 'nc_type', 'status',
+  'source', 'source_ref_id', 'source_ref_type',
+  'raised_by', 'assigned_to',
+  'detected_at', 'target_close_date', 'closed_at',
+  'verified_by',
+  'root_cause', 'root_cause_method',
+  'framework_id', 'requirement_id', 'control_id',
+  'notes',
 ];
 
 export async function createNC(formData: FormData): Promise<ActionResult> {

@@ -2,12 +2,13 @@
 
 import { useState, useMemo, useTransition } from 'react';
 import Link from 'next/link';
-import { CheckSquare, Plus, X, Loader2 } from 'lucide-react';
+import { CheckSquare, Plus, X, Loader2, Sparkles } from 'lucide-react';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { FormModal } from '@/shared/components/FormModal';
 import {
   linkControlToRequirement,
   unlinkControlFromRequirement,
+  propagateControlAcrossFrameworks,
 } from '@/features/compliance/actions/mappingActions';
 
 export interface CoveredRequirementItem {
@@ -47,6 +48,22 @@ export function CoveredRequirementsPanel({
   const [justification, setJustification] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [propagating, setPropagating] = useState(false);
+
+  const handlePropagate = () => {
+    if (!confirm('Propagar este control a requisitos equivalentes en otros frameworks usando los mapeos cross-framework existentes?')) return;
+    setPropagating(true);
+    startTransition(async () => {
+      const res = await propagateControlAcrossFrameworks(controlId);
+      setPropagating(false);
+      if (res.error) {
+        alert(`Error: ${res.error}`);
+        return;
+      }
+      alert(`Propagación completada: ${res.created ?? 0} nuevos mapeos creados, ${res.skipped ?? 0} ya existían.`);
+      window.location.reload();
+    });
+  };
 
   const frameworks = useMemo(() => {
     const map = new Map<string, { code: string; name: string }>();
@@ -125,6 +142,16 @@ export function CoveredRequirementsPanel({
           >
             Ver todos →
           </Link>
+          <button
+            type="button"
+            onClick={handlePropagate}
+            disabled={propagating || coveredRequirements.length === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Propagar este control a requisitos equivalentes en otros frameworks"
+          >
+            {propagating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+            Propagar cross-framework
+          </button>
           <button
             type="button"
             onClick={() => {
