@@ -53,6 +53,15 @@ export default async function ReportsPage() {
         />
 
         <ReportCard
+          title="Informe Ejecutivo SGSI (Mensual)"
+          description="Documento PDF profesional con tendencia 30 días, postura MSPI, ciclo PHVA, brechas críticas y recomendaciones estratégicas. Listo para presentar a la dirección."
+          icon={<TrendingUp className="w-5 h-5 text-rose-600" />}
+          bg="bg-rose-50 border-rose-200"
+          href="/api/reports/executive-monthly"
+          badge="PDF"
+        />
+
+        <ReportCard
           title="Mapeos Completos de Integración"
           description="Exporta todos los vínculos control-riesgo, control-requisito y cross-framework de la organización. Útil para auditoría externa."
           icon={<Link2 className="w-5 h-5 text-indigo-600" />}

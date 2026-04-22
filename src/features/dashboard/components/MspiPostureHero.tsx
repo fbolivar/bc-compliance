@@ -1,5 +1,6 @@
 import { Shield } from 'lucide-react';
 import type { MspiPosture, MaturityLevel } from '@/features/dashboard/services/executiveDashboardService';
+import { Sparkline } from './Sparkline';
 
 const LEVEL_COLOR: Record<MaturityLevel, { bg: string; text: string; ring: string; bar: string }> = {
   inexistente: { bg: 'bg-rose-50', text: 'text-rose-700', ring: 'ring-rose-300', bar: 'bg-rose-500' },
@@ -21,9 +22,11 @@ const LEVEL_DESCRIPTION: Record<MaturityLevel, string> = {
 
 interface Props {
   posture: MspiPosture;
+  /** Optional historical scores for the trend sparkline */
+  history?: number[];
 }
 
-export function MspiPostureHero({ posture }: Props) {
+export function MspiPostureHero({ posture, history = [] }: Props) {
   const colors = LEVEL_COLOR[posture.level];
   const description = LEVEL_DESCRIPTION[posture.level];
 
@@ -87,6 +90,13 @@ export function MspiPostureHero({ posture }: Props) {
             <Shield className="w-4 h-4" />
             <span className="font-semibold text-sm">Nivel {posture.levelLabel}</span>
           </div>
+
+          {history.length >= 2 && (
+            <div className="flex flex-col items-center gap-1 mt-2">
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Tendencia 30 días</p>
+              <Sparkline values={history} suffix=" pts" />
+            </div>
+          )}
         </div>
 
         {/* Description + maturity scale */}

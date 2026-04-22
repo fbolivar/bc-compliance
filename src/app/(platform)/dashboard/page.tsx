@@ -8,6 +8,7 @@ import {
   getOperationalMetrics,
   getUpcomingActions,
 } from '@/features/dashboard/services/executiveDashboardService';
+import { getSnapshotHistory } from '@/features/dashboard/services/snapshotService';
 
 import { MspiPostureHero } from '@/features/dashboard/components/MspiPostureHero';
 import { PhvaCycle } from '@/features/dashboard/components/PhvaCycle';
@@ -40,14 +41,17 @@ export default async function DashboardPage() {
   const { orgId, userName, organization } = await getCurrentOrg();
   if (!orgId) redirect('/login');
 
-  const [posture, frameworks, processes, gaps, metrics, actions] = await Promise.all([
+  const [posture, frameworks, processes, gaps, metrics, actions, history] = await Promise.all([
     getMspiPosture(orgId),
     getFrameworksWithCompliance(orgId),
     getProcessesHealth(orgId),
     getTopCriticalGaps(orgId, 8),
     getOperationalMetrics(orgId),
     getUpcomingActions(orgId),
+    getSnapshotHistory(orgId, 30),
   ]);
+
+  const mspiHistory = history.map((h) => h.mspi_score);
 
   const orgName = (organization as { name?: string } | null)?.name ?? 'Organización';
 
@@ -65,7 +69,7 @@ export default async function DashboardPage() {
       </header>
 
       {/* 1. Postura MSPI hero */}
-      <MspiPostureHero posture={posture} />
+      <MspiPostureHero posture={posture} history={mspiHistory} />
 
       {/* 2. PHVA cycle */}
       <PhvaCycle phva={posture.phva} />

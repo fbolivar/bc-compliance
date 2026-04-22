@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '50mb',
     },
   },
-  serverExternalPackages: ['exceljs'],
+  serverExternalPackages: ['exceljs', '@react-pdf/renderer'],
 }
 
 export default nextConfig
