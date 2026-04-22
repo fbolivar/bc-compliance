@@ -78,3 +78,27 @@ export async function getEvidenceCount(orgId: string): Promise<number> {
     .eq('organization_id', orgId);
   return count || 0;
 }
+
+export interface DocumentAttachment {
+  id: string;
+  document_id: string;
+  file_path: string;
+  file_name: string;
+  file_size: number | null;
+  mime_type: string | null;
+  hash_sha256: string | null;
+  description: string | null;
+  uploaded_by: string | null;
+  created_at: string;
+}
+
+export async function getAttachmentsForDocument(documentId: string): Promise<DocumentAttachment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('document_attachments')
+    .select('*')
+    .eq('document_id', documentId)
+    .order('created_at', { ascending: false });
+  if (error) return [];
+  return (data ?? []) as DocumentAttachment[];
+}

@@ -1,6 +1,6 @@
 'use server';
 
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getUserOrgId } from '@/shared/lib/actions-helpers';
@@ -21,14 +21,20 @@ function sanitizeFilename(name: string): string {
     .substring(0, 200);
 }
 
-export async function uploadDocumentFile(documentId: string, formData: FormData): Promise<ActionResult> {
+/**
+ * Sube un archivo como attachment (múltiples archivos por documento).
+ */
+export async function uploadDocumentAttachment(
+  documentId: string,
+  formData: FormData,
+): Promise<ActionResult> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'No autenticado' };
 
     const orgId = await getUserOrgId();
-    if (!orgId) return { error: 'Sin organizacion activa' };
+    if (!orgId) return { error: 'Sin organización activa' };
 
     const file = formData.get('file') as File | null;
     if (!file || file.size === 0) return { error: 'Selecciona un archivo válido' };
@@ -36,117 +42,103 @@ export async function uploadDocumentFile(documentId: string, formData: FormData)
       return { error: `Archivo excede 50 MB (${(file.size / 1024 / 1024).toFixed(1)} MB)` };
     }
 
+    const description = (formData.get('description') as string | null) ?? null;
+
     const { data: doc, error: docErr } = await supabase
       .from('documents')
-      .select('id, organization_id, file_path')
+      .select('id, organization_id')
       .eq('id', documentId)
       .single();
-    if (docErr) {
-      console.error('[uploadDocumentFile] doc fetch error:', docErr);
-      return { error: `No se pudo cargar el documento: ${docErr.message}` };
-    }
-    if (!doc) return { error: 'Documento no encontrado' };
+    if (docErr || !doc) return { error: 'Documento no encontrado' };
     if (doc.organization_id !== orgId) return { error: 'Sin permisos para este documento' };
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const hash = createHash('sha256').update(buffer).digest('hex');
 
-    if (doc.file_path) {
-      const { error: removeErr } = await supabase.storage.from('documents').remove([doc.file_path]);
-      if (removeErr) console.warn('[uploadDocumentFile] previous file remove warn:', removeErr);
-    }
-
     const safeName = sanitizeFilename(file.name) || `archivo_${Date.now()}`;
-    const path = `${orgId}/${documentId}/${safeName}`;
+    const uniquePrefix = randomUUID().substring(0, 8);
+    const path = `${orgId}/${documentId}/attachments/${uniquePrefix}-${safeName}`;
 
     const { error: uploadErr } = await supabase.storage
       .from('documents')
       .upload(path, buffer, {
         contentType: file.type || 'application/octet-stream',
-        upsert: true,
+        upsert: false,
       });
     if (uploadErr) {
-      console.error('[uploadDocumentFile] storage upload error:', uploadErr);
+      console.error('[uploadDocumentAttachment] storage error:', uploadErr);
       return { error: `Error subiendo a Storage: ${uploadErr.message}` };
     }
 
-    const { error: updateErr } = await supabase
-      .from('documents')
-      .update({
+    const { error: insertErr } = await supabase
+      .from('document_attachments')
+      .insert({
+        document_id: documentId,
         file_path: path,
+        file_name: file.name,
         file_size: file.size,
         mime_type: file.type || 'application/octet-stream',
         hash_sha256: hash,
-        updated_by: user.id,
-      })
-      .eq('id', documentId);
-    if (updateErr) {
-      console.error('[uploadDocumentFile] document update error:', updateErr);
-      return { error: `Archivo subido pero no se pudo actualizar el registro: ${updateErr.message}` };
+        description: description?.trim() || null,
+        uploaded_by: user.id,
+      });
+    if (insertErr) {
+      // Roll back storage upload on DB failure
+      await supabase.storage.from('documents').remove([path]);
+      console.error('[uploadDocumentAttachment] insert error:', insertErr);
+      return { error: `Archivo subido pero no registrado: ${insertErr.message}` };
     }
 
     await writeAuditLog({
-      action: 'update',
-      tableName: 'documents',
-      recordId: documentId,
-      description: `Archivo subido: ${safeName} (${(file.size / 1024).toFixed(1)} KB)`,
+      action: 'create',
+      tableName: 'document_attachments',
+      description: `Adjunto cargado en documento ${documentId}: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
     });
 
     revalidatePath(`/documents/${documentId}`);
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error desconocido';
-    console.error('[uploadDocumentFile] unexpected:', err);
+    console.error('[uploadDocumentAttachment] unexpected:', err);
     return { error: `Error inesperado: ${msg}` };
   }
 }
 
-export async function removeDocumentFile(documentId: string): Promise<ActionResult> {
+export async function removeDocumentAttachment(attachmentId: string): Promise<ActionResult> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'No autenticado' };
 
-    const orgId = await getUserOrgId();
-    if (!orgId) return { error: 'Sin organizacion' };
-
-    const { data: doc } = await supabase
-      .from('documents')
-      .select('id, organization_id, file_path')
-      .eq('id', documentId)
+    const { data: att } = await supabase
+      .from('document_attachments')
+      .select('id, document_id, file_path')
+      .eq('id', attachmentId)
       .single();
-    if (!doc) return { error: 'Documento no encontrado' };
-    if (doc.organization_id !== orgId) return { error: 'Sin permisos' };
-    if (!doc.file_path) return { success: true };
+    if (!att) return { error: 'Adjunto no encontrado' };
 
-    const { error: removeErr } = await supabase.storage.from('documents').remove([doc.file_path]);
-    if (removeErr) console.warn('[removeDocumentFile] storage remove warn:', removeErr);
+    const { error: removeErr } = await supabase.storage.from('documents').remove([att.file_path]);
+    if (removeErr) console.warn('[removeDocumentAttachment] storage remove warn:', removeErr);
 
-    const { error: updateErr } = await supabase
-      .from('documents')
-      .update({
-        file_path: null,
-        file_size: null,
-        mime_type: null,
-        hash_sha256: null,
-        updated_by: user.id,
-      })
-      .eq('id', documentId);
-    if (updateErr) return { error: updateErr.message };
+    const { error: delErr } = await supabase
+      .from('document_attachments')
+      .delete()
+      .eq('id', attachmentId);
+    if (delErr) return { error: delErr.message };
 
     await writeAuditLog({
       action: 'delete',
-      tableName: 'documents',
-      recordId: documentId,
-      description: 'Archivo eliminado del documento',
+      tableName: 'document_attachments',
+      recordId: attachmentId,
+      description: `Adjunto eliminado del documento ${att.document_id}`,
     });
 
-    revalidatePath(`/documents/${documentId}`);
+    revalidatePath(`/documents/${att.document_id}`);
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error desconocido';
-    console.error('[removeDocumentFile] unexpected:', err);
+    console.error('[removeDocumentAttachment] unexpected:', err);
     return { error: `Error inesperado: ${msg}` };
   }
 }

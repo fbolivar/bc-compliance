@@ -1,5 +1,8 @@
 import { requireOrg } from '@/shared/lib/get-org';
-import { getDocumentById } from '@/features/documents/services/documentService';
+import {
+  getDocumentById,
+  getAttachmentsForDocument,
+} from '@/features/documents/services/documentService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { DocumentFilePanel } from '@/features/documents/components/DocumentFilePanel';
@@ -45,7 +48,10 @@ function ConfidentialityBadge({ level }: { level: string | null }) {
 export default async function DocumentDetailPage({ params }: Props) {
   const { id } = await params;
   await requireOrg();
-  const doc = await getDocumentById(id);
+  const [doc, attachments] = await Promise.all([
+    getDocumentById(id),
+    getAttachmentsForDocument(id),
+  ]);
 
   if (!doc) notFound();
 
@@ -148,14 +154,8 @@ export default async function DocumentDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Archivo interactivo con upload/download/remove */}
-      <DocumentFilePanel
-        documentId={doc.id}
-        filePath={doc.file_path}
-        fileSize={doc.file_size}
-        mimeType={doc.mime_type}
-        hashSha256={doc.hash_sha256}
-      />
+      {/* Archivos múltiples con upload/download/remove */}
+      <DocumentFilePanel documentId={doc.id} attachments={attachments} />
 
       {/* Control de autoría (simplificado sin lookup a auth.users aún) */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
