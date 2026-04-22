@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { FileText, Upload, X, Download, Loader2, AlertCircle } from 'lucide-react';
 import {
   uploadDocumentFile,
@@ -27,6 +28,7 @@ function formatBytes(bytes: number | null): string {
 const ACCEPTED_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.png,.jpg,.jpeg,.webp,.zip';
 
 export function DocumentFilePanel({ documentId, filePath, fileSize, mimeType, hashSha256 }: Props) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [dragging, setDragging] = useState(false);
@@ -36,20 +38,42 @@ export function DocumentFilePanel({ documentId, filePath, fileSize, mimeType, ha
     if (!files || files.length === 0) return;
     const file = files[0];
     setError(null);
+
     const fd = new FormData();
     fd.set('file', file);
 
     startTransition(async () => {
-      const res = await uploadDocumentFile(documentId, fd);
-      if (res.error) setError(res.error);
+      try {
+        const res = await uploadDocumentFile(documentId, fd);
+        if (res.error) {
+          setError(res.error);
+          return;
+        }
+        // Force a hard refresh so the server component re-fetches the document
+        router.refresh();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Error desconocido al subir';
+        setError(msg);
+        // eslint-disable-next-line no-console
+        console.error('[DocumentFilePanel] upload threw:', err);
+      }
     });
   };
 
   const handleRemove = () => {
     if (!confirm('¿Eliminar el archivo adjunto? Esta acción es irreversible.')) return;
     startTransition(async () => {
-      const res = await removeDocumentFile(documentId);
-      if (res.error) setError(res.error);
+      try {
+        const res = await removeDocumentFile(documentId);
+        if (res.error) {
+          setError(res.error);
+          return;
+        }
+        router.refresh();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Error desconocido al eliminar';
+        setError(msg);
+      }
     });
   };
 

@@ -22,109 +22,131 @@ function sanitizeFilename(name: string): string {
 }
 
 export async function uploadDocumentFile(documentId: string, formData: FormData): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'No autenticado' };
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'No autenticado' };
 
-  const orgId = await getUserOrgId();
-  if (!orgId) return { error: 'Sin organizacion' };
+    const orgId = await getUserOrgId();
+    if (!orgId) return { error: 'Sin organizacion activa' };
 
-  const file = formData.get('file') as File | null;
-  if (!file || file.size === 0) return { error: 'Selecciona un archivo' };
-  if (file.size > MAX_FILE_SIZE) return { error: `Archivo excede 50 MB (${(file.size / 1024 / 1024).toFixed(1)} MB)` };
+    const file = formData.get('file') as File | null;
+    if (!file || file.size === 0) return { error: 'Selecciona un archivo válido' };
+    if (file.size > MAX_FILE_SIZE) {
+      return { error: `Archivo excede 50 MB (${(file.size / 1024 / 1024).toFixed(1)} MB)` };
+    }
 
-  // Verify document belongs to org
-  const { data: doc, error: docErr } = await supabase
-    .from('documents')
-    .select('id, organization_id, file_path')
-    .eq('id', documentId)
-    .single();
-  if (docErr || !doc) return { error: 'Documento no encontrado' };
-  if (doc.organization_id !== orgId) return { error: 'Sin permisos para este documento' };
+    const { data: doc, error: docErr } = await supabase
+      .from('documents')
+      .select('id, organization_id, file_path')
+      .eq('id', documentId)
+      .single();
+    if (docErr) {
+      console.error('[uploadDocumentFile] doc fetch error:', docErr);
+      return { error: `No se pudo cargar el documento: ${docErr.message}` };
+    }
+    if (!doc) return { error: 'Documento no encontrado' };
+    if (doc.organization_id !== orgId) return { error: 'Sin permisos para este documento' };
 
-  // Compute SHA-256 hash
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const hash = createHash('sha256').update(buffer).digest('hex');
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const hash = createHash('sha256').update(buffer).digest('hex');
 
-  // Delete previous file if exists
-  if (doc.file_path) {
-    await supabase.storage.from('documents').remove([doc.file_path]);
-  }
+    if (doc.file_path) {
+      const { error: removeErr } = await supabase.storage.from('documents').remove([doc.file_path]);
+      if (removeErr) console.warn('[uploadDocumentFile] previous file remove warn:', removeErr);
+    }
 
-  // Upload with path convention {org_id}/{document_id}/{filename}
-  const safeName = sanitizeFilename(file.name);
-  const path = `${orgId}/${documentId}/${safeName}`;
+    const safeName = sanitizeFilename(file.name) || `archivo_${Date.now()}`;
+    const path = `${orgId}/${documentId}/${safeName}`;
 
-  const { error: uploadErr } = await supabase.storage
-    .from('documents')
-    .upload(path, buffer, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: true,
+    const { error: uploadErr } = await supabase.storage
+      .from('documents')
+      .upload(path, buffer, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: true,
+      });
+    if (uploadErr) {
+      console.error('[uploadDocumentFile] storage upload error:', uploadErr);
+      return { error: `Error subiendo a Storage: ${uploadErr.message}` };
+    }
+
+    const { error: updateErr } = await supabase
+      .from('documents')
+      .update({
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type || 'application/octet-stream',
+        hash_sha256: hash,
+        updated_by: user.id,
+      })
+      .eq('id', documentId);
+    if (updateErr) {
+      console.error('[uploadDocumentFile] document update error:', updateErr);
+      return { error: `Archivo subido pero no se pudo actualizar el registro: ${updateErr.message}` };
+    }
+
+    await writeAuditLog({
+      action: 'update',
+      tableName: 'documents',
+      recordId: documentId,
+      description: `Archivo subido: ${safeName} (${(file.size / 1024).toFixed(1)} KB)`,
     });
-  if (uploadErr) return { error: `Error subiendo archivo: ${uploadErr.message}` };
 
-  // Update document record
-  const { error: updateErr } = await supabase
-    .from('documents')
-    .update({
-      file_path: path,
-      file_size: file.size,
-      mime_type: file.type || 'application/octet-stream',
-      hash_sha256: hash,
-      updated_by: user.id,
-    })
-    .eq('id', documentId);
-  if (updateErr) return { error: updateErr.message };
-
-  await writeAuditLog({
-    action: 'update',
-    tableName: 'documents',
-    recordId: documentId,
-    description: `Archivo subido: ${safeName} (${(file.size / 1024).toFixed(1)} KB)`,
-  });
-
-  revalidatePath(`/documents/${documentId}`);
-  return { success: true };
+    revalidatePath(`/documents/${documentId}`);
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error desconocido';
+    console.error('[uploadDocumentFile] unexpected:', err);
+    return { error: `Error inesperado: ${msg}` };
+  }
 }
 
 export async function removeDocumentFile(documentId: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: 'No autenticado' };
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'No autenticado' };
 
-  const orgId = await getUserOrgId();
-  if (!orgId) return { error: 'Sin organizacion' };
+    const orgId = await getUserOrgId();
+    if (!orgId) return { error: 'Sin organizacion' };
 
-  const { data: doc } = await supabase
-    .from('documents')
-    .select('id, organization_id, file_path')
-    .eq('id', documentId)
-    .single();
-  if (!doc) return { error: 'Documento no encontrado' };
-  if (doc.organization_id !== orgId) return { error: 'Sin permisos' };
-  if (!doc.file_path) return { success: true };
+    const { data: doc } = await supabase
+      .from('documents')
+      .select('id, organization_id, file_path')
+      .eq('id', documentId)
+      .single();
+    if (!doc) return { error: 'Documento no encontrado' };
+    if (doc.organization_id !== orgId) return { error: 'Sin permisos' };
+    if (!doc.file_path) return { success: true };
 
-  await supabase.storage.from('documents').remove([doc.file_path]);
+    const { error: removeErr } = await supabase.storage.from('documents').remove([doc.file_path]);
+    if (removeErr) console.warn('[removeDocumentFile] storage remove warn:', removeErr);
 
-  await supabase
-    .from('documents')
-    .update({
-      file_path: null,
-      file_size: null,
-      mime_type: null,
-      hash_sha256: null,
-      updated_by: user.id,
-    })
-    .eq('id', documentId);
+    const { error: updateErr } = await supabase
+      .from('documents')
+      .update({
+        file_path: null,
+        file_size: null,
+        mime_type: null,
+        hash_sha256: null,
+        updated_by: user.id,
+      })
+      .eq('id', documentId);
+    if (updateErr) return { error: updateErr.message };
 
-  await writeAuditLog({
-    action: 'delete',
-    tableName: 'documents',
-    recordId: documentId,
-    description: 'Archivo eliminado del documento',
-  });
+    await writeAuditLog({
+      action: 'delete',
+      tableName: 'documents',
+      recordId: documentId,
+      description: 'Archivo eliminado del documento',
+    });
 
-  revalidatePath(`/documents/${documentId}`);
-  return { success: true };
+    revalidatePath(`/documents/${documentId}`);
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error desconocido';
+    console.error('[removeDocumentFile] unexpected:', err);
+    return { error: `Error inesperado: ${msg}` };
+  }
 }
