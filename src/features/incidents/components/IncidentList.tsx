@@ -61,11 +61,11 @@ const columns = [
     ),
   },
   {
-    key: 'detection_date',
+    key: 'detected_at',
     label: 'Detectado',
     render: (item: IncidentRow) => (
       <span className="text-slate-400 text-sm">
-        {item.detection_date ? new Date(item.detection_date).toLocaleDateString('es-CO') : '-'}
+        {item.detected_at ? new Date(item.detected_at).toLocaleDateString('es-CO') : '-'}
       </span>
     ),
   },
@@ -141,8 +141,10 @@ export function IncidentList({ data, count, page, pageSize }: Props) {
             <FormField label="Estado" name="status" type="select" options={STATUS_OPTIONS} defaultValue="detected" />
             <FormField label="Categoria" name="category" type="select" options={CATEGORY_OPTIONS} />
           </div>
-          <FormField label="Fecha de deteccion" name="detection_date" type="date" />
-          <FormField label="Descripcion del impacto" name="impact_description" type="textarea" placeholder="Impacto en la organizacion..." />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Detectado" name="detected_at" type="datetime-local" />
+            <FormField label="Fuente" name="source" placeholder="Usuario, SIEM, IDS, escaneo..." />
+          </div>
 
           {error && (
             <div className="px-3 py-2 rounded-lg bg-rose-500/10 border border-rose-500/20">

@@ -27,6 +27,19 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
+function EffectivenessBar({ value }: { value: number }) {
+  const color = value >= 80 ? 'bg-emerald-500' : value >= 50 ? 'bg-amber-500' : 'bg-rose-400';
+  const textColor = value >= 80 ? 'text-emerald-600' : value >= 50 ? 'text-amber-600' : 'text-rose-600';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[140px]">
+        <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
+      </div>
+      <span className={`font-mono text-xs ${textColor}`}>{value}%</span>
+    </div>
+  );
+}
+
 export default async function ControlDetailPage({ params }: Props) {
   const { id } = await params;
   const { orgId } = await requireOrg();
@@ -55,7 +68,11 @@ export default async function ControlDetailPage({ params }: Props) {
 
       <div className="flex items-center gap-3">
         <StatusBadge status={control.status} />
-        {control.effectiveness && <StatusBadge status={control.effectiveness} />}
+        {control.is_key_control && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
+            Control clave
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -64,37 +81,59 @@ export default async function ControlDetailPage({ params }: Props) {
           <div className="divide-y divide-slate-100">
             <DetailRow label="Codigo" value={<span className="font-mono text-sky-600">{control.code}</span>} />
             <DetailRow label="Tipo" value={control.control_type?.replace(/_/g, ' ')} />
-            <DetailRow label="Categoria" value={control.category} />
+            <DetailRow label="Naturaleza" value={control.control_nature?.replace(/_/g, ' ')} />
             <DetailRow label="Estado" value={<StatusBadge status={control.status} />} />
-            <DetailRow label="Efectividad" value={control.effectiveness ? <StatusBadge status={control.effectiveness} /> : null} />
-            <DetailRow label="Responsable" value={control.owner} />
-            <DetailRow label="Frecuencia" value={control.frequency} />
+            <DetailRow label="Departamento" value={control.department} />
+            <DetailRow label="Frecuencia de ejecucion" value={control.execution_frequency?.replace(/_/g, ' ')} />
+            <DetailRow label="Nivel de automatizacion" value={control.automation_level?.replace(/_/g, ' ')} />
           </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Revision y Fechas</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Efectividad y Fechas</h2>
           <div className="divide-y divide-slate-100">
-            <DetailRow label="Ultima revision" value={control.last_review_date ? (
+            <DetailRow
+              label="Efectividad de diseño"
+              value={control.design_effectiveness !== null ? <EffectivenessBar value={control.design_effectiveness} /> : null}
+            />
+            <DetailRow
+              label="Efectividad operativa"
+              value={control.operating_effectiveness !== null ? <EffectivenessBar value={control.operating_effectiveness} /> : null}
+            />
+            <DetailRow
+              label="Efectividad general"
+              value={control.overall_effectiveness !== null ? <EffectivenessBar value={control.overall_effectiveness} /> : null}
+            />
+            <DetailRow label="Ultima prueba" value={control.last_tested_at ? (
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                {new Date(control.last_review_date).toLocaleDateString('es-CO', { dateStyle: 'long' })}
+                {new Date(control.last_tested_at).toLocaleDateString('es-CO', { dateStyle: 'long' })}
               </span>
             ) : null} />
             <DetailRow label="Proxima revision" value={control.next_review_date ? (
-              <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="flex items-center gap-1.5 text-amber-600">
                 <Calendar className="w-3.5 h-3.5" />
                 {new Date(control.next_review_date).toLocaleDateString('es-CO', { dateStyle: 'long' })}
               </span>
             ) : null} />
-            <DetailRow label="Evidencia requerida" value={control.evidence_required ? (
-              <span className="text-amber-400">Si</span>
-            ) : 'No'} />
-            <DetailRow label="Nivel de automatizacion" value={control.automation_level} />
-            <DetailRow label="Creado" value={new Date(control.created_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
+            <DetailRow label="Implementado" value={control.implementation_date ? new Date(control.implementation_date).toLocaleDateString('es-CO', { dateStyle: 'long' }) : null} />
           </div>
         </div>
       </div>
+
+      {control.objective && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Objetivo</h2>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{control.objective}</p>
+        </div>
+      )}
+
+      {control.implementation_notes && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Notas de implementacion</h2>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{control.implementation_notes}</p>
+        </div>
+      )}
 
       {control.description && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

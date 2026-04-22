@@ -76,34 +76,77 @@ export default async function IncidentDetailPage({ params }: Props) {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Cronologia</h2>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Cronologia NIST SP 800-61</h2>
           <div className="divide-y divide-slate-100">
-            <DetailRow label="Fecha de deteccion" value={incident.detection_date ? new Date(incident.detection_date).toLocaleDateString('es-CO', { dateStyle: 'long' }) : null} />
-            <DetailRow label="Fecha de contencion" value={incident.containment_date ? new Date(incident.containment_date).toLocaleDateString('es-CO', { dateStyle: 'long' }) : null} />
-            <DetailRow label="Fecha de resolucion" value={incident.resolution_date ? new Date(incident.resolution_date).toLocaleDateString('es-CO', { dateStyle: 'long' }) : null} />
-            <DetailRow label="Creado" value={new Date(incident.created_at).toLocaleDateString('es-CO', { dateStyle: 'long' })} />
+            <DetailRow label="Detectado" value={incident.detected_at ? new Date(incident.detected_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
+            <DetailRow label="Triaje" value={incident.triaged_at ? new Date(incident.triaged_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
+            <DetailRow label="Contenido" value={incident.contained_at ? new Date(incident.contained_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
+            <DetailRow label="Erradicado" value={incident.eradicated_at ? new Date(incident.eradicated_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
+            <DetailRow label="Recuperado" value={incident.recovered_at ? new Date(incident.recovered_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
+            <DetailRow label="Cerrado" value={incident.closed_at ? new Date(incident.closed_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : null} />
           </div>
+        </div>
+      </div>
+
+      {/* Impacto y notificación */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Impacto</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 divide-y sm:divide-y-0 divide-slate-100">
+          <DetailRow label="Usuarios afectados" value={incident.affected_users_count ?? null} />
+          <DetailRow label="Impacto financiero" value={incident.financial_impact !== null ? `$${Number(incident.financial_impact).toLocaleString('es-CO')}` : null} />
+          <DetailRow label="Brecha de datos" value={incident.data_breach ? <span className="text-rose-600">Sí</span> : <span className="text-emerald-600">No</span>} />
+          <DetailRow label="PII expuesta" value={incident.pii_exposed ? <span className="text-rose-600">Sí</span> : <span className="text-emerald-600">No</span>} />
+          <DetailRow label="Reputación" value={incident.reputational_impact} />
+          <DetailRow label="Requiere notificación" value={incident.requires_notification ? (
+            <span className="text-amber-600">Sí{incident.notification_deadline ? ` (vence ${new Date(incident.notification_deadline).toLocaleDateString('es-CO')})` : ''}</span>
+          ) : 'No'} />
         </div>
       </div>
 
       {incident.description && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h2>
-          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{incident.description}</p>
-        </div>
-      )}
-
-      {incident.impact_description && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Impacto</h2>
-          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{incident.impact_description}</p>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{incident.description}</p>
         </div>
       )}
 
       {incident.root_cause && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Causa Raiz</h2>
-          <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">{incident.root_cause}</p>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{incident.root_cause}</p>
+        </div>
+      )}
+
+      {(incident.containment_actions || incident.eradication_actions || incident.recovery_actions) && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Acciones de Respuesta</h2>
+          <div className="space-y-4">
+            {incident.containment_actions && (
+              <div>
+                <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Contención</h3>
+                <p className="text-sm text-slate-600 whitespace-pre-wrap">{incident.containment_actions}</p>
+              </div>
+            )}
+            {incident.eradication_actions && (
+              <div>
+                <h3 className="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">Erradicación</h3>
+                <p className="text-sm text-slate-600 whitespace-pre-wrap">{incident.eradication_actions}</p>
+              </div>
+            )}
+            {incident.recovery_actions && (
+              <div>
+                <h3 className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Recuperación</h3>
+                <p className="text-sm text-slate-600 whitespace-pre-wrap">{incident.recovery_actions}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {incident.lessons_learned && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Lecciones Aprendidas</h2>
+          <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{incident.lessons_learned}</p>
         </div>
       )}
 

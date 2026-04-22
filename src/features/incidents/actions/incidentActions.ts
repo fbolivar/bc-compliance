@@ -3,10 +3,11 @@
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'title', 'description', 'severity', 'status', 'category',
-  'detection_date', 'containment_date', 'resolution_date',
-  'impact_description', 'root_cause', 'lessons_learned',
-  'reporter_id', 'assignee_id',
+  'code', 'title', 'description', 'severity', 'status', 'category', 'source',
+  'detected_at', 'triaged_at', 'contained_at', 'eradicated_at', 'recovered_at', 'closed_at',
+  'root_cause', 'lessons_learned',
+  'containment_actions', 'eradication_actions', 'recovery_actions',
+  'reported_by', 'assigned_to',
 ];
 
 export async function createIncident(formData: FormData): Promise<ActionResult> {

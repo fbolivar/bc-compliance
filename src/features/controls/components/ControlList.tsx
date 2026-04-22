@@ -16,7 +16,7 @@ const TYPE_OPTIONS = [
   { value: 'corrective', label: 'Correctivo' },
   { value: 'deterrent', label: 'Disuasorio' },
   { value: 'compensating', label: 'Compensatorio' },
-  { value: 'directive', label: 'Directivo' },
+  { value: 'recovery', label: 'Recuperacion' },
 ];
 
 const STATUS_OPTIONS = [
@@ -27,11 +27,15 @@ const STATUS_OPTIONS = [
   { value: 'not_applicable', label: 'No aplica' },
 ];
 
-const EFFECTIVENESS_OPTIONS = [
-  { value: 'high', label: 'Alta' },
-  { value: 'medium', label: 'Media' },
-  { value: 'low', label: 'Baja' },
-  { value: 'not_evaluated', label: 'Sin evaluar' },
+const FREQUENCY_OPTIONS = [
+  { value: 'continuous', label: 'Continuo' },
+  { value: 'daily', label: 'Diario' },
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'monthly', label: 'Mensual' },
+  { value: 'quarterly', label: 'Trimestral' },
+  { value: 'semi_annually', label: 'Semestral' },
+  { value: 'annually', label: 'Anual' },
+  { value: 'per_access', label: 'Por acceso' },
 ];
 
 const columns = [
@@ -50,11 +54,13 @@ const columns = [
     render: (item: ControlRow) => <StatusBadge status={item.status} />,
   },
   {
-    key: 'effectiveness',
+    key: 'overall_effectiveness',
     label: 'Efectividad',
-    render: (item: ControlRow) => item.effectiveness ? <StatusBadge status={item.effectiveness} /> : <span className="text-slate-600">-</span>,
+    render: (item: ControlRow) => item.overall_effectiveness !== null ? (
+      <span className="font-mono text-xs text-slate-600">{item.overall_effectiveness}%</span>
+    ) : <span className="text-slate-400">—</span>,
   },
-  { key: 'owner', label: 'Responsable', className: 'text-slate-400' },
+  { key: 'department', label: 'Departamento', className: 'text-slate-400' },
 ];
 
 interface Props {
@@ -123,16 +129,17 @@ export function ControlList({ data, count, page, pageSize }: Props) {
           </div>
           <FormField label="Nombre" name="name" required placeholder="Nombre del control" />
           <FormField label="Descripcion" name="description" type="textarea" placeholder="Descripcion del control..." />
+          <FormField label="Objetivo" name="objective" type="textarea" placeholder="Que busca lograr el control..." />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Estado" name="status" type="select" options={STATUS_OPTIONS} defaultValue="planned" />
-            <FormField label="Efectividad" name="effectiveness" type="select" options={EFFECTIVENESS_OPTIONS} defaultValue="not_evaluated" />
+            <FormField label="Frecuencia de ejecucion" name="execution_frequency" type="select" options={FREQUENCY_OPTIONS} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Responsable" name="owner" placeholder="Nombre del responsable" />
-            <FormField label="Frecuencia revision" name="frequency" placeholder="Mensual, Trimestral..." />
+            <FormField label="Departamento" name="department" placeholder="TI, Ciberseguridad, RRHH..." />
+            <FormField label="Efectividad general (%)" name="overall_effectiveness" type="number" placeholder="0-100" />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Ultima revision" name="last_review_date" type="date" />
+            <FormField label="Implementacion" name="implementation_date" type="date" />
             <FormField label="Proxima revision" name="next_review_date" type="date" />
           </div>
 

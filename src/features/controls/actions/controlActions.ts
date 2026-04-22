@@ -3,10 +3,12 @@
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'name', 'description', 'control_type', 'category',
-  'status', 'implementation_level', 'effectiveness', 'owner',
-  'frequency', 'last_review_date', 'next_review_date',
-  'evidence_required', 'automation_level',
+  'code', 'name', 'description', 'objective',
+  'control_type', 'control_nature', 'automation_level',
+  'status', 'department',
+  'design_effectiveness', 'operating_effectiveness', 'overall_effectiveness',
+  'execution_frequency', 'next_review_date', 'implementation_date',
+  'implementation_notes', 'is_key_control',
 ];
 
 export async function createControl(formData: FormData): Promise<ActionResult> {
