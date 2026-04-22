@@ -2,9 +2,10 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { getDocumentById } from '@/features/documents/services/documentService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { DocumentFilePanel } from '@/features/documents/components/DocumentFilePanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, FileText, Lock, Shield, Download, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Lock, Shield, Clock } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -39,15 +40,6 @@ function ConfidentialityBadge({ level }: { level: string | null }) {
       {labels[level] ?? level}
     </span>
   );
-}
-
-function formatBytes(bytes: number | null): string {
-  if (!bytes) return '-';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let i = 0;
-  let n = bytes;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(1)} ${units[i]}`;
 }
 
 export default async function DocumentDetailPage({ params }: Props) {
@@ -156,48 +148,14 @@ export default async function DocumentDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Archivo */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-          <FileText className="w-4 h-4" />
-          Archivo
-        </h2>
-        {doc.file_path ? (
-          <div className="flex items-center justify-between gap-4 p-4 rounded-lg border border-slate-200 bg-slate-50">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-5 h-5 text-sky-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-700 truncate">{doc.file_path}</p>
-                <p className="text-xs text-slate-500">
-                  {doc.mime_type ?? 'Tipo desconocido'} · {formatBytes(doc.file_size)}
-                </p>
-                {doc.hash_sha256 && (
-                  <p className="text-[11px] text-slate-400 font-mono truncate">
-                    SHA256: {doc.hash_sha256.substring(0, 32)}...
-                  </p>
-                )}
-              </div>
-            </div>
-            <button
-              type="button"
-              disabled
-              title="Descarga no implementada — pendiente integración con Supabase Storage"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-slate-200 text-slate-400 cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" />
-              Descargar
-            </button>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">No hay archivo adjunto.</p>
-            <p className="text-xs text-slate-400 mt-1">Puedes cargar uno al editar este documento.</p>
-          </div>
-        )}
-      </div>
+      {/* Archivo interactivo con upload/download/remove */}
+      <DocumentFilePanel
+        documentId={doc.id}
+        filePath={doc.file_path}
+        fileSize={doc.file_size}
+        mimeType={doc.mime_type}
+        hashSha256={doc.hash_sha256}
+      />
 
       {/* Control de autoría (simplificado sin lookup a auth.users aún) */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
