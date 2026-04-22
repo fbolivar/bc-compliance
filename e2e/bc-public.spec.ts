@@ -19,11 +19,6 @@ test.describe('BC Compliance — smoke público', () => {
     await expect(page.getByRole('button', { name: /iniciar sesi[oó]n|entrar/i })).toBeVisible();
   });
 
-  test('signup page renders', async ({ page }) => {
-    await page.goto('/signup');
-    await expect(page).toHaveURL(/signup/);
-  });
-
   test('forgot-password page renders', async ({ page }) => {
     await page.goto('/forgot-password');
     await expect(page).toHaveURL(/forgot-password/);

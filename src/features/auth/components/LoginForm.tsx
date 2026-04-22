@@ -110,15 +110,6 @@ export function LoginForm() {
             {loading ? 'Verificando…' : 'Iniciar sesión'}
           </button>
         </form>
-
-        <div className="mt-6 pt-6 border-t border-slate-100">
-          <p className="text-center text-sm text-slate-500">
-            ¿Sin cuenta?{' '}
-            <Link href="/signup" className="text-sky-600 hover:text-sky-700 font-medium">
-              Crear cuenta
-            </Link>
-          </p>
-        </div>
       </div>
 
       {/* Footer */}

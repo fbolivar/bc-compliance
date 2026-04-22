@@ -27,20 +27,10 @@ export async function login(formData: FormData) {
   redirect('/dashboard')
 }
 
-export async function signup(formData: FormData) {
-  const supabase = await createClient()
-
-  const { error } = await supabase.auth.signUp({
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/', 'layout')
-  redirect('/check-email')
+// Self-service signup deshabilitado intencionalmente.
+// Usuarios nuevos se gestionan vía /settings/users con invitaciones.
+export async function signup(_formData: FormData) {
+  return { error: 'El registro público está deshabilitado. Solicita acceso a un administrador.' }
 }
 
 export async function signout() {
