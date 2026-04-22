@@ -64,6 +64,7 @@ const navigation: NavItem[] = [
       { label: 'Multi-Framework', href: '/compliance' },
       { label: 'Análisis de Brechas', href: '/compliance/gap-analysis' },
       { label: 'SOA', href: '/compliance/soa' },
+      { label: 'Aprobaciones SOA', href: '/compliance/soa/approvals' },
       { label: 'Cross-Framework', href: '/compliance/cross-framework' },
     ]
   },

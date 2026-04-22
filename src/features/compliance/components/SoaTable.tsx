@@ -8,6 +8,7 @@ import {
   deriveSoaFromControls,
   deriveSoaBulk,
 } from '@/features/compliance/actions/complianceActions';
+import { proposeSoaChange } from '@/features/compliance/actions/soaApprovalActions';
 
 export interface SoaEntryEnriched {
   id: string;
@@ -152,21 +153,20 @@ export function SoaTable({ entries, frameworks, controlMappings = [] }: Props) {
         is_applicable: newApplicable,
       });
 
-      // Auto-save on status change
-      const fd = new FormData();
-      fd.set('implementation_status', value);
-      fd.set('is_applicable', String(newApplicable));
-      fd.set('justification', rowStates[entry.id]?.justification ?? '');
-      fd.set('notes', rowStates[entry.id]?.notes ?? '');
-
+      // El cambio se PROPONE; queda pendiente hasta que un aprobador lo valide
+      // (workflow ISO 27001 — trazabilidad de auditoría).
       updateRow(entry.id, { saving: true, saved: false, error: null });
       startTransition(async () => {
-        const result = await updateSoaEntry(entry.id, fd);
+        const result = await proposeSoaChange(
+          entry.id,
+          value,
+          rowStates[entry.id]?.justification ?? undefined,
+        );
         if (result.error) {
           updateRow(entry.id, { saving: false, error: result.error });
         } else {
           updateRow(entry.id, { saving: false, saved: true, error: null });
-          setTimeout(() => updateRow(entry.id, { saved: false }), 2000);
+          setTimeout(() => updateRow(entry.id, { saved: false }), 2500);
         }
       });
     },

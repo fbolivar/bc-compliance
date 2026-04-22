@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentOrg } from '@/shared/lib/get-org';
 import { PlatformSidebar } from '@/features/dashboard/components/PlatformSidebar';
 import { MobileSidebar } from '@/features/dashboard/components/MobileSidebar';
-import { Shield } from 'lucide-react';
+import { OrgSwitcher } from '@/features/dashboard/components/OrgSwitcher';
 
 export const metadata = {
   title: 'BC Trust - GRC & SecOps Platform',
@@ -14,14 +14,14 @@ export default async function PlatformLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, organization, isPlatformOwner, userName } = await getCurrentOrg();
+  const { user, organization, isPlatformOwner, userName, memberships } = await getCurrentOrg();
 
   if (!user) {
     redirect('/login');
   }
 
-  const org = organization as { name?: string; plan?: string } | null;
-  const orgName = org?.name || 'Mi Organizacion';
+  const org = organization as { id?: string; name?: string; plan?: string } | null;
+  const orgName = org?.name || 'Mi Organización';
   const orgPlan = org?.plan || 'starter';
 
   return (
@@ -31,6 +31,21 @@ export default async function PlatformLayout({
         <header className="sticky top-0 z-30 flex items-center h-12 sm:h-14 px-3 sm:px-6 bg-white/95 backdrop-blur-md border-b border-slate-200 gap-3">
           <MobileSidebar isPlatformOwner={isPlatformOwner} />
           <div className="flex-1 min-w-0" />
+
+          {/* Org switcher (solo si user pertenece a >1 org) */}
+          {organization && memberships && memberships.length > 1 && (
+            <OrgSwitcher
+              current={{
+                id: org!.id ?? '',
+                name: orgName,
+                slug: null,
+                plan: orgPlan,
+                is_platform_owner: isPlatformOwner,
+              }}
+              memberships={memberships}
+            />
+          )}
+
           <div className="flex items-center gap-2.5">
             <div className="hidden sm:block text-right">
               <p className="text-[13px] font-medium text-slate-700 leading-tight">{orgName}</p>
