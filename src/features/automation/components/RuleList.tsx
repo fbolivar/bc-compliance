@@ -46,17 +46,15 @@ const columns = [
     ),
   },
   {
-    key: 'is_active',
+    key: 'status',
     label: 'Estado',
-    render: (item: AutomationRuleRow) => (
-      <StatusBadge status={item.is_active ? 'active' : 'inactive'} />
-    ),
+    render: (item: AutomationRuleRow) => <StatusBadge status={item.status} />,
   },
   {
-    key: 'trigger_count',
+    key: 'execution_count',
     label: 'Ejecuciones',
     render: (item: AutomationRuleRow) => (
-      <span className="font-mono text-sm text-slate-600">{item.trigger_count ?? 0}</span>
+      <span className="font-mono text-sm text-slate-600">{item.execution_count ?? 0}</span>
     ),
   },
 ];

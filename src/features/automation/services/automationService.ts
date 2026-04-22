@@ -4,17 +4,19 @@ import type { PaginationParams, PaginatedResult } from '@/shared/lib/service-hel
 export interface AutomationRuleRow {
   id: string;
   organization_id: string;
-  code: string;
   name: string;
   description: string | null;
   trigger_type: string;
-  trigger_config: Record<string, unknown> | null;
-  condition_config: Record<string, unknown> | null;
+  trigger_conditions: Record<string, unknown> | null;
   action_type: string;
   action_config: Record<string, unknown> | null;
-  is_active: boolean;
+  status: string;
+  priority: number;
+  cooldown_minutes: number;
   last_triggered_at: string | null;
-  trigger_count: number;
+  execution_count: number;
+  error_count: number;
+  last_error: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,5 +38,5 @@ export async function getAutomationRuleCount(orgId: string): Promise<number> {
 }
 
 export async function getActiveRuleCount(orgId: string): Promise<number> {
-  return countRecords('automation_rules', orgId, { is_active: true });
+  return countRecords('automation_rules', orgId, { status: 'active' });
 }

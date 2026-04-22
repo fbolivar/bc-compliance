@@ -1,5 +1,17 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Playwright config — BC Compliance E2E
+ *
+ * Ejecuta con:
+ *   npx playwright test                                   # todos
+ *   npx playwright test bc-public                         # smoke sin auth
+ *   npx playwright test bc-integration                    # flujos autenticados
+ *   E2E_EMAIL=... E2E_PASSWORD=... npx playwright test    # con login real
+ *
+ * Base URL: detecta localhost:3000-3006 (ajusta BASE_URL env var si usas otro).
+ * Si el dev server no está corriendo, Playwright lo inicia con `npm run dev`.
+ */
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -9,37 +21,38 @@ export default defineConfig({
   reporter: 'html',
   timeout: 60000,
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3001',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   projects: [
-    // Setup: login and save auth state
+    // Setup autenticado BC Compliance
     {
-      name: 'lawyer-setup',
-      testMatch: /admin\.setup\.ts/,
-    },
-    // Auth tests (no login needed)
-    {
-      name: 'auth-pages',
-      testMatch: /auth\.spec\.ts/,
+      name: 'bc-setup',
+      testMatch: /bc\.setup\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
-    // All authenticated tests as Lawyer
+    // Smoke público (no requiere login)
     {
-      name: 'authenticated',
-      testMatch: /dashboard|lawyers|appointments|navigation|admin-dashboard/,
-      dependencies: ['lawyer-setup'],
+      name: 'bc-public',
+      testMatch: /bc-public\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Tests de integración autenticados
+    {
+      name: 'bc-integration',
+      testMatch: /bc-integration\.spec\.ts/,
+      dependencies: ['bc-setup'],
       use: {
         ...devices['Desktop Chrome'],
-        storageState: './e2e/.auth/admin.json',
+        storageState: './e2e/.auth/bc-user.json',
       },
     },
   ],
   webServer: {
     command: 'npm run dev',
-    url: process.env.BASE_URL || 'http://localhost:3001',
+    url: process.env.BASE_URL || 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120000,
   },
-})
+});

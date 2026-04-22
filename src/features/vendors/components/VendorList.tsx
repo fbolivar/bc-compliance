@@ -10,7 +10,7 @@ import { createVendor, deleteVendor } from '../actions/vendorActions';
 import type { VendorRow } from '../services/vendorService';
 import { Plus } from 'lucide-react';
 
-const CATEGORY_OPTIONS = [
+const VENDOR_TYPE_OPTIONS = [
   { value: 'cloud_provider', label: 'Proveedor Cloud' },
   { value: 'software', label: 'Software' },
   { value: 'hardware', label: 'Hardware' },
@@ -40,10 +40,10 @@ const columns = [
   { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
   { key: 'name', label: 'Proveedor' },
   {
-    key: 'category',
-    label: 'Categoria',
+    key: 'vendor_type',
+    label: 'Tipo',
     render: (item: VendorRow) => (
-      <span className="text-slate-400 text-sm">{item.category?.replace(/_/g, ' ') || '-'}</span>
+      <span className="text-slate-400 text-sm">{item.vendor_type?.replace(/_/g, ' ') || '-'}</span>
     ),
   },
   {
@@ -121,7 +121,7 @@ export function VendorList({ data, count, page, pageSize }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Codigo" name="code" required placeholder="VEN-001" />
-            <FormField label="Categoria" name="category" type="select" options={CATEGORY_OPTIONS} />
+            <FormField label="Tipo" name="vendor_type" type="select" options={VENDOR_TYPE_OPTIONS} />
           </div>
           <FormField label="Nombre" name="name" required placeholder="Nombre del proveedor" />
           <FormField label="Descripcion" name="description" type="textarea" placeholder="Descripcion del servicio..." />
@@ -141,9 +141,33 @@ export function VendorList({ data, count, page, pageSize }: Props) {
             <FormField label="Inicio contrato" name="contract_start" type="date" />
             <FormField label="Fin contrato" name="contract_end" type="date" />
           </div>
-          <div className="flex items-center gap-2 pt-1">
-            <input type="checkbox" name="data_processing" id="data_processing" className="rounded bg-white border-slate-300 text-sky-500" />
-            <label htmlFor="data_processing" className="text-sm text-slate-600">Procesa datos personales (requiere DPA)</label>
+          <div className="flex flex-wrap items-center gap-4 pt-1">
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="handles_pii" className="rounded bg-white border-slate-300 text-sky-500" />
+              Procesa PII
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="handles_financial_data" className="rounded bg-white border-slate-300 text-sky-500" />
+              Procesa datos financieros
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="has_dpa" className="rounded bg-white border-slate-300 text-sky-500" />
+              Contrato DPA firmado
+            </label>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="has_iso27001" className="rounded bg-white border-slate-300 text-sky-500" />
+              ISO 27001
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="has_soc2" className="rounded bg-white border-slate-300 text-sky-500" />
+              SOC 2
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" name="has_pentest" className="rounded bg-white border-slate-300 text-sky-500" />
+              Pentest reciente
+            </label>
           </div>
 
           {error && (

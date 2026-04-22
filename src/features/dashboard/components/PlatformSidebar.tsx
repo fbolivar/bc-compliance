@@ -23,6 +23,8 @@ import {
   Target,
   ChevronDown,
   LogOut,
+  BarChart3,
+  Bell,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { signout } from '@/actions/auth';
@@ -82,6 +84,8 @@ const navigation: NavItem[] = [
       { label: 'Informes', href: '/audits/reports' },
     ]
   },
+  { label: 'Informes', href: '/reports', icon: BarChart3 },
+  { label: 'Notificaciones', href: '/notifications', icon: Bell },
   { label: 'Automatización', href: '/automation', icon: Zap },
   { label: 'Integraciones', href: '/integrations', icon: Plug },
 ];

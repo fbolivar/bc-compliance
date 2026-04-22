@@ -109,12 +109,12 @@ export default async function AutomationPage() {
               <div key={rule.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-200">{rule.name}</p>
+                    <p className="text-sm font-medium text-slate-700">{rule.name}</p>
                     <p className="text-xs text-slate-500">
                       {rule.trigger_type} → {rule.action_type?.replace(/_/g, ' ')}
                     </p>
                   </div>
-                  <StatusBadge status={rule.is_active ? 'active' : 'inactive'} />
+                  <StatusBadge status={rule.status} />
                 </div>
               </div>
             ))}
