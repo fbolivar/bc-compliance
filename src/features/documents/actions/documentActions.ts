@@ -3,9 +3,11 @@
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'name', 'description', 'document_type', 'category',
-  'status', 'version', 'author', 'owner',
-  'review_date', 'expiry_date', 'file_url',
+  'code', 'title', 'description', 'document_type', 'category',
+  'status', 'version',
+  'confidentiality', 'department',
+  'review_date', 'expiry_date', 'retention_period_months',
+  'file_path', 'mime_type',
 ];
 
 export async function createDocument(formData: FormData): Promise<ActionResult> {

@@ -15,11 +15,21 @@ const TYPE_OPTIONS = [
   { value: 'procedure', label: 'Procedimiento' },
   { value: 'standard', label: 'Estandar' },
   { value: 'guideline', label: 'Guia' },
-  { value: 'plan', label: 'Plan' },
+  { value: 'template', label: 'Plantilla' },
   { value: 'record', label: 'Registro' },
+  { value: 'evidence', label: 'Evidencia' },
   { value: 'report', label: 'Informe' },
+  { value: 'certificate', label: 'Certificado' },
   { value: 'contract', label: 'Contrato' },
+  { value: 'sla', label: 'SLA' },
   { value: 'other', label: 'Otro' },
+];
+
+const CONFIDENTIALITY_OPTIONS = [
+  { value: 'public', label: 'Público' },
+  { value: 'internal', label: 'Interno' },
+  { value: 'confidential', label: 'Confidencial' },
+  { value: 'restricted', label: 'Restringido' },
 ];
 
 const STATUS_OPTIONS = [
@@ -33,7 +43,7 @@ const STATUS_OPTIONS = [
 
 const columns = [
   { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
-  { key: 'name', label: 'Nombre' },
+  { key: 'title', label: 'Título' },
   {
     key: 'document_type',
     label: 'Tipo',
@@ -123,21 +133,25 @@ export function DocumentList({ data, count, page, pageSize }: Props) {
             <FormField label="Codigo" name="code" required placeholder="DOC-001" />
             <FormField label="Tipo" name="document_type" type="select" required options={TYPE_OPTIONS} />
           </div>
-          <FormField label="Nombre" name="name" required placeholder="Nombre del documento" />
+          <FormField label="Título" name="title" required placeholder="Título del documento" />
           <FormField label="Descripcion" name="description" type="textarea" placeholder="Descripcion del documento..." />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Estado" name="status" type="select" options={STATUS_OPTIONS} defaultValue="draft" />
             <FormField label="Version" name="version" placeholder="1.0" />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Autor" name="author" placeholder="Nombre del autor" />
-            <FormField label="Responsable" name="owner" placeholder="Nombre del responsable" />
+            <FormField label="Confidencialidad" name="confidentiality" type="select" options={CONFIDENTIALITY_OPTIONS} defaultValue="internal" />
+            <FormField label="Departamento" name="department" placeholder="Dirección General, TI..." />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Fecha de revision" name="review_date" type="date" />
+            <FormField label="Categoría" name="category" placeholder="SGSI, Financiero..." />
+            <FormField label="Retención (meses)" name="retention_period_months" type="number" placeholder="60" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Fecha de revisión" name="review_date" type="date" />
             <FormField label="Fecha de vencimiento" name="expiry_date" type="date" />
           </div>
-          <FormField label="URL del archivo" name="file_url" placeholder="https://..." />
+          <FormField label="Ruta del archivo" name="file_path" placeholder="storage://documents/..." />
 
           {error && (
             <div className="px-3 py-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
