@@ -189,7 +189,9 @@ export function NotificationsCenter({ items }: Props) {
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed">{n.message}</p>
                     <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-400">
-                      <span>{new Date(n.created_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                      <span suppressHydrationWarning>
+                        {new Date(n.created_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </span>
                       {href && (
                         <Link href={href} className="text-sky-600 hover:text-sky-700 font-medium">
                           Ver entidad →
