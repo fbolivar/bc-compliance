@@ -3,16 +3,15 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { requireOrg } from '@/shared/lib/get-org';
 import { getProcessById } from '@/features/assets/services/processService';
-import { getAssetsByProcess } from '@/features/assets/services/assetService';
+import { getDependenciesByProcess } from '@/features/assets/services/dependencyService';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { ProcessAssetList } from '@/features/assets/components/ProcessAssetList';
+import { DependencyList } from '@/features/assets/components/DependencyList';
 import { ProcessIcon } from '@/features/assets/components/ProcessIcon';
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page?: string; new?: string }>;
 }
 
 const FAMILY_THEME: Record<string, { text: string; bg: string; border: string }> = {
@@ -23,19 +22,17 @@ const FAMILY_THEME: Record<string, { text: string; bg: string; border: string }>
   'Procesos de Evaluación': { text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200' },
 };
 
-export default async function ProcessDetailPage({ params, searchParams }: Props) {
+export default async function ProcessDetailPage({ params }: Props) {
   const { id } = await params;
-  const sp = await searchParams;
 
   const { orgId } = await requireOrg();
   const process = await getProcessById(id, orgId);
   if (!process) notFound();
 
-  const page = Number(sp.page) || 1;
-  const result = await getAssetsByProcess(orgId, id, { page, pageSize: 25 });
+  const dependencies = await getDependenciesByProcess(id, orgId);
+  const totalAssets = dependencies.reduce((sum, d) => sum + d.asset_count, 0);
 
   const theme = FAMILY_THEME[process.family_name] ?? { text: 'text-slate-700', bg: 'bg-slate-50', border: 'border-slate-200' };
-  const autoOpenForm = sp.new === '1';
 
   return (
     <div className="space-y-6 pb-10">
@@ -65,20 +62,16 @@ export default async function ProcessDetailPage({ params, searchParams }: Props)
             </p>
             <PageHeader
               title={process.name}
-              description={`${process.asset_count} activo${process.asset_count === 1 ? '' : 's'} registrado${process.asset_count === 1 ? '' : 's'} en este proceso`}
+              description={`${dependencies.length} ${dependencies.length === 1 ? 'dependencia' : 'dependencias'} · ${totalAssets} ${totalAssets === 1 ? 'activo' : 'activos'} en total`}
             />
           </div>
         </div>
       </section>
 
-      <ProcessAssetList
-        data={result.data}
-        count={result.count}
-        page={result.page}
-        pageSize={result.pageSize}
+      <DependencyList
         processId={process.id}
         processName={process.name}
-        autoOpenForm={autoOpenForm}
+        dependencies={dependencies}
       />
     </div>
   );

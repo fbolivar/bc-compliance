@@ -48,14 +48,6 @@ export async function getAssets(
   return paginatedQuery<AssetRow>('assets', orgId, params, ASSET_SELECT, filters);
 }
 
-export async function getAssetsByProcess(
-  orgId: string,
-  categoryId: string,
-  params: PaginationParams = {}
-): Promise<PaginatedResult<AssetRow>> {
-  return paginatedQuery<AssetRow>('assets', orgId, params, ASSET_SELECT, { category_id: categoryId });
-}
-
 export async function getAssetById(id: string): Promise<AssetRow | null> {
   return getById<AssetRow>('assets', id);
 }

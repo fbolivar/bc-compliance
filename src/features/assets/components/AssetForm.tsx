@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createEntity } from '@/shared/lib/actions-helpers';
+import { createAsset } from '../actions/assetActions';
 import { ChevronDown, Save, X, Loader2 } from 'lucide-react';
 
 // Process dependencies
@@ -76,10 +76,16 @@ interface AssetFormProps {
   onClose: () => void;
   /**
    * Pre-selected process category (asset_categories.id). Injected as a hidden input
-   * so the asset is immediately linked to the chosen process.
+   * so the asset is immediately linked to the chosen process category.
+   * (Legacy: use defaultDependencyIds when available — a dependency lives under a process.)
    */
   defaultCategoryId?: string;
-  /** Optional label to show context (e.g., process name) at the top of the form. */
+  /**
+   * Pre-selected dependency IDs (process_dependencies.id). Each one becomes a row
+   * in the dependency_assets pivot when the asset is saved.
+   */
+  defaultDependencyIds?: string[];
+  /** Optional label to show context (e.g., proceso + dependencia) at the top of the form. */
   contextLabel?: string;
 }
 
@@ -121,7 +127,12 @@ function Section({ title, subtitle, number, isOpen, onToggle, children }: Sectio
   );
 }
 
-export function AssetForm({ onClose, defaultCategoryId, contextLabel }: AssetFormProps) {
+export function AssetForm({
+  onClose,
+  defaultCategoryId,
+  defaultDependencyIds,
+  contextLabel,
+}: AssetFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -161,21 +172,17 @@ export function AssetForm({ onClose, defaultCategoryId, contextLabel }: AssetFor
       formData.set('category_id', defaultCategoryId);
     }
 
-    const fields = [
-      'name', 'description', 'asset_type', 'category_id',
-      'process_type', 'process_name', 'sede',
-      'asset_id_custom', 'trd_serie', 'info_generation_date', 'entry_date', 'exit_date',
-      'language', 'format', 'support', 'consultation_place', 'info_owner', 'info_custodian',
-      'update_frequency', 'icc_social_impact', 'icc_economic_impact', 'icc_environmental_impact',
-      'icc_is_critical', 'confidentiality', 'integrity', 'availability',
-      'confidentiality_value', 'integrity_value', 'availability_value',
-      'exception_objective', 'constitutional_basis', 'legal_exception_basis',
-      'exception_scope', 'classification_date', 'classification_term',
-      'contains_personal_data', 'contains_minors_data', 'personal_data_type',
-      'personal_data_purpose', 'has_data_authorization',
-    ];
+    // Append dependency IDs (multi-link pivot). Any hidden inputs named
+    // `dependency_ids` already present in the form are kept; here we also
+    // merge the prop-based defaults.
+    if (defaultDependencyIds && defaultDependencyIds.length > 0) {
+      const existing = new Set(formData.getAll('dependency_ids').map((v) => String(v)));
+      for (const depId of defaultDependencyIds) {
+        if (!existing.has(depId)) formData.append('dependency_ids', depId);
+      }
+    }
 
-    const result = await createEntity('assets', formData, fields, '/assets');
+    const result = await createAsset(formData);
 
     if (result.error) {
       setError(result.error);

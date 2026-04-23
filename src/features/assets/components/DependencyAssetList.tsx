@@ -13,18 +13,25 @@ interface Props {
   count: number;
   page: number;
   pageSize: number;
-  processId: string;
+  dependencyId: string;
+  dependencyName: string;
+  dependencyKind: string;
   processName: string;
+  /** Process category id. Used as the asset's category_id so the tree remains consistent. */
+  categoryId: string;
   autoOpenForm?: boolean;
 }
 
-export function ProcessAssetList({
+export function DependencyAssetList({
   data,
   count,
   page,
   pageSize,
-  processId,
+  dependencyId,
+  dependencyName,
+  dependencyKind,
   processName,
+  categoryId,
   autoOpenForm,
 }: Props) {
   const [showForm, setShowForm] = useState(Boolean(autoOpenForm));
@@ -76,6 +83,8 @@ export function ProcessAssetList({
     },
   ];
 
+  const contextLabel = `${processName} · ${dependencyKind}: ${dependencyName}`;
+
   return (
     <>
       <div className="mb-4 flex items-center justify-end">
@@ -89,7 +98,7 @@ export function ProcessAssetList({
           ) : (
             <>
               <Plus className="w-4 h-4" />
-              Nuevo Activo en este proceso
+              Nuevo Activo en esta dependencia
             </>
           )}
         </button>
@@ -99,8 +108,9 @@ export function ProcessAssetList({
         <div className="mb-6">
           <AssetForm
             onClose={() => setShowForm(false)}
-            defaultCategoryId={processId}
-            contextLabel={processName}
+            defaultCategoryId={categoryId}
+            defaultDependencyIds={[dependencyId]}
+            contextLabel={contextLabel}
           />
         </div>
       )}
@@ -111,15 +121,15 @@ export function ProcessAssetList({
         count={count}
         page={page}
         pageSize={pageSize}
-        basePath={`/assets/process/${processId}`}
-        searchPlaceholder="Buscar activos en este proceso..."
+        basePath={`/assets/dependency/${dependencyId}`}
+        searchPlaceholder="Buscar activos en esta dependencia..."
         onDelete={async (id) => {
           if (confirm('Eliminar este activo?')) {
             await deleteAsset(id);
             window.location.reload();
           }
         }}
-        emptyMessage="No hay activos en este proceso. Crea el primero."
+        emptyMessage="No hay activos en esta dependencia. Crea el primero."
       />
     </>
   );
