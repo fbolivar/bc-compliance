@@ -437,8 +437,9 @@ function detectHeaders(sheet: ExcelJS.Worksheet): {
 
     const matchCount = Object.keys(columnMap).length;
 
-    // Need at least MIN_HEADER_MATCHES recognized columns AND must include 'code'
-    if (matchCount >= MIN_HEADER_MATCHES && columnMap.code) {
+    // Need at least MIN_HEADER_MATCHES recognized columns AND must include BOTH 'code' AND 'name'
+    // (metadata rows like "Código:" alone won't have a name column)
+    if (matchCount >= MIN_HEADER_MATCHES && columnMap.code && columnMap.name) {
       if (!best || matchCount > best.matchCount) {
         best = { headerRow: r, columnMap, unmappedHeaders: unmapped, allHeaders: allRaw, matchCount };
       }
