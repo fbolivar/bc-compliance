@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { DataTable } from '@/shared/components/DataTable';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { AssetForm } from './AssetForm';
-import { AssetImportButton } from './AssetImportButton';
 import { deleteAsset } from '../actions/assetActions';
 import { FileSpreadsheet } from 'lucide-react';
 import type { AssetRow } from '../services/assetService';
@@ -79,7 +78,6 @@ export function AssetList({ data, count, page, pageSize }: AssetListProps) {
   return (
     <>
       <div className="mb-4 flex items-center justify-end gap-2">
-        <AssetImportButton />
         <a
           href="/api/assets/export"
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
