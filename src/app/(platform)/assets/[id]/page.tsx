@@ -5,7 +5,7 @@ import { getProcessById } from '@/features/assets/services/processService';
 import { requireOrg } from '@/shared/lib/get-org';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -150,19 +150,28 @@ export default async function AssetDetailPage({ params }: Props) {
               description={asset.description ?? ''}
             />
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatusBadge status={asset.status} />
-            <StatusBadge status={asset.criticality_cid ?? asset.criticality} />
-            {asset.icc_is_critical && (
-              <span className="px-2 py-1 text-xs font-medium rounded-md bg-rose-50 text-rose-700 border border-rose-200">
-                ICC
-              </span>
-            )}
-            {asset.contains_personal_data && (
-              <span className="px-2 py-1 text-xs font-medium rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                Datos personales
-              </span>
-            )}
+          <div className="flex flex-col items-end gap-3">
+            <Link
+              href={`/assets/${asset.id}/edit`}
+              className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Pencil className="w-4 h-4" />
+              Editar
+            </Link>
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatusBadge status={asset.status} />
+              <StatusBadge status={asset.criticality_cid ?? asset.criticality} />
+              {asset.icc_is_critical && (
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                  ICC
+                </span>
+              )}
+              {asset.contains_personal_data && (
+                <span className="px-2 py-1 text-xs font-medium rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                  Datos personales
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>

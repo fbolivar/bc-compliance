@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createAsset } from '../actions/assetActions';
+import { createAsset, updateAsset } from '../actions/assetActions';
 import { ChevronDown, Save, X, Loader2 } from 'lucide-react';
+import type { AssetRow } from '../services/assetService';
 
 // Process dependencies
 const processMap: Record<string, string[]> = {
@@ -81,6 +82,21 @@ interface AssetFormProps {
   defaultCategoryId?: string;
   /** Optional label to show context (e.g., process name) at the top of the form. */
   contextLabel?: string;
+  /**
+   * If provided, the form switches to EDIT mode: inputs are pre-filled with these values,
+   * and the submit calls updateAsset(assetId, ...) instead of createAsset.
+   */
+  initialData?: Partial<AssetRow>;
+  /** Asset id for edit mode. Required when initialData is provided. */
+  assetId?: string;
+  /** Called when the update completes successfully (edit mode). Defaults to no-op. */
+  onUpdated?: () => void;
+}
+
+function dateToInputValue(v: string | null | undefined): string {
+  if (!v) return '';
+  // Accept ISO timestamp or plain YYYY-MM-DD
+  return v.slice(0, 10);
 }
 
 interface SectionProps {
@@ -125,15 +141,19 @@ export function AssetForm({
   onClose,
   defaultCategoryId,
   contextLabel,
+  initialData,
+  assetId,
+  onUpdated,
 }: AssetFormProps) {
+  const isEdit = Boolean(assetId && initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>(['1']);
-  const [processType, setProcessType] = useState('');
-  const [confidentiality, setConfidentiality] = useState(1);
-  const [integrity, setIntegrity] = useState(1);
-  const [availability, setAvailability] = useState(1);
+  const [processType, setProcessType] = useState(initialData?.process_type ?? '');
+  const [confidentiality, setConfidentiality] = useState(initialData?.confidentiality_value ?? 1);
+  const [integrity, setIntegrity] = useState(initialData?.integrity_value ?? 1);
+  const [availability, setAvailability] = useState(initialData?.availability_value ?? 1);
 
   const toggleSection = (id: string) => {
     setOpenSections(prev =>
@@ -165,13 +185,25 @@ export function AssetForm({
       formData.set('category_id', defaultCategoryId);
     }
 
-    const result = await createAsset(formData);
+    // Checkboxes that are UNCHECKED don't appear in FormData. To persist the
+    // "false" state on edit, we explicitly set them if missing.
+    for (const boolField of ['icc_social_impact', 'icc_economic_impact', 'icc_environmental_impact', 'icc_is_critical']) {
+      if (!formData.has(boolField)) formData.set(boolField, 'false');
+    }
+
+    const result = isEdit && assetId
+      ? await updateAsset(assetId, formData)
+      : await createAsset(formData);
 
     if (result.error) {
       setError(result.error);
     } else {
       setSuccess(true);
-      setTimeout(() => onClose(), 1500);
+      if (isEdit) {
+        setTimeout(() => onUpdated?.(), 1200);
+      } else {
+        setTimeout(() => onClose(), 1500);
+      }
     }
     setLoading(false);
   };
@@ -184,7 +216,9 @@ export function AssetForm({
   if (success) {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
-        <p className="text-sm text-emerald-700 font-medium">Activo registrado exitosamente</p>
+        <p className="text-sm text-emerald-700 font-medium">
+          {isEdit ? 'Cambios guardados correctamente' : 'Activo registrado exitosamente'}
+        </p>
       </div>
     );
   }
@@ -221,6 +255,7 @@ export function AssetForm({
               id="process_type"
               name="process_type"
               className={selectClass}
+              defaultValue={initialData?.process_type ?? ''}
               onChange={e => setProcessType(e.target.value)}
             >
               <option value="">Seleccionar...</option>
@@ -237,18 +272,26 @@ export function AssetForm({
               name="process_name"
               className={selectClass}
               disabled={!processType}
+              defaultValue={initialData?.process_name ?? ''}
             >
               <option value="">Seleccionar proceso...</option>
               {(processMap[processType] || []).map(p => (
                 <option key={p} value={p}>{p}</option>
               ))}
+              {/* Ensure the initial value is visible even if not in processMap */}
+              {initialData?.process_name && !(processMap[processType] || []).includes(initialData.process_name) && (
+                <option value={initialData.process_name}>{initialData.process_name}</option>
+              )}
             </select>
           </div>
           <div>
             <label htmlFor="sede" className={labelClass}>Sede</label>
-            <select id="sede" name="sede" className={selectClass}>
+            <select id="sede" name="sede" className={selectClass} defaultValue={initialData?.sede ?? ''}>
               <option value="">Seleccionar...</option>
               {sedes.map(s => <option key={s} value={s}>{s}</option>)}
+              {initialData?.sede && !sedes.includes(initialData.sede) && (
+                <option value={initialData.sede}>{initialData.sede}</option>
+              )}
             </select>
           </div>
           <div>
@@ -259,6 +302,7 @@ export function AssetForm({
               name="asset_id_custom"
               placeholder="Autogenerado"
               className={inputClass}
+              defaultValue={initialData?.asset_id_custom ?? ''}
             />
           </div>
           <div>
@@ -269,6 +313,19 @@ export function AssetForm({
               name="trd_serie"
               placeholder="Codigo TRD"
               className={inputClass}
+              defaultValue={initialData?.trd_serie ?? ''}
+            />
+          </div>
+          <div>
+            <label htmlFor="code" className={labelClass}>Código *</label>
+            <input
+              id="code"
+              type="text"
+              name="code"
+              required
+              placeholder="Código único"
+              className={inputClass}
+              defaultValue={initialData?.code ?? ''}
             />
           </div>
           <div>
@@ -280,11 +337,18 @@ export function AssetForm({
               required
               placeholder="Nombre del activo"
               className={inputClass}
+              defaultValue={initialData?.name ?? ''}
             />
           </div>
           <div>
             <label htmlFor="asset_type" className={labelClass}>Tipo de Activo *</label>
-            <select id="asset_type" name="asset_type" required className={selectClass}>
+            <select
+              id="asset_type"
+              name="asset_type"
+              required
+              className={selectClass}
+              defaultValue={initialData?.asset_type ?? ''}
+            >
               <option value="">Seleccionar...</option>
               {assetTypes.map(t => (
                 <option key={t} value={t.toLowerCase().replace(/ /g, '_')}>{t}</option>
@@ -299,6 +363,7 @@ export function AssetForm({
               rows={2}
               placeholder="Descripcion breve del activo"
               className={`${inputClass} resize-none`}
+              defaultValue={initialData?.description ?? ''}
             />
           </div>
           <div>
@@ -308,6 +373,7 @@ export function AssetForm({
               type="date"
               name="info_generation_date"
               className={inputClass}
+              defaultValue={dateToInputValue(initialData?.info_generation_date)}
             />
           </div>
           <div>
@@ -317,6 +383,7 @@ export function AssetForm({
               type="date"
               name="entry_date"
               className={inputClass}
+              defaultValue={dateToInputValue(initialData?.entry_date)}
             />
           </div>
           <div>
@@ -326,11 +393,17 @@ export function AssetForm({
               type="date"
               name="exit_date"
               className={inputClass}
+              defaultValue={dateToInputValue(initialData?.exit_date)}
             />
           </div>
           <div>
             <label htmlFor="language" className={labelClass}>Idioma</label>
-            <select id="language" name="language" className={selectClass}>
+            <select
+              id="language"
+              name="language"
+              className={selectClass}
+              defaultValue={initialData?.language ?? 'espanol'}
+            >
               <option value="espanol">Espanol</option>
               <option value="ingles">Ingles</option>
               <option value="otro">Otro</option>
@@ -338,9 +411,17 @@ export function AssetForm({
           </div>
           <div>
             <label htmlFor="format" className={labelClass}>Formato</label>
-            <select id="format" name="format" className={selectClass}>
+            <select
+              id="format"
+              name="format"
+              className={selectClass}
+              defaultValue={initialData?.format ?? ''}
+            >
               <option value="">Seleccionar...</option>
               {formats.map(f => <option key={f} value={f}>{f}</option>)}
+              {initialData?.format && !formats.includes(initialData.format) && (
+                <option value={initialData.format}>{initialData.format}</option>
+              )}
             </select>
           </div>
         </div>
@@ -357,7 +438,12 @@ export function AssetForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="support" className={labelClass}>Soporte</label>
-            <select id="support" name="support" className={selectClass}>
+            <select
+              id="support"
+              name="support"
+              className={selectClass}
+              defaultValue={initialData?.support ?? 'na'}
+            >
               {supports.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
@@ -371,6 +457,7 @@ export function AssetForm({
               name="consultation_place"
               placeholder="Lugar de consulta / Informacion publicada o disponible"
               className={inputClass}
+              defaultValue={initialData?.consultation_place ?? ''}
             />
           </div>
         </div>
@@ -393,6 +480,7 @@ export function AssetForm({
               name="info_owner"
               placeholder="Responsable de la produccion"
               className={inputClass}
+              defaultValue={initialData?.info_owner ?? ''}
             />
           </div>
           <div>
@@ -403,11 +491,17 @@ export function AssetForm({
               name="info_custodian"
               placeholder="Responsable de la custodia"
               className={inputClass}
+              defaultValue={initialData?.info_custodian ?? ''}
             />
           </div>
           <div>
             <label htmlFor="update_frequency" className={labelClass}>Frecuencia de Actualizacion</label>
-            <select id="update_frequency" name="update_frequency" className={selectClass}>
+            <select
+              id="update_frequency"
+              name="update_frequency"
+              className={selectClass}
+              defaultValue={initialData?.update_frequency ?? ''}
+            >
               <option value="">Seleccionar...</option>
               <option value="diaria">Diaria</option>
               <option value="semanal">Semanal</option>
@@ -441,6 +535,7 @@ export function AssetForm({
               name="icc_social_impact"
               value="true"
               className="accent-sky-500 w-4 h-4 shrink-0"
+              defaultChecked={initialData?.icc_social_impact === true}
             />
             <div>
               <p className="text-sm text-slate-700 font-medium">Impacto Social</p>
@@ -457,6 +552,7 @@ export function AssetForm({
               name="icc_economic_impact"
               value="true"
               className="accent-sky-500 w-4 h-4 shrink-0"
+              defaultChecked={initialData?.icc_economic_impact === true}
             />
             <div>
               <p className="text-sm text-slate-700 font-medium">Impacto Economico</p>
@@ -473,6 +569,7 @@ export function AssetForm({
               name="icc_environmental_impact"
               value="true"
               className="accent-sky-500 w-4 h-4 shrink-0"
+              defaultChecked={initialData?.icc_environmental_impact === true}
             />
             <div>
               <p className="text-sm text-slate-700 font-medium">Impacto Ambiental</p>
@@ -489,6 +586,7 @@ export function AssetForm({
               name="icc_is_critical"
               value="true"
               className="accent-sky-500 w-4 h-4 shrink-0"
+              defaultChecked={initialData?.icc_is_critical === true}
             />
             <div>
               <p className="text-sm text-sky-700 font-medium">Activo de ICC</p>
@@ -514,6 +612,7 @@ export function AssetForm({
                 id="confidentiality"
                 name="confidentiality"
                 className={selectClass}
+                defaultValue={initialData?.confidentiality ?? ''}
                 onChange={e => {
                   const v = e.target.value;
                   setConfidentiality(v === 'alto' ? 5 : v === 'medio' ? 3 : 1);
@@ -531,6 +630,7 @@ export function AssetForm({
                 id="integrity"
                 name="integrity"
                 className={selectClass}
+                defaultValue={initialData?.integrity ?? ''}
                 onChange={e => {
                   const v = e.target.value;
                   setIntegrity(v === 'alto' ? 5 : v === 'medio' ? 3 : 1);
@@ -548,6 +648,7 @@ export function AssetForm({
                 id="availability"
                 name="availability"
                 className={selectClass}
+                defaultValue={initialData?.availability ?? ''}
                 onChange={e => {
                   const v = e.target.value;
                   setAvailability(v === 'alto' ? 5 : v === 'medio' ? 3 : 1);
@@ -607,41 +708,56 @@ export function AssetForm({
             <label htmlFor="exception_objective" className={labelClass}>
               Objetivo legitimo de la excepcion
             </label>
-            <select id="exception_objective" name="exception_objective" className={selectClass}>
-              <option value="">Seleccionar...</option>
-              <option value="Publica">Publica</option>
-              <option value="Reservada">Reservada</option>
-            </select>
+            <input
+              id="exception_objective"
+              type="text"
+              name="exception_objective"
+              placeholder="Publica / Clasificada / Reservada"
+              className={inputClass}
+              defaultValue={initialData?.exception_objective ?? ''}
+            />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label htmlFor="constitutional_basis" className={labelClass}>
               Fundamento constitucional o legal
             </label>
-            <select id="constitutional_basis" name="constitutional_basis" className={selectClass}>
-              <option value="">Seleccionar...</option>
-              <option value="Decreto 2372 del 1 de julio de 2010, Decreto 1076 de 2015, CONPES 4050 de 2021">
-                Decreto 2372/2010, Decreto 1076/2015, CONPES 4050/2021
-              </option>
-              <option value="N/A">N/A</option>
-            </select>
+            <input
+              id="constitutional_basis"
+              type="text"
+              name="constitutional_basis"
+              placeholder="Decretos, leyes, CONPES…"
+              className={inputClass}
+              defaultValue={initialData?.constitutional_basis ?? ''}
+            />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label htmlFor="legal_exception_basis" className={labelClass}>
               Fundamento Juridico de la Excepcion
             </label>
-            <select id="legal_exception_basis" name="legal_exception_basis" className={selectClass}>
-              <option value="">Seleccionar...</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="N/A">N/A</option>
-            </select>
+            <input
+              id="legal_exception_basis"
+              type="text"
+              name="legal_exception_basis"
+              placeholder="Artículos, numerales…"
+              className={inputClass}
+              defaultValue={initialData?.legal_exception_basis ?? ''}
+            />
           </div>
           <div>
             <label htmlFor="exception_scope" className={labelClass}>Excepcion Total o Parcial</label>
-            <select id="exception_scope" name="exception_scope" className={selectClass}>
+            <select
+              id="exception_scope"
+              name="exception_scope"
+              className={selectClass}
+              defaultValue={initialData?.exception_scope ?? ''}
+            >
               <option value="">Seleccionar...</option>
               <option value="Total">Total</option>
               <option value="Parcial">Parcial</option>
               <option value="N/A">N/A</option>
+              {initialData?.exception_scope && !['Total', 'Parcial', 'N/A', ''].includes(initialData.exception_scope) && (
+                <option value={initialData.exception_scope}>{initialData.exception_scope}</option>
+              )}
             </select>
           </div>
           <div>
@@ -651,18 +767,21 @@ export function AssetForm({
               type="date"
               name="classification_date"
               className={inputClass}
+              defaultValue={dateToInputValue(initialData?.classification_date)}
             />
           </div>
           <div>
             <label htmlFor="classification_term" className={labelClass}>
               Plazo de clasificacion o reserva
             </label>
-            <select id="classification_term" name="classification_term" className={selectClass}>
-              <option value="">Seleccionar...</option>
-              <option value="Ilimitada">Ilimitada</option>
-              <option value="Reservada">Reservada</option>
-              <option value="Publica">Publica</option>
-            </select>
+            <input
+              id="classification_term"
+              type="text"
+              name="classification_term"
+              placeholder="Ilimitada / Reservada / Plazo..."
+              className={inputClass}
+              defaultValue={initialData?.classification_term ?? ''}
+            />
           </div>
         </div>
       </Section>
@@ -680,7 +799,12 @@ export function AssetForm({
             <label htmlFor="contains_personal_data" className={labelClass}>
               Contiene Datos Personales
             </label>
-            <select id="contains_personal_data" name="contains_personal_data" className={selectClass}>
+            <select
+              id="contains_personal_data"
+              name="contains_personal_data"
+              className={selectClass}
+              defaultValue={initialData?.contains_personal_data === true ? 'true' : initialData?.contains_personal_data === false ? 'false' : ''}
+            >
               <option value="">Seleccionar...</option>
               <option value="true">SI</option>
               <option value="false">NO</option>
@@ -690,7 +814,12 @@ export function AssetForm({
             <label htmlFor="contains_minors_data" className={labelClass}>
               Contiene datos de ninos, ninas o adolescentes
             </label>
-            <select id="contains_minors_data" name="contains_minors_data" className={selectClass}>
+            <select
+              id="contains_minors_data"
+              name="contains_minors_data"
+              className={selectClass}
+              defaultValue={initialData?.contains_minors_data === true ? 'true' : initialData?.contains_minors_data === false ? 'false' : ''}
+            >
               <option value="">Seleccionar...</option>
               <option value="true">SI</option>
               <option value="false">NO</option>
@@ -698,7 +827,12 @@ export function AssetForm({
           </div>
           <div>
             <label htmlFor="personal_data_type" className={labelClass}>Tipo de Datos Personales</label>
-            <select id="personal_data_type" name="personal_data_type" className={selectClass}>
+            <select
+              id="personal_data_type"
+              name="personal_data_type"
+              className={selectClass}
+              defaultValue={initialData?.personal_data_type ?? 'na'}
+            >
               <option value="na">N/A</option>
               <option value="publico">Dato Personal Publico</option>
               <option value="privado">Dato Personal Privado</option>
@@ -716,13 +850,19 @@ export function AssetForm({
               rows={2}
               placeholder="Describe la finalidad del tratamiento de datos"
               className={`${inputClass} resize-none`}
+              defaultValue={initialData?.personal_data_purpose ?? ''}
             />
           </div>
           <div>
             <label htmlFor="has_data_authorization" className={labelClass}>
               Autorizacion para tratamiento de datos
             </label>
-            <select id="has_data_authorization" name="has_data_authorization" className={selectClass}>
+            <select
+              id="has_data_authorization"
+              name="has_data_authorization"
+              className={selectClass}
+              defaultValue={initialData?.has_data_authorization === true ? 'true' : initialData?.has_data_authorization === false ? 'false' : ''}
+            >
               <option value="">Seleccionar...</option>
               <option value="true">SI</option>
               <option value="false">NO</option>
@@ -750,7 +890,7 @@ export function AssetForm({
             ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             : <Save className="w-4 h-4" aria-hidden="true" />
           }
-          {loading ? 'Guardando...' : 'Registrar Activo'}
+          {loading ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Registrar Activo')}
         </button>
       </div>
     </form>
