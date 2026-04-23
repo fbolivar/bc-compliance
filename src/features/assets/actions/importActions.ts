@@ -82,21 +82,19 @@ function parseInt15(value: ExcelJS.CellValue, fallback = 1): number {
   return n;
 }
 
-/** Maps a free-text cell value to an enum value via a normalization map. */
+/**
+ * Maps a free-text cell value to an enum value via a normalization map.
+ * Uses the same normalization as headers so map keys can be reused for both.
+ */
 function parseEnum(
   value: ExcelJS.CellValue,
   map: Record<string, string>,
   fallback: string | null = null,
 ): string | null {
-  const raw = cellToString(value)
-    .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/[áä]/g, 'a')
-    .replace(/[éë]/g, 'e')
-    .replace(/[íï]/g, 'i')
-    .replace(/[óö]/g, 'o')
-    .replace(/[úü]/g, 'u');
-  if (!raw || raw === '-') return fallback;
+  const text = cellToString(value);
+  if (!text || text === '-') return fallback;
+  const raw = normalizeHeader(text);
+  if (!raw) return fallback;
   if (raw in map) return map[raw];
   const values = Object.values(map);
   if (values.includes(raw)) return raw;
@@ -105,11 +103,19 @@ function parseEnum(
 
 const PROCESS_TYPE_MAP: Record<string, 'estrategico' | 'misional' | 'apoyo' | 'seguimiento_control'> = {
   estrategico: 'estrategico',
+  estrategicos: 'estrategico',
+  estrategia: 'estrategico',
   misional: 'misional',
+  misionales: 'misional',
+  mision: 'misional',
   apoyo: 'apoyo',
+  apoyos: 'apoyo',
+  soporte: 'apoyo',
   seguimiento_control: 'seguimiento_control',
   seguimiento_y_control: 'seguimiento_control',
   evaluacion_y_control: 'seguimiento_control',
+  evaluacion: 'seguimiento_control',
+  control: 'seguimiento_control',
 };
 
 const ASSET_TYPE_MAP: Record<string, string> = {
@@ -137,24 +143,27 @@ const SUPPORT_MAP: Record<string, string> = {
   fisico: 'fisico',
   electronico: 'electronico',
   digital: 'digital',
-  'fisico_/_electronico': 'fisico_electronico',
   fisico_electronico: 'fisico_electronico',
-  'fisico_/_digital': 'fisico_digital',
   fisico_digital: 'fisico_digital',
-  'electronico_/_digital': 'electronico_digital',
   electronico_digital: 'electronico_digital',
-  'fisico_/_electronico_/_digital': 'fisico_electronico_digital',
   fisico_electronico_digital: 'fisico_electronico_digital',
   na: 'na',
-  'n/a': 'na',
+  n_a: 'na',
+  no_aplica: 'na',
 };
 
 const LANGUAGE_MAP: Record<string, string> = {
   espanol: 'espanol',
-  español: 'espanol',
+  esp: 'espanol',
   ingles: 'ingles',
+  ing: 'ingles',
   english: 'ingles',
+  esp_ing: 'otro',
+  espanol_ingles: 'otro',
+  ingles_espanol: 'otro',
+  bilingue: 'otro',
   otro: 'otro',
+  otros: 'otro',
 };
 
 const UPDATE_FREQ_MAP: Record<string, string> = {
@@ -182,8 +191,17 @@ const PERSONAL_DATA_TYPE_MAP: Record<string, string> = {
   privado: 'privado',
   semiprivado: 'semiprivado',
   sensible: 'sensible',
+  dato_personal_publico: 'publico',
+  dato_personal_privado: 'privado',
+  dato_personal_semiprivado: 'semiprivado',
+  dato_personal_sensible: 'sensible',
+  datos_personales_publicos: 'publico',
+  datos_personales_privados: 'privado',
+  datos_personales_semiprivados: 'semiprivado',
+  datos_personales_sensibles: 'sensible',
   na: 'na',
-  'n/a': 'na',
+  n_a: 'na',
+  no_aplica: 'na',
 };
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -193,57 +211,156 @@ const PERSONAL_DATA_TYPE_MAP: Record<string, string> = {
 function normalizeHeader(s: string): string {
   return s
     .toLowerCase()
-    .replace(/\n+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
     .replace(/[áä]/g, 'a').replace(/[éë]/g, 'e').replace(/[íï]/g, 'i')
     .replace(/[óö]/g, 'o').replace(/[úü]/g, 'u').replace(/[ñ]/g, 'n')
-    .replace(/[()/.,]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')   // any non-alphanumeric (parens, dashes, ?, ¿, /, newlines) → space
+    .trim()
     .replace(/\s+/g, '_');
 }
 
-/** Each DB field can be matched by any of its alias headers. */
+/**
+ * Each DB field can be matched by any of its alias headers.
+ * Aliases must be already-normalized (via normalizeHeader): lowercase, accents stripped,
+ * non-alphanumeric collapsed to underscores. We list both short BC Trust forms and
+ * the long PNNC forms (Parques Nacionales formato oficial).
+ */
 const FIELD_ALIASES: Record<string, string[]> = {
-  code: ['codigo', 'code', 'cod', 'codigo_activo', 'id_activo'],
-  process_type: ['tipo_de_proceso', 'tipo_proceso', 'process_type'],
-  process_name: ['proceso', 'nombre_del_proceso', 'process_name', 'nombre_proceso'],
-  sede: ['sede', 'sede_regional', 'ubicacion_sede'],
-  asset_id_custom: ['id_del_activo', 'id_activo_interno', 'codigo_interno'],
-  trd_serie: ['trd_serie_sub_serie', 'trd', 'trd_serie', 'serie_documental'],
-  name: ['nombre_del_activo', 'nombre_activo', 'nombre', 'name', 'asset_name'],
-  asset_type: ['tipo_de_activo', 'tipo_activo', 'asset_type'],
-  description: ['descripcion_del_activo', 'descripcion', 'description'],
-  info_generation_date: ['fecha_generacion', 'fecha_de_generacion', 'fecha_generacion_informacion'],
-  entry_date: ['fecha_ingreso', 'fecha_de_ingreso', 'fecha_alta'],
-  exit_date: ['fecha_salida', 'fecha_de_salida', 'fecha_baja'],
+  code: [
+    'codigo', 'code', 'cod', 'codigo_activo', 'id_activo',
+    'id_global_del_activo', 'id_global', 'identificador_global',
+  ],
+  process_type: [
+    'tipo_de_proceso', 'tipo_proceso', 'process_type',
+  ],
+  process_name: [
+    'proceso', 'nombre_del_proceso', 'process_name', 'nombre_proceso',
+    'proceso_responsable_o_propietario_del_activo',
+    'responsable_o_propietario_del_activo',
+  ],
+  sede: [
+    'sede', 'sede_regional', 'ubicacion_sede',
+    'nivel_central_o_direccion_territorial', 'nivel_central', 'direccion_territorial',
+  ],
+  asset_id_custom: [
+    'id_del_activo', 'id_activo_interno', 'codigo_interno',
+  ],
+  trd_serie: [
+    'trd_serie_sub_serie', 'trd_serie_subserie', 'trd', 'trd_serie', 'serie_documental',
+  ],
+  name: [
+    'nombre_del_activo', 'nombre_activo', 'nombre', 'name', 'asset_name',
+    'nombre_o_titulo_de_categoria_de_informacion',
+    'nombre_o_titulo_de_categoria_de_informacion_nombre_del_activo',
+  ],
+  asset_type: [
+    'tipo_de_activo', 'tipo_activo', 'asset_type',
+  ],
+  description: [
+    'descripcion_del_activo', 'descripcion_de_activo', 'descripcion', 'description',
+  ],
+  info_generation_date: [
+    'fecha_generacion', 'fecha_de_generacion', 'fecha_generacion_informacion',
+    'fecha_de_generacion_de_la_informacion', 'fecha_generacion_de_la_informacion',
+  ],
+  entry_date: [
+    'fecha_ingreso', 'fecha_de_ingreso', 'fecha_alta',
+    'fecha_de_ingreso_del_activo', 'fecha_ingreso_del_activo',
+  ],
+  exit_date: [
+    'fecha_salida', 'fecha_de_salida', 'fecha_baja',
+    'fecha_de_salida_del_activo', 'fecha_salida_del_activo',
+  ],
   language: ['idioma', 'language'],
   format: ['formato', 'format', 'formato_archivo'],
-  support: ['soporte', 'tipo_de_soporte', 'support'],
-  consultation_place: ['lugar_de_consulta', 'lugar_consulta'],
-  info_owner: ['propietario_del_activo', 'propietario', 'owner', 'duenio_del_activo'],
-  info_custodian: ['custodio_del_activo', 'custodio', 'custodian'],
-  update_frequency: ['frecuencia_actualizacion', 'frecuencia_de_actualizacion', 'frecuencia'],
-  icc_social_impact: ['impacto_social', 'icc_social'],
-  icc_economic_impact: ['impacto_economico', 'icc_economico'],
-  icc_environmental_impact: ['impacto_ambiental', 'icc_ambiental'],
-  icc_is_critical: ['activo_icc', 'icc_critico', 'es_icc'],
+  support: [
+    'soporte', 'tipo_de_soporte', 'support',
+    'soporte_medio_de_conservacion_consulta',
+    'medio_de_conservacion_consulta',
+  ],
+  consultation_place: [
+    'lugar_de_consulta', 'lugar_consulta',
+    'lugar_de_consulta_lugar_de_consulta_informacion_publicada_o_disponible',
+    'lugar_de_consulta_informacion_publicada_o_disponible',
+  ],
+  info_owner: [
+    'propietario_del_activo', 'propietario', 'owner', 'duenio_del_activo',
+    'nombre_del_responsable_de_la_produccion_de_la_informacion',
+    'nombre_del_responsable_de_la_produccion_de_la_informacion_propietario_del_activo',
+    'responsable_de_la_produccion_de_la_informacion',
+  ],
+  info_custodian: [
+    'custodio_del_activo', 'custodio', 'custodian',
+    'nombre_del_responsable_de_la_custodia_de_la_informacion',
+    'nombre_del_responsable_de_la_custodia_de_la_informacion_custodio_del_activo',
+    'responsable_de_la_custodia_de_la_informacion',
+  ],
+  update_frequency: [
+    'frecuencia_actualizacion', 'frecuencia_de_actualizacion', 'frecuencia',
+    'frecuencia_de_actualizacion_para_publicacion',
+  ],
+  icc_social_impact: [
+    'impacto_social', 'icc_social',
+    'impacto_social_0_5_de_poblacion_nacional_250_000_personas',
+  ],
+  icc_economic_impact: [
+    'impacto_economico', 'icc_economico',
+    'impacto_economico_pib_de_un_dia_o_0_123_del_pib_anual_464_619_736',
+  ],
+  icc_environmental_impact: [
+    'impacto_ambiental', 'icc_ambiental',
+    'impacto_ambiental_3_anos_en_recuperacion_si',
+  ],
+  icc_is_critical: [
+    'activo_icc', 'icc_critico', 'es_icc', 'activo_de_icc',
+  ],
   confidentiality: ['confidencialidad', 'confidentiality'],
   integrity: ['integridad', 'integrity'],
   availability: ['disponibilidad', 'availability'],
-  confidentiality_value: ['c_1-5', 'c', 'valor_c', 'valor_confidencialidad', 'c_15'],
-  integrity_value: ['i_1-5', 'i', 'valor_i', 'valor_integridad', 'i_15'],
-  availability_value: ['d_1-5', 'd', 'valor_d', 'valor_disponibilidad', 'd_15'],
-  exception_objective: ['objetivo_excepcion', 'objetivo_de_excepcion'],
-  constitutional_basis: ['fundamento_constitucional'],
-  legal_exception_basis: ['fundamento_juridico', 'fundamento_legal_excepcion'],
-  exception_scope: ['excepcion_total_parcial', 'alcance_excepcion'],
-  classification_date: ['fecha_calificacion', 'fecha_clasificacion'],
-  classification_term: ['plazo_reserva', 'termino_reserva'],
-  contains_personal_data: ['datos_personales', 'contiene_datos_personales'],
-  contains_minors_data: ['datos_menores', 'contiene_datos_menores'],
-  personal_data_type: ['tipo_dato_personal', 'tipo_datos_personales', 'clasificacion_dato_personal'],
-  personal_data_purpose: ['finalidad_recoleccion', 'finalidad_tratamiento'],
-  has_data_authorization: ['autorizacion_tratamiento', 'autorizacion_titular'],
+  confidentiality_value: ['c_1_5', 'c', 'valor_c', 'valor_confidencialidad'],
+  integrity_value: ['i_1_5', 'i', 'valor_i', 'valor_integridad'],
+  availability_value: ['d_1_5', 'd', 'valor_d', 'valor_disponibilidad'],
+  exception_objective: [
+    'objetivo_excepcion', 'objetivo_de_excepcion',
+    'objetivo_legitimo_de_la_excepcion',
+  ],
+  constitutional_basis: [
+    'fundamento_constitucional', 'fundamento_constitucional_o_legal',
+  ],
+  legal_exception_basis: [
+    'fundamento_juridico', 'fundamento_legal_excepcion',
+    'fundamento_juridico_de_la_excepcion',
+  ],
+  exception_scope: [
+    'excepcion_total_parcial', 'alcance_excepcion', 'excepcion_total_o_parcial',
+  ],
+  classification_date: [
+    'fecha_calificacion', 'fecha_clasificacion',
+    'fecha_de_la_calificacion', 'fecha_de_la_calificacion_dd_mm_aaaa',
+  ],
+  classification_term: [
+    'plazo_reserva', 'termino_reserva', 'plazo_de_clasificacion_o_reserva',
+  ],
+  contains_personal_data: [
+    'datos_personales', 'contiene_datos_personales',
+  ],
+  contains_minors_data: [
+    'datos_menores', 'contiene_datos_menores',
+    'contiene_datos_personales_de_ninos_ninas_o_adolescentes',
+    'datos_personales_de_ninos_ninas_o_adolescentes',
+  ],
+  personal_data_type: [
+    'tipo_dato_personal', 'tipo_datos_personales', 'clasificacion_dato_personal',
+    'tipos_de_datos_personales',
+  ],
+  personal_data_purpose: [
+    'finalidad_recoleccion', 'finalidad_tratamiento',
+    'finalidad_de_la_recoleccion_de_los_datos_personales',
+  ],
+  has_data_authorization: [
+    'autorizacion_tratamiento', 'autorizacion_titular',
+    'existe_la_autorizacion_para_el_tratamiento_de_los_datos_personales',
+    'autorizacion_para_el_tratamiento_de_los_datos_personales',
+  ],
 };
 
 interface ColumnMap {
