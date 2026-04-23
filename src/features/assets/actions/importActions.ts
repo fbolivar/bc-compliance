@@ -368,8 +368,17 @@ interface ColumnMap {
 }
 
 /**
- * Scans the first ~15 rows looking for the header row.
- * Returns the header row index + a map of DB field → column number.
+ * Minimum number of recognized columns to accept a row as the header row.
+ * Document metadata rows (with just "Código:", "Versión:", "Fecha:") will
+ * map ≤ 1 column and must NOT be confused with the real header row.
+ */
+const MIN_HEADER_MATCHES = 5;
+
+/**
+ * Scans the first 25 rows and picks the row with the MOST recognized
+ * columns as the header row (must have at least MIN_HEADER_MATCHES).
+ * This handles PNNC-style multi-row headers where rows 1-7 are document
+ * metadata + section titles and the real column headers are at row 8.
  */
 function detectHeaders(sheet: ExcelJS.Worksheet): {
   headerRow: number;
@@ -377,27 +386,37 @@ function detectHeaders(sheet: ExcelJS.Worksheet): {
   unmappedHeaders: string[];
   allHeaders: string[];
 } | null {
-  const maxScan = Math.min(15, sheet.rowCount || 15);
+  const maxScan = Math.min(25, sheet.rowCount || 25);
+
+  let best: {
+    headerRow: number;
+    columnMap: ColumnMap;
+    unmappedHeaders: string[];
+    allHeaders: string[];
+    matchCount: number;
+  } | null = null;
 
   for (let r = 1; r <= maxScan; r++) {
     const row = sheet.getRow(r);
     const headers: Array<{ col: number; raw: string; normalized: string }> = [];
+    const seenNormalized = new Set<string>();
 
     row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
       const raw = cellToString(cell.value);
       if (!raw) return;
-      headers.push({ col: colNumber, raw, normalized: normalizeHeader(raw) });
+      // Reject header cells that are document metadata labels (end with ":")
+      if (raw.trim().endsWith(':')) return;
+      const normalized = normalizeHeader(raw);
+      if (!normalized) return;
+      // Skip duplicate cell values caused by merged cells reporting the same value
+      if (seenNormalized.has(normalized)) return;
+      seenNormalized.add(normalized);
+      headers.push({ col: colNumber, raw, normalized });
     });
 
-    // Need at least a code-like header to consider this the header row
-    const hasCode = headers.some((h) => FIELD_ALIASES.code.includes(h.normalized));
-    const hasName = headers.some((h) =>
-      FIELD_ALIASES.name.some((alias) => h.normalized.includes(alias) || alias.includes(h.normalized))
-    );
+    if (headers.length < MIN_HEADER_MATCHES) continue;
 
-    if (!hasCode && !hasName) continue;
-
-    // Build column map
+    // Build column map for this row
     const columnMap: ColumnMap = {};
     const unmapped: string[] = [];
     const allRaw: string[] = [];
@@ -416,12 +435,23 @@ function detectHeaders(sheet: ExcelJS.Worksheet): {
       if (!matched) unmapped.push(h.raw);
     }
 
-    if (columnMap.code) {
-      return { headerRow: r, columnMap, unmappedHeaders: unmapped, allHeaders: allRaw };
+    const matchCount = Object.keys(columnMap).length;
+
+    // Need at least MIN_HEADER_MATCHES recognized columns AND must include 'code'
+    if (matchCount >= MIN_HEADER_MATCHES && columnMap.code) {
+      if (!best || matchCount > best.matchCount) {
+        best = { headerRow: r, columnMap, unmappedHeaders: unmapped, allHeaders: allRaw, matchCount };
+      }
     }
   }
 
-  return null;
+  if (!best) return null;
+  return {
+    headerRow: best.headerRow,
+    columnMap: best.columnMap,
+    unmappedHeaders: best.unmappedHeaders,
+    allHeaders: best.allHeaders,
+  };
 }
 
 /** Helper: read a cell only if the field was mapped. */
