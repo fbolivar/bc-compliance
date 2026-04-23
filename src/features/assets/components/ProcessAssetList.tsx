@@ -121,6 +121,7 @@ export function ProcessAssetList({
         page={page}
         pageSize={pageSize}
         basePath={`/assets/process/${processId}`}
+        viewBasePath="/assets"
         searchPlaceholder="Buscar activos en este proceso..."
         onDelete={async (id) => {
           if (confirm('Eliminar este activo?')) {

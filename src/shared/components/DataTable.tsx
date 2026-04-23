@@ -20,7 +20,12 @@ interface DataTableProps<T> {
   count: number;
   page: number;
   pageSize: number;
+  /** Used for pagination links (stays on the same listing page). */
   basePath: string;
+  /** Optional override for the per-row view link. Defaults to basePath if not provided.
+   *  Use this when the listing lives at a nested path but the detail view is at a
+   *  different top-level path (e.g., listing at /assets/process/X but detail at /assets/[id]). */
+  viewBasePath?: string;
   createPath?: string;
   createLabel?: string;
   searchPlaceholder?: string;
@@ -38,6 +43,7 @@ export function DataTable<T extends Record<string, any>>({
   page,
   pageSize,
   basePath,
+  viewBasePath,
   createPath,
   createLabel = 'Crear nuevo',
   searchPlaceholder = 'Buscar...',
@@ -46,6 +52,7 @@ export function DataTable<T extends Record<string, any>>({
   emptyMessage = 'No hay registros',
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
+  const viewPath = viewBasePath ?? basePath;
   const totalPages = Math.ceil(count / pageSize);
 
   const filteredData = search
@@ -107,7 +114,7 @@ export function DataTable<T extends Record<string, any>>({
               ))}
               <div className="flex items-center justify-end gap-1 pt-1 border-t border-slate-200">
                 <Link
-                  href={`${basePath}/${item[idField]}`}
+                  href={`${viewPath}/${item[idField]}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-sky-500 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -180,7 +187,7 @@ export function DataTable<T extends Record<string, any>>({
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
-                          href={`${basePath}/${item[idField]}`}
+                          href={`${viewPath}/${item[idField]}`}
                           className="p-2 text-slate-400 hover:text-sky-500 rounded-lg hover:bg-slate-100 transition-colors"
                           title="Ver detalle"
                         >
