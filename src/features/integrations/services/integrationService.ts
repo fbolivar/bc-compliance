@@ -6,12 +6,15 @@ export interface IntegrationRow {
   organization_id: string;
   name: string;
   integration_type: string;
-  provider: string | null;
   status: string;
   config: Record<string, unknown> | null;
+  auth_config: Record<string, unknown> | null;
+  endpoint_url: string | null;
   last_sync_at: string | null;
-  sync_frequency: string | null;
-  error_message: string | null;
+  sync_interval_minutes: number | null;
+  error_count: number;
+  last_error: string | null;
+  health_check_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,9 +38,9 @@ export const CONNECTOR_CATALOG = [
   },
   {
     id: 'tenable',
-    name: 'Tenable.io',
+    name: 'Tenable Nessus',
     category: 'Vulnerability Scanner',
-    description: 'Importar resultados de escaneos de vulnerabilidades',
+    description: 'Importar resultados de escaneos de vulnerabilidades. Modo demo disponible arriba.',
     icon: '🔍',
     status: 'available',
   },
@@ -119,9 +122,9 @@ export async function getIntegrations(
   orgId: string,
   params: PaginationParams = {}
 ): Promise<PaginatedResult<IntegrationRow>> {
-  return paginatedQuery<IntegrationRow>('integrations', orgId, params);
+  return paginatedQuery<IntegrationRow>('integration_connectors', orgId, params);
 }
 
 export async function getIntegrationById(id: string): Promise<IntegrationRow | null> {
-  return getById<IntegrationRow>('integrations', id);
+  return getById<IntegrationRow>('integration_connectors', id);
 }
