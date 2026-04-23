@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { DataTable } from '@/shared/components/DataTable';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { AssetForm } from './AssetForm';
+import { AssetImportButton } from './AssetImportButton';
 import { deleteAsset } from '../actions/assetActions';
-import { Plus, FileSpreadsheet, Upload } from 'lucide-react';
+import { Plus, FileSpreadsheet } from 'lucide-react';
 import type { AssetRow } from '../services/assetService';
 
 interface Props {
@@ -86,15 +87,7 @@ export function ProcessAssetList({
           <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
           Exportar Excel
         </a>
-        <button
-          type="button"
-          disabled
-          title="Próximamente: importar Excel al proceso"
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 bg-white border border-slate-200 rounded-lg cursor-not-allowed"
-        >
-          <Upload className="w-4 h-4" />
-          Importar Excel
-        </button>
+        <AssetImportButton fallbackProcessId={processId} fallbackProcessName={processName} />
         <button
           type="button"
           onClick={() => setShowForm((prev) => !prev)}
