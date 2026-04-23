@@ -85,6 +85,35 @@ function normalizeProcessName(s: string): string {
   return normalize(stripped);
 }
 
+/** Spanish stopwords that commonly add/disappear in process names ("Gestión de Tecnologías" vs "Gestión Tecnologias"). */
+const STOPWORDS = new Set([
+  'de', 'del', 'la', 'las', 'el', 'los', 'y', 'o', 'u', 'e', 'a', 'en', 'para', 'por', 'con',
+  'al', 'un', 'una', 'unos', 'unas',
+]);
+
+/** Normalizes a process name into a Set of significant tokens (no stopwords). */
+function processNameTokens(s: string): Set<string> {
+  const normalized = normalizeProcessName(s);
+  return new Set(
+    normalized
+      .split('_')
+      .filter((w) => w.length >= 3 && !STOPWORDS.has(w))
+  );
+}
+
+/**
+ * Tolerant matcher: returns true if seed tokens and input tokens share
+ * at least 70% of their significant tokens (Jaccard-like). Handles
+ * typos like missing "de", missing accents, minor word reorder.
+ */
+function processTokensMatch(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  let shared = 0;
+  for (const tok of a) if (b.has(tok)) shared++;
+  const smaller = Math.min(a.size, b.size);
+  return shared / smaller;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // DAFP value mappings
 // ────────────────────────────────────────────────────────────────────────────
@@ -338,9 +367,33 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
       .select('id, name')
       .eq('organization_id', orgId)
       .not('parent_id', 'is', null);
+
+    // Exact match lookup + fuzzy (token-based) fallback
     const processByName = new Map<string, string>();
+    const processTokens: Array<{ id: string; name: string; tokens: Set<string> }> = [];
     for (const c of (processCats ?? []) as Array<{ id: string; name: string }>) {
       processByName.set(normalizeProcessName(c.name), c.id);
+      processTokens.push({ id: c.id, name: c.name, tokens: processNameTokens(c.name) });
+    }
+
+    function resolveProcess(rawName: string): string | null {
+      if (!rawName) return null;
+      // 1. Exact normalized match
+      const exact = processByName.get(normalizeProcessName(rawName));
+      if (exact) return exact;
+      // 2. Fuzzy match by token overlap (best match ≥ 0.7)
+      const inputTokens = processNameTokens(rawName);
+      if (inputTokens.size === 0) return null;
+      let bestId: string | null = null;
+      let bestScore = 0.7; // threshold
+      for (const p of processTokens) {
+        const score = processTokensMatch(inputTokens, p.tokens);
+        if (score > bestScore) {
+          bestScore = score;
+          bestId = p.id;
+        }
+      }
+      return bestId;
     }
 
     const { data: threats } = await supabase
@@ -487,18 +540,13 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
         continue;
       }
 
-      // Resolve process
+      // Resolve process: exact → fuzzy → fallback
       let categoryId: string | null = null;
-      if (first.processName) {
-        const matched = processByName.get(normalizeProcessName(first.processName));
-        if (matched) {
-          categoryId = matched;
-          processMatched++;
-        } else {
-          categoryId = fallbackProcessId;
-          processFallback++;
-        }
-      } else {
+      const matched = first.processName ? resolveProcess(first.processName) : null;
+      if (matched) {
+        categoryId = matched;
+        processMatched++;
+      } else if (fallbackProcessId) {
         categoryId = fallbackProcessId;
         processFallback++;
       }
@@ -507,7 +555,7 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
         errors.push({
           row: first.rowIdx,
           code: riskCode,
-          message: `Proceso "${first.processName}" no coincide con ningún proceso sembrado y no hay proceso de contexto`,
+          message: `Proceso "${first.processName}" no coincide con ningún proceso sembrado (revisa nombre o sube desde la página de un proceso específico)`,
         });
         continue;
       }
