@@ -8,7 +8,8 @@ export interface RiskRow {
   code: string;
   name: string;
   description: string | null;
-  asset_id: string;
+  asset_id: string | null;
+  category_id: string | null;
   threat_id: string;
   degradation_c: number;
   degradation_i: number;
@@ -31,10 +32,21 @@ export interface RiskRow {
   treatment_justification: string | null;
   is_active: boolean;
   review_date: string | null;
+  // DAFP 2020 fields (migration 00014)
+  causes: string | null;
+  consequences: string | null;
+  risk_type: string | null;
+  activity_frequency: number | null;
+  probability_label: string | null;
+  probability_value: number | null;
+  impact_label: string | null;
+  impact_value: number | null;
+  risk_zone: string | null;
   created_at: string;
   updated_at: string;
   // Joined relations
   assets?: { code: string; name: string; asset_type: string };
+  asset_categories?: { id: string; name: string };
   threat_catalog?: { code: string; name: string; origin: string };
 }
 
