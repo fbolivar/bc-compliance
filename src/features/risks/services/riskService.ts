@@ -88,7 +88,9 @@ export async function getRiskById(id: string): Promise<RiskRow | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from('risk_scenarios')
-    .select('*, assets(code, name, asset_type), threat_catalog(code, name, origin)')
+    .select(
+      '*, assets(code, name, asset_type), threat_catalog(code, name, origin), asset_categories(id, name)'
+    )
     .eq('id', id)
     .single();
   return data as RiskRow | null;
@@ -103,6 +105,13 @@ export interface MitigatingControl {
   effectiveness_rating: string | null;
   effectiveness: number;
   notes: string | null;
+  // DAFP attributes (migration 00014)
+  control_type: string | null;
+  automation_level: string | null;
+  affects_probability_or_impact: string | null;
+  is_documented: boolean | null;
+  has_evidence: boolean | null;
+  control_frequency_dafp: string | null;
 }
 
 export interface AvailableControlOption {
@@ -148,7 +157,11 @@ export async function getMitigatingControlsForRisk(riskId: string): Promise<Miti
       id,
       effectiveness,
       notes,
-      controls(id, code, name, status, effectiveness)
+      controls(
+        id, code, name, status, effectiveness,
+        control_type, automation_level,
+        affects_probability_or_impact, is_documented, has_evidence, control_frequency_dafp
+      )
     `)
     .eq('risk_scenario_id', riskId)
     .order('effectiveness', { ascending: false });
@@ -159,7 +172,12 @@ export async function getMitigatingControlsForRisk(riskId: string): Promise<Miti
     id: string;
     effectiveness: number;
     notes: string | null;
-    controls: { id: string; code: string; name: string; status: string; effectiveness: string | null } | null;
+    controls: {
+      id: string; code: string; name: string; status: string; effectiveness: string | null;
+      control_type: string | null; automation_level: string | null;
+      affects_probability_or_impact: string | null; is_documented: boolean | null;
+      has_evidence: boolean | null; control_frequency_dafp: string | null;
+    } | null;
   };
 
   return (data as unknown as Row[])
@@ -173,6 +191,12 @@ export async function getMitigatingControlsForRisk(riskId: string): Promise<Miti
       effectiveness_rating: row.controls!.effectiveness,
       effectiveness: row.effectiveness,
       notes: row.notes,
+      control_type: row.controls!.control_type,
+      automation_level: row.controls!.automation_level,
+      affects_probability_or_impact: row.controls!.affects_probability_or_impact,
+      is_documented: row.controls!.is_documented,
+      has_evidence: row.controls!.has_evidence,
+      control_frequency_dafp: row.controls!.control_frequency_dafp,
     }));
 }
 
