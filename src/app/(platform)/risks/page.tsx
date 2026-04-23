@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, FileSpreadsheet } from 'lucide-react';
 import { requireOrg } from '@/shared/lib/get-org';
 import { getRisks } from '@/features/risks/services/riskService';
 import { RiskList } from '@/features/risks/components/RiskList';
@@ -35,6 +35,14 @@ export default async function RisksPage({ searchParams }: Props) {
             <ClipboardList className="w-4 h-4 text-indigo-500" />
             Planes de Tratamiento
           </Link>
+          <a
+            href="/api/risks/export"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            title="Descargar Mapa de Riesgos DAFP en Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            Exportar DAFP
+          </a>
           <RiskImportButton />
         </div>
       </div>
