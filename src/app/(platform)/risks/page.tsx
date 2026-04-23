@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ClipboardList } from 'lucide-react';
 import { requireOrg } from '@/shared/lib/get-org';
 import { getRisks } from '@/features/risks/services/riskService';
 import { RiskList } from '@/features/risks/components/RiskList';
@@ -25,7 +27,16 @@ export default async function RisksPage({ searchParams }: Props) {
           title="Gestión de Riesgos"
           description="Análisis y tratamiento de riesgos (DAFP 2020 + MAGERIT 3.0)"
         />
-        <RiskImportButton />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/risks/treatment-plans"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <ClipboardList className="w-4 h-4 text-indigo-500" />
+            Planes de Tratamiento
+          </Link>
+          <RiskImportButton />
+        </div>
       </div>
       <RiskList
         data={result.data}
