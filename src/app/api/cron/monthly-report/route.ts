@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import React from 'react';
-import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
+import { sendMail } from '@/shared/lib/mailer';
 import {
   getMspiPosture,
   getTopCriticalGaps,
@@ -17,6 +17,9 @@ export const maxDuration = 300;
 /**
  * Vercel Cron: genera y envía PDF ejecutivo mensual a admins de cada org.
  * Schedule: 0 8 1 * * (8 AM UTC = 3 AM Bogotá del primer día del mes)
+ *
+ * Usa SMTP genérico (Gmail, Office365, AWS SES, etc.) configurado vía
+ * SMTP_HOST/PORT/USER/PASS/FROM. Ver shared/lib/mailer.ts.
  */
 export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
@@ -24,13 +27,6 @@ export async function GET(req: Request) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'no-reply@bc-security.com';
-  if (!resendKey) {
-    return NextResponse.json({ error: 'RESEND_API_KEY no configurado' }, { status: 500 });
-  }
-
-  const resend = new Resend(resendKey);
   const supabase = await createClient();
 
   try {
@@ -68,13 +64,21 @@ export async function GET(req: Request) {
 
         const filename = `bc-trust-${org.name.replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 7)}.pdf`;
 
-        await resend.emails.send({
-          from: fromEmail,
+        const send = await sendMail({
           to: members,
           subject: `BC Trust · Informe Ejecutivo SGSI ${reportMonth} · ${org.name}`,
           html: emailBody(org.name, posture.score, posture.levelLabel, reportMonth),
-          attachments: [{ filename, content: buffer.toString('base64') }],
+          attachments: [{
+            filename,
+            content: buffer,
+            contentType: 'application/pdf',
+          }],
         });
+
+        if (!send.ok) {
+          results.push({ org: org.name, sent: 0, error: send.error });
+          continue;
+        }
 
         results.push({ org: org.name, sent: members.length });
       } catch (err) {
@@ -120,14 +124,6 @@ async function getOrgRecipients(
   orgId: string,
   supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<string[]> {
-  const { data } = await supabase
-    .from('organization_members')
-    .select('user_id')
-    .eq('organization_id', orgId)
-    .eq('is_active', true);
-  const userIds = (data ?? []).map((m) => m.user_id);
-  if (userIds.length === 0) return [];
-  // Get emails from auth.users via SQL (service role context required, but supabase server client uses auth)
   const { data: users } = await supabase.rpc('get_user_emails_in_org', { p_org_id: orgId });
   if (users && Array.isArray(users)) {
     return (users as Array<{ email: string }>).map((u) => u.email).filter(Boolean);
