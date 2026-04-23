@@ -59,13 +59,18 @@ export function DependencyList({ processId, processName, dependencies }: Props) 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [kind, setKind] = useState('Oficina');
+  const [customKind, setCustomKind] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
 
+  const isCustom = kind === '__other__';
+  const effectiveKind = isCustom ? customKind.trim() : kind;
+
   function resetForm() {
     setName('');
     setKind('Oficina');
+    setCustomKind('');
     setDescription('');
     setError('');
   }
@@ -73,10 +78,16 @@ export function DependencyList({ processId, processName, dependencies }: Props) 
   function onCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+
+    if (!effectiveKind) {
+      setError('Escribe el tipo de dependencia');
+      return;
+    }
+
     const fd = new FormData();
     fd.set('process_id', processId);
     fd.set('name', name.trim());
-    fd.set('kind', kind);
+    fd.set('kind', effectiveKind);
     if (description.trim()) fd.set('description', description.trim());
 
     startTransition(async () => {
@@ -150,22 +161,29 @@ export function DependencyList({ processId, processName, dependencies }: Props) 
             </div>
             <div>
               <label htmlFor="dep-kind" className="block text-xs font-medium text-slate-600 mb-1">
-                Tipo
+                Tipo <span className="text-rose-500">*</span>
               </label>
-              <input
+              <select
                 id="dep-kind"
-                type="text"
-                list="dep-kind-suggestions"
                 value={kind}
                 onChange={(e) => setKind(e.target.value)}
-                placeholder="Oficina, Grupo, Área…"
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-100"
-              />
-              <datalist id="dep-kind-suggestions">
+              >
                 {KIND_SUGGESTIONS.map((k) => (
-                  <option key={k} value={k} />
+                  <option key={k} value={k}>{k}</option>
                 ))}
-              </datalist>
+                <option value="__other__">Otro (escribir…)</option>
+              </select>
+              {isCustom && (
+                <input
+                  type="text"
+                  autoFocus
+                  value={customKind}
+                  onChange={(e) => setCustomKind(e.target.value)}
+                  placeholder="Escribe el tipo (ej: Delegación)"
+                  className="mt-2 w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-100"
+                />
+              )}
             </div>
             <div className="md:col-span-3">
               <label htmlFor="dep-description" className="block text-xs font-medium text-slate-600 mb-1">
