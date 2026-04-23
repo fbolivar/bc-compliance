@@ -2,6 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { getIntegrations, CONNECTOR_CATALOG } from '@/features/integrations/services/integrationService';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { StatusBadge } from '@/shared/components/StatusBadge';
+import { NessusMockButton } from '@/features/integrations/components/NessusMockButton';
 
 export default async function IntegrationsPage() {
   const { orgId } = await requireOrg();
@@ -22,6 +23,8 @@ export default async function IntegrationsPage() {
         title="Hub de Integraciones"
         description="Conectores con SIEM, escáneres de vulnerabilidades, EDR y herramientas de ITSM"
       />
+
+      <NessusMockButton />
 
       {/* Active integrations summary */}
       {activeIntegrations.length > 0 && (

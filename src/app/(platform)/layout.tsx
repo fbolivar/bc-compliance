@@ -3,6 +3,7 @@ import { getCurrentOrg } from '@/shared/lib/get-org';
 import { PlatformSidebar } from '@/features/dashboard/components/PlatformSidebar';
 import { MobileSidebar } from '@/features/dashboard/components/MobileSidebar';
 import { OrgSwitcher } from '@/features/dashboard/components/OrgSwitcher';
+import { CommandPalette } from '@/shared/components/CommandPalette';
 
 export const metadata = {
   title: 'BC Trust - GRC & SecOps Platform',
@@ -26,6 +27,7 @@ export default async function PlatformLayout({
 
   return (
     <div className="flex h-screen bg-slate-50">
+      <CommandPalette />
       <PlatformSidebar isPlatformOwner={isPlatformOwner} userEmail={user.email || ''} userName={userName || ''} />
       <main className="lg:pl-64 flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 flex items-center h-12 sm:h-14 px-3 sm:px-6 bg-white/95 backdrop-blur-md border-b border-slate-200 gap-3">

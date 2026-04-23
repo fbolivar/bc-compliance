@@ -1,4 +1,5 @@
-import { Compass, Wrench, ClipboardCheck, Repeat } from 'lucide-react';
+import Link from 'next/link';
+import { Compass, Wrench, ClipboardCheck, Repeat, ArrowRight } from 'lucide-react';
 
 interface Props {
   phva: { planear: number; hacer: number; verificar: number; actuar: number };
@@ -61,9 +62,10 @@ export function PhvaCycle({ phva }: Props) {
           const value = phva[phase.key];
           const colors = COLOR_CLASSES[phase.color];
           return (
-            <div
+            <Link
               key={phase.key}
-              className={`rounded-xl border ${colors.border} ${colors.bg} p-4 flex flex-col gap-3`}
+              href={`/dashboard/phva/${phase.key}`}
+              className={`rounded-xl border ${colors.border} ${colors.bg} p-4 flex flex-col gap-3 hover:shadow-md hover:scale-[1.01] transition-all group cursor-pointer`}
             >
               <div className="flex items-center justify-between">
                 <div className={`w-9 h-9 rounded-lg ${colors.iconBg} flex items-center justify-center`}>
@@ -91,7 +93,11 @@ export function PhvaCycle({ phva }: Props) {
                   />
                 </div>
               </div>
-            </div>
+
+              <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Ver detalle <ArrowRight className="w-3 h-3" />
+              </div>
+            </Link>
           );
         })}
       </div>

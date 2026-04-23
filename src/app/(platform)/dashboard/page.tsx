@@ -58,14 +58,27 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 pb-10 max-w-[1600px] mx-auto">
       {/* Header narrativo */}
-      <header className="flex flex-col gap-1">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{getSpanishDate()}</p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
-          {getGreeting()}, {userName ?? 'Usuario'}
-        </h1>
-        <p className="text-sm text-slate-500">
-          Tablero ejecutivo del SGSI · <span className="font-medium">{orgName}</span> · Modelo de Seguridad y Privacidad MinTIC
-        </p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{getSpanishDate()}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
+            {getGreeting()}, {userName ?? 'Usuario'}
+          </h1>
+          <p className="text-sm text-slate-500">
+            Tablero ejecutivo del SGSI · <span className="font-medium">{orgName}</span> · Modelo de Seguridad y Privacidad MinTIC
+          </p>
+        </div>
+        <a
+          href="/dashboard/presentation"
+          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition-colors"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+          Modo presentación
+        </a>
       </header>
 
       {/* 1. Postura MSPI hero */}
