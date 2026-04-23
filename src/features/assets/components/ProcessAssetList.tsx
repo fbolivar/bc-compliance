@@ -5,7 +5,7 @@ import { DataTable } from '@/shared/components/DataTable';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { AssetForm } from './AssetForm';
 import { deleteAsset } from '../actions/assetActions';
-import { Plus } from 'lucide-react';
+import { Plus, FileSpreadsheet, Upload } from 'lucide-react';
 import type { AssetRow } from '../services/assetService';
 
 interface Props {
@@ -13,25 +13,18 @@ interface Props {
   count: number;
   page: number;
   pageSize: number;
-  dependencyId: string;
-  dependencyName: string;
-  dependencyKind: string;
+  processId: string;
   processName: string;
-  /** Process category id. Used as the asset's category_id so the tree remains consistent. */
-  categoryId: string;
   autoOpenForm?: boolean;
 }
 
-export function DependencyAssetList({
+export function ProcessAssetList({
   data,
   count,
   page,
   pageSize,
-  dependencyId,
-  dependencyName,
-  dependencyKind,
+  processId,
   processName,
-  categoryId,
   autoOpenForm,
 }: Props) {
   const [showForm, setShowForm] = useState(Boolean(autoOpenForm));
@@ -83,11 +76,25 @@ export function DependencyAssetList({
     },
   ];
 
-  const contextLabel = `${processName} · ${dependencyKind}: ${dependencyName}`;
-
   return (
     <>
-      <div className="mb-4 flex items-center justify-end">
+      <div className="mb-4 flex items-center justify-end gap-2 flex-wrap">
+        <a
+          href={`/api/assets/export?process_id=${processId}`}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+          Exportar Excel
+        </a>
+        <button
+          type="button"
+          disabled
+          title="Próximamente: importar Excel al proceso"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 bg-white border border-slate-200 rounded-lg cursor-not-allowed"
+        >
+          <Upload className="w-4 h-4" />
+          Importar Excel
+        </button>
         <button
           type="button"
           onClick={() => setShowForm((prev) => !prev)}
@@ -98,7 +105,7 @@ export function DependencyAssetList({
           ) : (
             <>
               <Plus className="w-4 h-4" />
-              Nuevo Activo en esta dependencia
+              Nuevo Activo
             </>
           )}
         </button>
@@ -108,9 +115,8 @@ export function DependencyAssetList({
         <div className="mb-6">
           <AssetForm
             onClose={() => setShowForm(false)}
-            defaultCategoryId={categoryId}
-            defaultDependencyIds={[dependencyId]}
-            contextLabel={contextLabel}
+            defaultCategoryId={processId}
+            contextLabel={processName}
           />
         </div>
       )}
@@ -121,15 +127,15 @@ export function DependencyAssetList({
         count={count}
         page={page}
         pageSize={pageSize}
-        basePath={`/assets/dependency/${dependencyId}`}
-        searchPlaceholder="Buscar activos en esta dependencia..."
+        basePath={`/assets/process/${processId}`}
+        searchPlaceholder="Buscar activos en este proceso..."
         onDelete={async (id) => {
           if (confirm('Eliminar este activo?')) {
             await deleteAsset(id);
             window.location.reload();
           }
         }}
-        emptyMessage="No hay activos en esta dependencia. Crea el primero."
+        emptyMessage="No hay activos en este proceso. Crea el primero o importa un Excel."
       />
     </>
   );

@@ -39,46 +39,6 @@ function buildRecord(formData: FormData, fields: string[]): Record<string, unkno
   return record;
 }
 
-function getDependencyIds(formData: FormData): string[] {
-  const ids = formData.getAll('dependency_ids');
-  return ids
-    .map((v) => (typeof v === 'string' ? v.trim() : ''))
-    .filter((v) => v.length > 0);
-}
-
-async function syncDependencyLinks(
-  assetId: string,
-  orgId: string,
-  dependencyIds: string[],
-  replace: boolean,
-): Promise<void> {
-  if (dependencyIds.length === 0 && !replace) return;
-
-  const supabase = await createClient();
-
-  if (replace) {
-    await supabase
-      .from('dependency_assets')
-      .delete()
-      .eq('organization_id', orgId)
-      .eq('asset_id', assetId);
-  }
-
-  if (dependencyIds.length === 0) return;
-
-  const rows = dependencyIds.map((dependency_id) => ({
-    dependency_id,
-    asset_id: assetId,
-    organization_id: orgId,
-  }));
-
-  await supabase.from('dependency_assets').upsert(rows, { onConflict: 'dependency_id,asset_id' });
-}
-
-/**
- * Creates an asset and links it to the provided dependencies (multi-link).
- * FormData convention: send one `dependency_ids` form field per dependency.
- */
 export async function createAsset(formData: FormData): Promise<ActionResult> {
   try {
     const { user, orgId } = await getCurrentOrg();
@@ -99,16 +59,11 @@ export async function createAsset(formData: FormData): Promise<ActionResult> {
 
     if (error) return { error: error.message };
 
-    const depIds = getDependencyIds(formData);
-    if (depIds.length > 0) {
-      await syncDependencyLinks(data.id, orgId, depIds, false);
-    }
-
     await writeAuditLog({
       action: 'create',
       tableName: 'assets',
       recordId: data.id,
-      description: `Creado activo "${data.name}" (${data.code})${depIds.length > 0 ? ` vinculado a ${depIds.length} dependencia(s)` : ''}`,
+      description: `Creado activo "${data.name}" (${data.code})`,
       newValues: record,
     });
 
@@ -121,10 +76,6 @@ export async function createAsset(formData: FormData): Promise<ActionResult> {
   }
 }
 
-/**
- * Updates an asset. If `dependency_ids` is present in the FormData, the pivot
- * is REPLACED with the new set (even if empty).
- */
 export async function updateAsset(id: string, formData: FormData): Promise<ActionResult> {
   try {
     const { user, orgId } = await getCurrentOrg();
@@ -142,13 +93,6 @@ export async function updateAsset(id: string, formData: FormData): Promise<Actio
       .eq('organization_id', orgId);
 
     if (error) return { error: error.message };
-
-    // If the form explicitly included dependency_ids, replace the pivot set.
-    const hasDepField = formData.has('dependency_ids');
-    if (hasDepField) {
-      const depIds = getDependencyIds(formData);
-      await syncDependencyLinks(id, orgId, depIds, true);
-    }
 
     await writeAuditLog({
       action: 'update',

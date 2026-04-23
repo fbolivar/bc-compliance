@@ -1,31 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentOrg } from '@/shared/lib/get-org';
 import ExcelJS from 'exceljs';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { user, orgId } = await getCurrentOrg();
+  if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+  if (!orgId) return NextResponse.json({ error: 'Sin organizacion' }, { status: 403 });
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
-  }
-
-  // Get user's org
-  const { data: membership } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .limit(1)
-    .single();
-
-  if (!membership) {
-    return NextResponse.json({ error: 'Sin organizacion' }, { status: 403 });
-  }
-
-  const orgId = membership.organization_id;
+  const url = new URL(req.url);
+  const processId = url.searchParams.get('process_id');
 
   // Get org info
   const { data: org } = await supabase
@@ -34,13 +19,29 @@ export async function GET() {
     .eq('id', orgId)
     .single();
 
-  // Get all assets
-  const { data: assets } = await supabase
+  // If scoped to a process, fetch its name for the subtitle
+  let processName: string | null = null;
+  if (processId) {
+    const { data: cat } = await supabase
+      .from('asset_categories')
+      .select('name')
+      .eq('organization_id', orgId)
+      .eq('id', processId)
+      .single();
+    processName = cat?.name ?? null;
+  }
+
+  // Get assets (optionally scoped to the process via category_id)
+  let query = supabase
     .from('assets')
     .select('*')
-    .eq('organization_id', orgId)
-    .order('code', { ascending: true });
+    .eq('organization_id', orgId);
 
+  if (processId) {
+    query = query.eq('category_id', processId);
+  }
+
+  const { data: assets } = await query.order('code', { ascending: true });
   const assetList = assets || [];
 
   // Create workbook
@@ -70,7 +71,9 @@ export async function GET() {
   // =========================================
   sheet.mergeCells('A1:AO1');
   const titleCell = sheet.getCell('A1');
-  titleCell.value = 'FORMATO INVENTARIO DE ACTIVOS DE INFORMACION';
+  titleCell.value = processName
+    ? `INVENTARIO DE ACTIVOS · ${processName.toUpperCase()}`
+    : 'FORMATO INVENTARIO DE ACTIVOS DE INFORMACION';
   titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: headerBg } };
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
   sheet.getRow(1).height = 35;
@@ -338,7 +341,7 @@ export async function GET() {
     headers: {
       'Content-Type':
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="inventario-activos-${new Date().toISOString().split('T')[0]}.xlsx"`,
+      'Content-Disposition': `attachment; filename="${processName ? `activos-${processName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}` : 'inventario-activos'}-${new Date().toISOString().split('T')[0]}.xlsx"`,
     },
   });
 }

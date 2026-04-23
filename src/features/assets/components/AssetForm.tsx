@@ -77,15 +77,9 @@ interface AssetFormProps {
   /**
    * Pre-selected process category (asset_categories.id). Injected as a hidden input
    * so the asset is immediately linked to the chosen process category.
-   * (Legacy: use defaultDependencyIds when available — a dependency lives under a process.)
    */
   defaultCategoryId?: string;
-  /**
-   * Pre-selected dependency IDs (process_dependencies.id). Each one becomes a row
-   * in the dependency_assets pivot when the asset is saved.
-   */
-  defaultDependencyIds?: string[];
-  /** Optional label to show context (e.g., proceso + dependencia) at the top of the form. */
+  /** Optional label to show context (e.g., process name) at the top of the form. */
   contextLabel?: string;
 }
 
@@ -130,7 +124,6 @@ function Section({ title, subtitle, number, isOpen, onToggle, children }: Sectio
 export function AssetForm({
   onClose,
   defaultCategoryId,
-  defaultDependencyIds,
   contextLabel,
 }: AssetFormProps) {
   const [loading, setLoading] = useState(false);
@@ -170,16 +163,6 @@ export function AssetForm({
 
     if (defaultCategoryId) {
       formData.set('category_id', defaultCategoryId);
-    }
-
-    // Append dependency IDs (multi-link pivot). Any hidden inputs named
-    // `dependency_ids` already present in the form are kept; here we also
-    // merge the prop-based defaults.
-    if (defaultDependencyIds && defaultDependencyIds.length > 0) {
-      const existing = new Set(formData.getAll('dependency_ids').map((v) => String(v)));
-      for (const depId of defaultDependencyIds) {
-        if (!existing.has(depId)) formData.append('dependency_ids', depId);
-      }
     }
 
     const result = await createAsset(formData);
