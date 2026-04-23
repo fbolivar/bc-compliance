@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { SoaTable } from '@/features/compliance/components/SoaTable';
 import { getControlMappingsByRequirements } from '@/features/compliance/services/complianceService';
-import { CheckCircle2, CircleDashed, AlertCircle, MinusCircle, BarChart3 } from 'lucide-react';
+import { CheckCircle2, CircleDashed, AlertCircle, MinusCircle, BarChart3, FileSpreadsheet } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,10 +57,32 @@ export default async function SoaPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Declaracion de Aplicabilidad (SOA)"
-        description="Statement of Applicability — estado de implementacion de todos los requisitos normativos"
-      />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title="Declaracion de Aplicabilidad (SOA)"
+          description="Statement of Applicability — estado de implementacion de todos los requisitos normativos"
+        />
+        <div className="flex items-center gap-2">
+          {frameworks.map((fw) => (
+            <a
+              key={fw.id}
+              href={`/api/compliance/soa/export?framework_id=${fw.id}`}
+              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              title={`Descargar SOA de ${fw.name}`}
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              {fw.name}
+            </a>
+          )).slice(0, 2)}
+          <a
+            href="/api/compliance/soa/export"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            Exportar SOA (todos)
+          </a>
+        </div>
+      </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
