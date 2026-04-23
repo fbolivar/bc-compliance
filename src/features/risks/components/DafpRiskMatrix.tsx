@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 interface Props {
   probabilityValue: number | null;
   impactValue: number | null;
@@ -73,8 +75,8 @@ export function DafpRiskMatrix({ probabilityValue, impactValue, zone }: Props) {
 
             {/* 5 rows, top to bottom: Muy Alta → Muy Baja */}
             {probReversed.map((pVal, rowIdx) => (
-              <>
-                <div key={`label-${rowIdx}`} className="text-right text-[11px] text-slate-600 font-medium pr-2 py-2">
+              <Fragment key={`row-${rowIdx}`}>
+                <div className="text-right text-[11px] text-slate-600 font-medium pr-2 py-2">
                   {probLabelsReversed[rowIdx]}
                 </div>
                 {IMP_VALUES.map((iVal) => {
@@ -97,7 +99,7 @@ export function DafpRiskMatrix({ probabilityValue, impactValue, zone }: Props) {
                     </div>
                   );
                 })}
-              </>
+              </Fragment>
             ))}
 
             {/* Bottom X-axis title */}
