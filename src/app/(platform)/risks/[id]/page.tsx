@@ -19,7 +19,7 @@ import { RiskVulnerabilitiesPanel } from '@/features/risks/components/RiskVulner
 import { RiskTreatmentPlansPanel } from '@/features/risks/components/RiskTreatmentPlansPanel';
 import { DafpControlsPanel } from '@/features/risks/components/DafpControlsPanel';
 import { DafpRiskMatrix } from '@/features/risks/components/DafpRiskMatrix';
-import { ArrowLeft, Target, AlertTriangle, Activity } from 'lucide-react';
+import { ArrowLeft, Target, AlertTriangle, Activity, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -170,7 +170,14 @@ export default async function RiskDetailPage({ params }: Props) {
               description={risk.description ?? ''}
             />
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-3">
+            <Link
+              href={`/risks/${risk.id}/edit`}
+              className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Pencil className="w-4 h-4" />
+              Editar
+            </Link>
             {zone && (
               <div className="text-right">
                 <p className="text-[11px] uppercase tracking-wider text-slate-500">Zona DAFP</p>
