@@ -4,6 +4,7 @@ import type { PaginationParams, PaginatedResult } from '@/shared/lib/service-hel
 export interface AssetRow {
   id: string;
   organization_id: string;
+  category_id: string | null;
   code: string;
   name: string;
   description: string | null;
@@ -37,14 +38,22 @@ export interface AssetRow {
 }
 
 const ASSET_SELECT =
-  'id, code, name, description, asset_type, status, criticality, process_type, process_name, sede, criticality_cid, info_owner, confidentiality, integrity, availability, department, location, ip_address, hostname, val_confidentiality, val_integrity, val_availability, val_authenticity, val_traceability, is_critical, data_classification, pii_data, financial_data, tags, created_at, updated_at';
+  'id, category_id, code, name, description, asset_type, status, criticality, process_type, process_name, sede, criticality_cid, info_owner, confidentiality, integrity, availability, department, location, ip_address, hostname, val_confidentiality, val_integrity, val_availability, val_authenticity, val_traceability, is_critical, data_classification, pii_data, financial_data, tags, created_at, updated_at';
 
 export async function getAssets(
   orgId: string,
   params: PaginationParams = {},
-  filters?: { asset_type?: string; status?: string; criticality?: string }
+  filters?: { asset_type?: string; status?: string; criticality?: string; category_id?: string }
 ): Promise<PaginatedResult<AssetRow>> {
   return paginatedQuery<AssetRow>('assets', orgId, params, ASSET_SELECT, filters);
+}
+
+export async function getAssetsByProcess(
+  orgId: string,
+  categoryId: string,
+  params: PaginationParams = {}
+): Promise<PaginatedResult<AssetRow>> {
+  return paginatedQuery<AssetRow>('assets', orgId, params, ASSET_SELECT, { category_id: categoryId });
 }
 
 export async function getAssetById(id: string): Promise<AssetRow | null> {

@@ -74,6 +74,13 @@ const supports = [
 
 interface AssetFormProps {
   onClose: () => void;
+  /**
+   * Pre-selected process category (asset_categories.id). Injected as a hidden input
+   * so the asset is immediately linked to the chosen process.
+   */
+  defaultCategoryId?: string;
+  /** Optional label to show context (e.g., process name) at the top of the form. */
+  contextLabel?: string;
 }
 
 interface SectionProps {
@@ -92,7 +99,7 @@ function Section({ title, subtitle, number, isOpen, onToggle, children }: Sectio
         type="button"
         onClick={onToggle}
         className="w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors"
-        aria-expanded={isOpen ? 'true' : 'false'}
+        aria-expanded={isOpen}
       >
         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-50 text-sky-600 text-sm font-bold shrink-0">
           {number}
@@ -114,7 +121,7 @@ function Section({ title, subtitle, number, isOpen, onToggle, children }: Sectio
   );
 }
 
-export function AssetForm({ onClose }: AssetFormProps) {
+export function AssetForm({ onClose, defaultCategoryId, contextLabel }: AssetFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -150,8 +157,13 @@ export function AssetForm({ onClose }: AssetFormProps) {
     formData.set('integrity_value', String(integrity));
     formData.set('availability_value', String(availability));
 
+    if (defaultCategoryId) {
+      formData.set('category_id', defaultCategoryId);
+    }
+
     const fields = [
-      'name', 'description', 'asset_type', 'process_type', 'process_name', 'sede',
+      'name', 'description', 'asset_type', 'category_id',
+      'process_type', 'process_name', 'sede',
       'asset_id_custom', 'trd_serie', 'info_generation_date', 'entry_date', 'exit_date',
       'language', 'format', 'support', 'consultation_place', 'info_owner', 'info_custodian',
       'update_frequency', 'icc_social_impact', 'icc_economic_impact', 'icc_environmental_impact',
@@ -189,6 +201,15 @@ export function AssetForm({ onClose }: AssetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {contextLabel && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-sky-50 border border-sky-200 text-sm text-sky-700">
+          <span className="text-xs font-semibold uppercase tracking-wider text-sky-500">Proceso:</span>
+          <span className="font-medium">{contextLabel}</span>
+        </div>
+      )}
+      {defaultCategoryId && (
+        <input type="hidden" name="category_id" value={defaultCategoryId} />
+      )}
       {error && (
         <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-sm text-rose-600" role="alert">
           {error}
