@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import ExcelJS from 'exceljs';
 import { createClient } from '@/lib/supabase/server';
-import { getUserOrgId } from '@/shared/lib/actions-helpers';
+import { getCurrentOrg } from '@/shared/lib/get-org';
 import { writeAuditLog } from '@/shared/lib/audit';
 
 export interface ImportResult {
@@ -502,12 +502,13 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
       return { ok: false, error: 'El archivo excede 10MB' };
     }
 
-    const orgId = await getUserOrgId();
+    // Use getCurrentOrg() to respect the active_org_id cookie set by the OrgSwitcher.
+    // (getUserOrgId() always returns the first membership, ignoring the user's selection.)
+    const { user, orgId } = await getCurrentOrg();
+    if (!user) return { ok: false, error: 'No autenticado' };
     if (!orgId) return { ok: false, error: 'Sin organización activa' };
 
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { ok: false, error: 'No autenticado' };
 
     const arrayBuffer = await file.arrayBuffer();
     const workbook = new ExcelJS.Workbook();
