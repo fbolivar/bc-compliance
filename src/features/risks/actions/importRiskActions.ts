@@ -562,12 +562,18 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
 
       // Resolve threat (create if missing)
       let threatId: string | null = null;
+      let threatError: string | null = null;
       if (first.threat) {
         const threatLookupKey = normalize(first.threat);
         let threat = threatByName.get(threatLookupKey);
         if (!threat) {
-          // Create a new threat in catalog (org-scoped to keep MAGERIT base catalog clean)
-          const threatCode = `T-DAFP-${normalize(first.threat).slice(0, 12).toUpperCase()}`;
+          // Create a new threat in catalog (org-scoped to keep MAGERIT base catalog clean).
+          // Ensure code uniqueness by appending a short hash of the full name.
+          const base = normalize(first.threat).slice(0, 14).toUpperCase();
+          const shortHash = Math.abs(
+            Array.from(first.threat).reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0)
+          ).toString(36).slice(0, 4).toUpperCase();
+          const threatCode = `T-DAFP-${base}-${shortHash}`;
           const { data: newThreat, error: threatErr } = await supabase
             .from('threat_catalog')
             .insert({
@@ -583,6 +589,8 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
             threat = newThreat as ThreatRow;
             threatByName.set(threatLookupKey, threat);
             threatCreated++;
+          } else if (threatErr) {
+            threatError = threatErr.message;
           }
         }
         threatId = threat?.id ?? null;
@@ -592,7 +600,9 @@ export async function importRiskMatrix(formData: FormData): Promise<RiskImportRe
         errors.push({
           row: first.rowIdx,
           code: riskCode,
-          message: `No se pudo resolver la amenaza "${first.threat}"`,
+          message: threatError
+            ? `No se pudo crear la amenaza "${first.threat}": ${threatError}`
+            : `No se pudo resolver la amenaza "${first.threat}"`,
         });
         continue;
       }
