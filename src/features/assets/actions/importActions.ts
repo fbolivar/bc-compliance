@@ -28,37 +28,62 @@ export interface ImportResult {
 // Cell parsers
 // ────────────────────────────────────────────────────────────────────────────
 
-function cellToString(value: ExcelJS.CellValue): string {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'string') return value.trim();
-  if (typeof value === 'number') return String(value);
-  if (typeof value === 'boolean') return value ? 'true' : 'false';
-  if (value instanceof Date) return value.toISOString();
-  if (typeof value === 'object') {
-    if ('text' in value && typeof value.text === 'string') return value.text.trim();
-    if ('result' in value && value.result !== undefined) return cellToString(value.result as ExcelJS.CellValue);
-    if ('richText' in value && Array.isArray(value.richText)) {
-      return value.richText.map((r) => r.text).join('').trim();
+/**
+ * Extracts the best-effort string from an ExcelJS Cell.
+ *
+ * Handles:
+ *  - plain strings, numbers, booleans, dates
+ *  - formula cells with cached result: { formula, result }
+ *  - shared formulas without cached result: { sharedFormula } → falls back to cell.text
+ *  - rich text: { richText: [...] }
+ *  - hyperlinks: { hyperlink, text }
+ *  - any other unrecognized object → cell.text (ExcelJS computed display value)
+ */
+function cellText(cell: ExcelJS.Cell | undefined): string {
+  if (!cell) return '';
+  const v = cell.value;
+
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (v instanceof Date) return v.toISOString();
+
+  if (typeof v === 'object') {
+    // Formula with cached result
+    if ('result' in v && v.result !== undefined && v.result !== null) {
+      const r = v.result as unknown;
+      if (r instanceof Date) return r.toISOString();
+      if (typeof r === 'string' || typeof r === 'number' || typeof r === 'boolean') return String(r).trim();
+    }
+    // Rich text
+    if ('richText' in v && Array.isArray((v as { richText?: unknown }).richText)) {
+      return (v as { richText: Array<{ text: string }> }).richText.map((r) => r.text).join('').trim();
+    }
+    // Hyperlink
+    if ('text' in v && typeof (v as { text?: unknown }).text === 'string') {
+      return ((v as { text: string }).text).trim();
     }
   }
-  return String(value).trim();
+
+  // Fallback: ExcelJS-computed display text (handles shared formulas, formatted numbers/dates, etc.)
+  try {
+    const t = cell.text;
+    return typeof t === 'string' ? t.trim() : '';
+  } catch {
+    return '';
+  }
 }
 
-function parseSiNo(value: ExcelJS.CellValue): boolean | null {
-  const s = cellToString(value).toUpperCase();
-  if (!s || s === '-' || s === 'N/A' || s === 'NA') return null;
-  if (s === 'SI' || s === 'SÍ' || s === 'YES' || s === 'TRUE' || s === '1' || s === 'X') return true;
-  if (s === 'NO' || s === 'FALSE' || s === '0') return false;
+function parseSiNo(s: string): boolean | null {
+  const u = s.toUpperCase().trim();
+  if (!u || u === '-' || u === 'N/A' || u === 'NA') return null;
+  if (u === 'SI' || u === 'SÍ' || u === 'YES' || u === 'TRUE' || u === '1' || u === 'X') return true;
+  if (u === 'NO' || u === 'FALSE' || u === '0') return false;
   return null;
 }
 
-function parseDate(value: ExcelJS.CellValue): string | null {
-  if (value === null || value === undefined || value === '') return null;
-  if (value instanceof Date) {
-    if (isNaN(value.getTime())) return null;
-    return value.toISOString().slice(0, 10);
-  }
-  const s = cellToString(value);
+function parseDate(s: string): string | null {
   if (!s || s === '-') return null;
   // Try common Colombian date formats: DD/MM/YYYY, DD-MM-YYYY
   const ddmm = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})$/);
@@ -74,8 +99,7 @@ function parseDate(value: ExcelJS.CellValue): string | null {
   return null;
 }
 
-function parseInt15(value: ExcelJS.CellValue, fallback = 1): number {
-  const s = cellToString(value);
+function parseInt15(s: string, fallback = 1): number {
   const n = parseInt(s, 10);
   if (isNaN(n) || n < 1) return fallback;
   if (n > 5) return 5;
@@ -83,17 +107,16 @@ function parseInt15(value: ExcelJS.CellValue, fallback = 1): number {
 }
 
 /**
- * Maps a free-text cell value to an enum value via a normalization map.
+ * Maps a free-text value to an enum value via a normalization map.
  * Uses the same normalization as headers so map keys can be reused for both.
  */
 function parseEnum(
-  value: ExcelJS.CellValue,
+  s: string,
   map: Record<string, string>,
   fallback: string | null = null,
 ): string | null {
-  const text = cellToString(value);
-  if (!text || text === '-') return fallback;
-  const raw = normalizeHeader(text);
+  if (!s || s === '-') return fallback;
+  const raw = normalizeHeader(s);
   if (!raw) return fallback;
   if (raw in map) return map[raw];
   const values = Object.values(map);
@@ -402,7 +425,7 @@ function detectHeaders(sheet: ExcelJS.Worksheet): {
     const seenNormalized = new Set<string>();
 
     row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-      const raw = cellToString(cell.value);
+      const raw = cellText(cell);
       if (!raw) return;
       // Reject header cells that are document metadata labels (end with ":")
       if (raw.trim().endsWith(':')) return;
@@ -455,11 +478,11 @@ function detectHeaders(sheet: ExcelJS.Worksheet): {
   };
 }
 
-/** Helper: read a cell only if the field was mapped. */
-function readCell(row: ExcelJS.Row, columnMap: ColumnMap, field: string): ExcelJS.CellValue | undefined {
+/** Helper: read the text of a cell only if the field was mapped. */
+function readCell(row: ExcelJS.Row, columnMap: ColumnMap, field: string): string {
   const col = columnMap[field];
-  if (!col) return undefined;
-  return row.getCell(col).value;
+  if (!col) return '';
+  return cellText(row.getCell(col));
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -497,7 +520,7 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
     if (!detected) {
       const firstRowSample: string[] = [];
       sheet.getRow(1).eachCell({ includeEmpty: false }, (c) => {
-        const v = cellToString(c.value);
+        const v = cellText(c);
         if (v) firstRowSample.push(v.slice(0, 30));
       });
       return {
@@ -506,7 +529,7 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
         diagnostic: {
           sheetName: sheet.name,
           headerRow: 0,
-          rowsScanned: Math.min(15, sheet.rowCount || 15),
+          rowsScanned: Math.min(25, sheet.rowCount || 25),
           columnsMapped: 0,
           unmappedHeaders: [],
           sampleHeaders: firstRowSample.slice(0, 10),
@@ -527,8 +550,8 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
       const row = sheet.getRow(r);
       rowsScanned++;
 
-      const code = cellToString(readCell(row, columnMap, 'code'));
-      const name = cellToString(readCell(row, columnMap, 'name'));
+      const code = readCell(row, columnMap, 'code');
+      const name = readCell(row, columnMap, 'name');
 
       // Skip totally blank rows
       if (!code && !name) continue;
@@ -547,21 +570,21 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
         code,
         name,
         process_type: parseEnum(readCell(row, columnMap, 'process_type'), PROCESS_TYPE_MAP),
-        process_name: cellToString(readCell(row, columnMap, 'process_name')) || null,
-        sede: cellToString(readCell(row, columnMap, 'sede')) || null,
-        asset_id_custom: cellToString(readCell(row, columnMap, 'asset_id_custom')) || null,
-        trd_serie: cellToString(readCell(row, columnMap, 'trd_serie')) || null,
+        process_name: readCell(row, columnMap, 'process_name') || null,
+        sede: readCell(row, columnMap, 'sede') || null,
+        asset_id_custom: readCell(row, columnMap, 'asset_id_custom') || null,
+        trd_serie: readCell(row, columnMap, 'trd_serie') || null,
         asset_type: parseEnum(readCell(row, columnMap, 'asset_type'), ASSET_TYPE_MAP, 'data') ?? 'data',
-        description: cellToString(readCell(row, columnMap, 'description')) || null,
+        description: readCell(row, columnMap, 'description') || null,
         info_generation_date: parseDate(readCell(row, columnMap, 'info_generation_date')),
         entry_date: parseDate(readCell(row, columnMap, 'entry_date')),
         exit_date: parseDate(readCell(row, columnMap, 'exit_date')),
         language: parseEnum(readCell(row, columnMap, 'language'), LANGUAGE_MAP, 'espanol') ?? 'espanol',
-        format: cellToString(readCell(row, columnMap, 'format')) || null,
+        format: readCell(row, columnMap, 'format') || null,
         support: parseEnum(readCell(row, columnMap, 'support'), SUPPORT_MAP, 'na') ?? 'na',
-        consultation_place: cellToString(readCell(row, columnMap, 'consultation_place')) || null,
-        info_owner: cellToString(readCell(row, columnMap, 'info_owner')) || null,
-        info_custodian: cellToString(readCell(row, columnMap, 'info_custodian')) || null,
+        consultation_place: readCell(row, columnMap, 'consultation_place') || null,
+        info_owner: readCell(row, columnMap, 'info_owner') || null,
+        info_custodian: readCell(row, columnMap, 'info_custodian') || null,
         update_frequency: parseEnum(readCell(row, columnMap, 'update_frequency'), UPDATE_FREQ_MAP),
         icc_social_impact: parseSiNo(readCell(row, columnMap, 'icc_social_impact')) ?? false,
         icc_economic_impact: parseSiNo(readCell(row, columnMap, 'icc_economic_impact')) ?? false,
@@ -573,16 +596,16 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
         confidentiality_value: parseInt15(readCell(row, columnMap, 'confidentiality_value')),
         integrity_value: parseInt15(readCell(row, columnMap, 'integrity_value')),
         availability_value: parseInt15(readCell(row, columnMap, 'availability_value')),
-        exception_objective: cellToString(readCell(row, columnMap, 'exception_objective')) || null,
-        constitutional_basis: cellToString(readCell(row, columnMap, 'constitutional_basis')) || null,
-        legal_exception_basis: cellToString(readCell(row, columnMap, 'legal_exception_basis')) || null,
-        exception_scope: cellToString(readCell(row, columnMap, 'exception_scope')) || null,
+        exception_objective: readCell(row, columnMap, 'exception_objective') || null,
+        constitutional_basis: readCell(row, columnMap, 'constitutional_basis') || null,
+        legal_exception_basis: readCell(row, columnMap, 'legal_exception_basis') || null,
+        exception_scope: readCell(row, columnMap, 'exception_scope') || null,
         classification_date: parseDate(readCell(row, columnMap, 'classification_date')),
-        classification_term: cellToString(readCell(row, columnMap, 'classification_term')) || null,
+        classification_term: readCell(row, columnMap, 'classification_term') || null,
         contains_personal_data: parseSiNo(readCell(row, columnMap, 'contains_personal_data')) ?? false,
         contains_minors_data: parseSiNo(readCell(row, columnMap, 'contains_minors_data')) ?? false,
         personal_data_type: parseEnum(readCell(row, columnMap, 'personal_data_type'), PERSONAL_DATA_TYPE_MAP, 'na') ?? 'na',
-        personal_data_purpose: cellToString(readCell(row, columnMap, 'personal_data_purpose')) || null,
+        personal_data_purpose: readCell(row, columnMap, 'personal_data_purpose') || null,
         has_data_authorization: parseSiNo(readCell(row, columnMap, 'has_data_authorization')),
         status: 'active',
         criticality: 'medium',
