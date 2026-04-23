@@ -36,9 +36,10 @@ export function AssetImportButton() {
     startTransition(async () => {
       const res = await importAssets(fd);
       setResult(res);
-      if (res.ok) {
-        // Refresh server data after success
-        setTimeout(() => window.location.reload(), 1500);
+      // Only auto-reload if at least one row was inserted or updated
+      const totalChanges = (res.inserted ?? 0) + (res.updated ?? 0);
+      if (res.ok && totalChanges > 0) {
+        setTimeout(() => window.location.reload(), 2000);
       }
     });
   }
@@ -151,14 +152,22 @@ export function AssetImportButton() {
                     {result.ok ? (
                       <>
                         <p className="text-sm font-semibold text-emerald-800">
-                          Importación completada
+                          {(result.inserted ?? 0) + (result.updated ?? 0) > 0
+                            ? 'Importación completada'
+                            : 'No se importó ningún activo'}
                         </p>
                         <p className="text-xs text-emerald-700 mt-1">
                           <strong>{result.inserted ?? 0}</strong> nuevos ·{' '}
                           <strong>{result.updated ?? 0}</strong> actualizados
                           {result.skipped ? <> · <strong>{result.skipped}</strong> con error</> : null}
                         </p>
-                        <p className="text-xs text-emerald-600 mt-2">Recargando página…</p>
+                        {(result.inserted ?? 0) + (result.updated ?? 0) > 0 ? (
+                          <p className="text-xs text-emerald-600 mt-2">Recargando página…</p>
+                        ) : (
+                          <p className="text-xs text-amber-700 mt-2">
+                            Revisa el detalle técnico abajo para entender por qué no se procesaron filas.
+                          </p>
+                        )}
                       </>
                     ) : (
                       <>
@@ -185,6 +194,36 @@ export function AssetImportButton() {
                             </li>
                           )}
                         </ul>
+                      </details>
+                    )}
+
+                    {result.diagnostic && (
+                      <details className="mt-2">
+                        <summary className="text-xs font-medium text-slate-700 cursor-pointer hover:text-slate-900">
+                          Detalle técnico (cabecera y columnas detectadas)
+                        </summary>
+                        <div className="mt-2 text-[11px] text-slate-600 space-y-1">
+                          <p><strong>Hoja:</strong> {result.diagnostic.sheetName}</p>
+                          <p><strong>Cabecera:</strong> {result.diagnostic.headerRow > 0 ? `fila ${result.diagnostic.headerRow}` : 'no detectada'}</p>
+                          <p><strong>Filas leídas:</strong> {result.diagnostic.rowsScanned}</p>
+                          <p><strong>Columnas mapeadas:</strong> {result.diagnostic.columnsMapped}</p>
+                          {result.diagnostic.sampleHeaders.length > 0 && (
+                            <p>
+                              <strong>Cabeceras encontradas:</strong>{' '}
+                              <span className="font-mono break-all">
+                                {result.diagnostic.sampleHeaders.join(' | ')}
+                              </span>
+                            </p>
+                          )}
+                          {result.diagnostic.unmappedHeaders.length > 0 && (
+                            <p className="text-amber-700">
+                              <strong>Sin mapear:</strong>{' '}
+                              <span className="font-mono break-all">
+                                {result.diagnostic.unmappedHeaders.join(' | ')}
+                              </span>
+                            </p>
+                          )}
+                        </div>
                       </details>
                     )}
                   </div>

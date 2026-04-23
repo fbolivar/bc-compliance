@@ -13,6 +13,15 @@ export interface ImportResult {
   skipped?: number;
   errors?: Array<{ row: number; code?: string; message: string }>;
   error?: string;
+  /** Diagnostic: which row the parser detected the header on, and which fields it found. */
+  diagnostic?: {
+    sheetName: string;
+    headerRow: number;
+    rowsScanned: number;
+    columnsMapped: number;
+    unmappedHeaders: string[];
+    sampleHeaders: string[];
+  };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -178,6 +187,134 @@ const PERSONAL_DATA_TYPE_MAP: Record<string, string> = {
 };
 
 // ────────────────────────────────────────────────────────────────────────────
+// Header → DB field mapping (multiple aliases per field for robustness)
+// ────────────────────────────────────────────────────────────────────────────
+
+function normalizeHeader(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[áä]/g, 'a').replace(/[éë]/g, 'e').replace(/[íï]/g, 'i')
+    .replace(/[óö]/g, 'o').replace(/[úü]/g, 'u').replace(/[ñ]/g, 'n')
+    .replace(/[()/.,]/g, '')
+    .replace(/\s+/g, '_');
+}
+
+/** Each DB field can be matched by any of its alias headers. */
+const FIELD_ALIASES: Record<string, string[]> = {
+  code: ['codigo', 'code', 'cod', 'codigo_activo', 'id_activo'],
+  process_type: ['tipo_de_proceso', 'tipo_proceso', 'process_type'],
+  process_name: ['proceso', 'nombre_del_proceso', 'process_name', 'nombre_proceso'],
+  sede: ['sede', 'sede_regional', 'ubicacion_sede'],
+  asset_id_custom: ['id_del_activo', 'id_activo_interno', 'codigo_interno'],
+  trd_serie: ['trd_serie_sub_serie', 'trd', 'trd_serie', 'serie_documental'],
+  name: ['nombre_del_activo', 'nombre_activo', 'nombre', 'name', 'asset_name'],
+  asset_type: ['tipo_de_activo', 'tipo_activo', 'asset_type'],
+  description: ['descripcion_del_activo', 'descripcion', 'description'],
+  info_generation_date: ['fecha_generacion', 'fecha_de_generacion', 'fecha_generacion_informacion'],
+  entry_date: ['fecha_ingreso', 'fecha_de_ingreso', 'fecha_alta'],
+  exit_date: ['fecha_salida', 'fecha_de_salida', 'fecha_baja'],
+  language: ['idioma', 'language'],
+  format: ['formato', 'format', 'formato_archivo'],
+  support: ['soporte', 'tipo_de_soporte', 'support'],
+  consultation_place: ['lugar_de_consulta', 'lugar_consulta'],
+  info_owner: ['propietario_del_activo', 'propietario', 'owner', 'duenio_del_activo'],
+  info_custodian: ['custodio_del_activo', 'custodio', 'custodian'],
+  update_frequency: ['frecuencia_actualizacion', 'frecuencia_de_actualizacion', 'frecuencia'],
+  icc_social_impact: ['impacto_social', 'icc_social'],
+  icc_economic_impact: ['impacto_economico', 'icc_economico'],
+  icc_environmental_impact: ['impacto_ambiental', 'icc_ambiental'],
+  icc_is_critical: ['activo_icc', 'icc_critico', 'es_icc'],
+  confidentiality: ['confidencialidad', 'confidentiality'],
+  integrity: ['integridad', 'integrity'],
+  availability: ['disponibilidad', 'availability'],
+  confidentiality_value: ['c_1-5', 'c', 'valor_c', 'valor_confidencialidad', 'c_15'],
+  integrity_value: ['i_1-5', 'i', 'valor_i', 'valor_integridad', 'i_15'],
+  availability_value: ['d_1-5', 'd', 'valor_d', 'valor_disponibilidad', 'd_15'],
+  exception_objective: ['objetivo_excepcion', 'objetivo_de_excepcion'],
+  constitutional_basis: ['fundamento_constitucional'],
+  legal_exception_basis: ['fundamento_juridico', 'fundamento_legal_excepcion'],
+  exception_scope: ['excepcion_total_parcial', 'alcance_excepcion'],
+  classification_date: ['fecha_calificacion', 'fecha_clasificacion'],
+  classification_term: ['plazo_reserva', 'termino_reserva'],
+  contains_personal_data: ['datos_personales', 'contiene_datos_personales'],
+  contains_minors_data: ['datos_menores', 'contiene_datos_menores'],
+  personal_data_type: ['tipo_dato_personal', 'tipo_datos_personales', 'clasificacion_dato_personal'],
+  personal_data_purpose: ['finalidad_recoleccion', 'finalidad_tratamiento'],
+  has_data_authorization: ['autorizacion_tratamiento', 'autorizacion_titular'],
+};
+
+interface ColumnMap {
+  [field: string]: number; // 1-indexed column number
+}
+
+/**
+ * Scans the first ~15 rows looking for the header row.
+ * Returns the header row index + a map of DB field → column number.
+ */
+function detectHeaders(sheet: ExcelJS.Worksheet): {
+  headerRow: number;
+  columnMap: ColumnMap;
+  unmappedHeaders: string[];
+  allHeaders: string[];
+} | null {
+  const maxScan = Math.min(15, sheet.rowCount || 15);
+
+  for (let r = 1; r <= maxScan; r++) {
+    const row = sheet.getRow(r);
+    const headers: Array<{ col: number; raw: string; normalized: string }> = [];
+
+    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+      const raw = cellToString(cell.value);
+      if (!raw) return;
+      headers.push({ col: colNumber, raw, normalized: normalizeHeader(raw) });
+    });
+
+    // Need at least a code-like header to consider this the header row
+    const hasCode = headers.some((h) => FIELD_ALIASES.code.includes(h.normalized));
+    const hasName = headers.some((h) =>
+      FIELD_ALIASES.name.some((alias) => h.normalized.includes(alias) || alias.includes(h.normalized))
+    );
+
+    if (!hasCode && !hasName) continue;
+
+    // Build column map
+    const columnMap: ColumnMap = {};
+    const unmapped: string[] = [];
+    const allRaw: string[] = [];
+
+    for (const h of headers) {
+      allRaw.push(h.raw);
+      let matched = false;
+      for (const [field, aliases] of Object.entries(FIELD_ALIASES)) {
+        if (columnMap[field]) continue; // first occurrence wins
+        if (aliases.includes(h.normalized)) {
+          columnMap[field] = h.col;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) unmapped.push(h.raw);
+    }
+
+    if (columnMap.code) {
+      return { headerRow: r, columnMap, unmappedHeaders: unmapped, allHeaders: allRaw };
+    }
+  }
+
+  return null;
+}
+
+/** Helper: read a cell only if the field was mapped. */
+function readCell(row: ExcelJS.Row, columnMap: ColumnMap, field: string): ExcelJS.CellValue | undefined {
+  const col = columnMap[field];
+  if (!col) return undefined;
+  return row.getCell(col).value;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Main import action
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -208,33 +345,52 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
     const sheet = workbook.worksheets[0];
     if (!sheet) return { ok: false, error: 'El archivo no contiene hojas válidas' };
 
-    // The exported template has 4 header rows (title + org info + sections + columns).
-    // Detect by checking row 4 col 2 == "Codigo"; otherwise assume row 1 is header.
-    let headerRowIdx = 4;
-    const probe = cellToString(sheet.getRow(4).getCell(2).value).toLowerCase();
-    if (probe !== 'codigo' && probe !== 'código') {
-      headerRowIdx = 1;
+    const detected = detectHeaders(sheet);
+    if (!detected) {
+      const firstRowSample: string[] = [];
+      sheet.getRow(1).eachCell({ includeEmpty: false }, (c) => {
+        const v = cellToString(c.value);
+        if (v) firstRowSample.push(v.slice(0, 30));
+      });
+      return {
+        ok: false,
+        error: 'No se pudo detectar la cabecera del archivo. Asegúrate de tener una columna llamada "Codigo" o "Código".',
+        diagnostic: {
+          sheetName: sheet.name,
+          headerRow: 0,
+          rowsScanned: Math.min(15, sheet.rowCount || 15),
+          columnsMapped: 0,
+          unmappedHeaders: [],
+          sampleHeaders: firstRowSample.slice(0, 10),
+        },
+      };
     }
-    const dataStartRow = headerRowIdx + 1;
+
+    const { headerRow, columnMap, unmappedHeaders, allHeaders } = detected;
+    const dataStartRow = headerRow + 1;
 
     const errors: ImportResult['errors'] = [];
     const records: Array<Record<string, unknown>> = [];
+    let rowsScanned = 0;
 
-    for (let r = dataStartRow; r <= sheet.actualRowCount; r++) {
+    const lastRow = Math.max(sheet.rowCount, sheet.actualRowCount);
+
+    for (let r = dataStartRow; r <= lastRow; r++) {
       const row = sheet.getRow(r);
+      rowsScanned++;
 
-      const code = cellToString(row.getCell(2).value);
-      const name = cellToString(row.getCell(8).value);
+      const code = cellToString(readCell(row, columnMap, 'code'));
+      const name = cellToString(readCell(row, columnMap, 'name'));
 
       // Skip totally blank rows
       if (!code && !name) continue;
 
       if (!code) {
-        errors.push({ row: r, message: 'Falta código (columna B)' });
+        errors.push({ row: r, message: 'Falta código' });
         continue;
       }
       if (!name) {
-        errors.push({ row: r, code, message: 'Falta nombre (columna H)' });
+        errors.push({ row: r, code, message: 'Falta nombre' });
         continue;
       }
 
@@ -242,52 +398,44 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
         organization_id: orgId,
         code,
         name,
-        // Section 1: Identification
-        process_type: parseEnum(row.getCell(3).value, PROCESS_TYPE_MAP),
-        process_name: cellToString(row.getCell(4).value) || null,
-        sede: cellToString(row.getCell(5).value) || null,
-        asset_id_custom: cellToString(row.getCell(6).value) || null,
-        trd_serie: cellToString(row.getCell(7).value) || null,
-        asset_type: parseEnum(row.getCell(9).value, ASSET_TYPE_MAP, 'data') ?? 'data',
-        description: cellToString(row.getCell(10).value) || null,
-        info_generation_date: parseDate(row.getCell(11).value),
-        entry_date: parseDate(row.getCell(12).value),
-        exit_date: parseDate(row.getCell(13).value),
-        language: parseEnum(row.getCell(14).value, LANGUAGE_MAP, 'espanol') ?? 'espanol',
-        format: cellToString(row.getCell(15).value) || null,
-        // Section 1.2: Location
-        support: parseEnum(row.getCell(16).value, SUPPORT_MAP, 'na') ?? 'na',
-        consultation_place: cellToString(row.getCell(17).value) || null,
-        // Section 1.3: Ownership
-        info_owner: cellToString(row.getCell(18).value) || null,
-        info_custodian: cellToString(row.getCell(19).value) || null,
-        update_frequency: parseEnum(row.getCell(20).value, UPDATE_FREQ_MAP),
-        // Section 2: ICC
-        icc_social_impact: parseSiNo(row.getCell(21).value) ?? false,
-        icc_economic_impact: parseSiNo(row.getCell(22).value) ?? false,
-        icc_environmental_impact: parseSiNo(row.getCell(23).value) ?? false,
-        icc_is_critical: parseSiNo(row.getCell(24).value) ?? false,
-        // Section 3: CIA — qualitative + numeric (cols 25-30; 31 total + 32 criticality_cid are GENERATED, skip)
-        confidentiality: parseEnum(row.getCell(25).value, CIA_LEVEL_MAP),
-        integrity: parseEnum(row.getCell(26).value, CIA_LEVEL_MAP),
-        availability: parseEnum(row.getCell(27).value, CIA_LEVEL_MAP),
-        confidentiality_value: parseInt15(row.getCell(28).value),
-        integrity_value: parseInt15(row.getCell(29).value),
-        availability_value: parseInt15(row.getCell(30).value),
-        // Section 4: Classified info
-        exception_objective: cellToString(row.getCell(33).value) || null,
-        constitutional_basis: cellToString(row.getCell(34).value) || null,
-        legal_exception_basis: cellToString(row.getCell(35).value) || null,
-        exception_scope: cellToString(row.getCell(36).value) || null,
-        classification_date: parseDate(row.getCell(37).value),
-        classification_term: cellToString(row.getCell(38).value) || null,
-        // Section 5: Personal data
-        contains_personal_data: parseSiNo(row.getCell(39).value) ?? false,
-        contains_minors_data: parseSiNo(row.getCell(40).value) ?? false,
-        personal_data_type: parseEnum(row.getCell(41).value, PERSONAL_DATA_TYPE_MAP, 'na') ?? 'na',
-        personal_data_purpose: cellToString(row.getCell(42).value) || null,
-        has_data_authorization: parseSiNo(row.getCell(43).value),
-        // Defaults
+        process_type: parseEnum(readCell(row, columnMap, 'process_type'), PROCESS_TYPE_MAP),
+        process_name: cellToString(readCell(row, columnMap, 'process_name')) || null,
+        sede: cellToString(readCell(row, columnMap, 'sede')) || null,
+        asset_id_custom: cellToString(readCell(row, columnMap, 'asset_id_custom')) || null,
+        trd_serie: cellToString(readCell(row, columnMap, 'trd_serie')) || null,
+        asset_type: parseEnum(readCell(row, columnMap, 'asset_type'), ASSET_TYPE_MAP, 'data') ?? 'data',
+        description: cellToString(readCell(row, columnMap, 'description')) || null,
+        info_generation_date: parseDate(readCell(row, columnMap, 'info_generation_date')),
+        entry_date: parseDate(readCell(row, columnMap, 'entry_date')),
+        exit_date: parseDate(readCell(row, columnMap, 'exit_date')),
+        language: parseEnum(readCell(row, columnMap, 'language'), LANGUAGE_MAP, 'espanol') ?? 'espanol',
+        format: cellToString(readCell(row, columnMap, 'format')) || null,
+        support: parseEnum(readCell(row, columnMap, 'support'), SUPPORT_MAP, 'na') ?? 'na',
+        consultation_place: cellToString(readCell(row, columnMap, 'consultation_place')) || null,
+        info_owner: cellToString(readCell(row, columnMap, 'info_owner')) || null,
+        info_custodian: cellToString(readCell(row, columnMap, 'info_custodian')) || null,
+        update_frequency: parseEnum(readCell(row, columnMap, 'update_frequency'), UPDATE_FREQ_MAP),
+        icc_social_impact: parseSiNo(readCell(row, columnMap, 'icc_social_impact')) ?? false,
+        icc_economic_impact: parseSiNo(readCell(row, columnMap, 'icc_economic_impact')) ?? false,
+        icc_environmental_impact: parseSiNo(readCell(row, columnMap, 'icc_environmental_impact')) ?? false,
+        icc_is_critical: parseSiNo(readCell(row, columnMap, 'icc_is_critical')) ?? false,
+        confidentiality: parseEnum(readCell(row, columnMap, 'confidentiality'), CIA_LEVEL_MAP),
+        integrity: parseEnum(readCell(row, columnMap, 'integrity'), CIA_LEVEL_MAP),
+        availability: parseEnum(readCell(row, columnMap, 'availability'), CIA_LEVEL_MAP),
+        confidentiality_value: parseInt15(readCell(row, columnMap, 'confidentiality_value')),
+        integrity_value: parseInt15(readCell(row, columnMap, 'integrity_value')),
+        availability_value: parseInt15(readCell(row, columnMap, 'availability_value')),
+        exception_objective: cellToString(readCell(row, columnMap, 'exception_objective')) || null,
+        constitutional_basis: cellToString(readCell(row, columnMap, 'constitutional_basis')) || null,
+        legal_exception_basis: cellToString(readCell(row, columnMap, 'legal_exception_basis')) || null,
+        exception_scope: cellToString(readCell(row, columnMap, 'exception_scope')) || null,
+        classification_date: parseDate(readCell(row, columnMap, 'classification_date')),
+        classification_term: cellToString(readCell(row, columnMap, 'classification_term')) || null,
+        contains_personal_data: parseSiNo(readCell(row, columnMap, 'contains_personal_data')) ?? false,
+        contains_minors_data: parseSiNo(readCell(row, columnMap, 'contains_minors_data')) ?? false,
+        personal_data_type: parseEnum(readCell(row, columnMap, 'personal_data_type'), PERSONAL_DATA_TYPE_MAP, 'na') ?? 'na',
+        personal_data_purpose: cellToString(readCell(row, columnMap, 'personal_data_purpose')) || null,
+        has_data_authorization: parseSiNo(readCell(row, columnMap, 'has_data_authorization')),
         status: 'active',
         criticality: 'medium',
         updated_by: user.id,
@@ -296,8 +444,21 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
       records.push(record);
     }
 
+    const diagnostic = {
+      sheetName: sheet.name,
+      headerRow,
+      rowsScanned,
+      columnsMapped: Object.keys(columnMap).length,
+      unmappedHeaders: unmappedHeaders.slice(0, 10),
+      sampleHeaders: allHeaders.slice(0, 10),
+    };
+
     if (records.length === 0 && errors.length === 0) {
-      return { ok: false, error: 'No se encontraron filas con datos en el archivo' };
+      return {
+        ok: false,
+        error: `Cabecera detectada en fila ${headerRow} pero no se encontraron filas con datos a partir de la fila ${dataStartRow}`,
+        diagnostic,
+      };
     }
 
     // Detect existing codes to count inserted vs updated accurately
@@ -343,7 +504,14 @@ export async function importAssets(formData: FormData): Promise<ImportResult> {
 
     revalidatePath('/assets');
 
-    return { ok: true, inserted, updated, skipped, errors: errors.length ? errors : undefined };
+    return {
+      ok: true,
+      inserted,
+      updated,
+      skipped,
+      errors: errors.length ? errors : undefined,
+      diagnostic,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Error desconocido al importar';
     console.error('[importAssets]', err);
