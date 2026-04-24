@@ -8,7 +8,7 @@ import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, CheckCircle2, Shield, CheckSquare, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, Shield, CheckSquare, ClipboardList, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -42,6 +42,13 @@ export default async function NCDetailPage({ params }: Props) {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <PageHeader title={nc.title} description={nc.code} />
+        <Link
+          href={`/nonconformities/${id}/edit`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors ml-auto shrink-0"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          Editar
+        </Link>
       </div>
 
       <div className="flex items-center gap-3">

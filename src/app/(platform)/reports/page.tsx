@@ -24,6 +24,28 @@ export default async function ReportsPage() {
         description="Genera reportes Excel listos para auditoría, dirección y entes reguladores."
       />
 
+      {/* Executive PDF download */}
+      <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-800 to-slate-900 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+            <BarChart3 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Reporte Ejecutivo GRC (PDF)</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              KPIs de riesgos por zona, incidentes, controles y no conformidades. Listo para presentar a la dirección.
+            </p>
+          </div>
+        </div>
+        <a
+          href="/api/reports/executive"
+          className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg shadow transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Descargar PDF
+        </a>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ReportCard
           title="Declaración de Aplicabilidad (SOA)"

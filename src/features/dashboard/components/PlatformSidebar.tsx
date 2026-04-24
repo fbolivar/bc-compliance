@@ -25,6 +25,8 @@ import {
   LogOut,
   BarChart3,
   Bell,
+  BookOpen,
+  CalendarClock,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { signout } from '@/actions/auth';
@@ -78,6 +80,8 @@ const navigation: NavItem[] = [
       { label: 'Evidencias', href: '/documents/evidence' },
     ]
   },
+  { label: 'Políticas', href: '/policies', icon: BookOpen },
+  { label: 'Calendario Regulatorio', href: '/regulatory-calendar', icon: CalendarClock },
   {
     label: 'Auditorías', href: '/audits', icon: ClipboardCheck,
     children: [

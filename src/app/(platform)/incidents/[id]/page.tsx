@@ -12,7 +12,7 @@ import { IncidentRisksPanel } from '@/features/incidents/components/IncidentRisk
 import { IncidentAssetsPanel } from '@/features/incidents/components/IncidentAssetsPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -52,6 +52,13 @@ export default async function IncidentDetailPage({ params }: Props) {
           title={incident.title}
           description={incident.code}
         />
+        <Link
+          href={`/incidents/${id}/edit`}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors ml-auto shrink-0"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          Editar
+        </Link>
       </div>
 
       <div className="flex items-center gap-3">

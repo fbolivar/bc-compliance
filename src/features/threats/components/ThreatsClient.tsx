@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useTransition } from 'react';
+import Link from 'next/link';
 import {
   Lock,
   Pencil,
@@ -444,9 +445,12 @@ export function ThreatsClient({ threats }: ThreatsClientProps) {
                           </td>
                           {/* Name + description */}
                           <td className="px-4 py-3">
-                            <p className="text-sm font-medium text-slate-700 leading-snug">
+                            <Link
+                              href={`/threats/${threat.id}`}
+                              className="text-sm font-medium text-slate-700 hover:text-sky-600 hover:underline leading-snug"
+                            >
                               {threat.name}
-                            </p>
+                            </Link>
                             {threat.description && (
                               <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
                                 {threat.description}
@@ -538,7 +542,12 @@ export function ThreatsClient({ threats }: ThreatsClientProps) {
                             </span>
                             <OriginBadge origin={threat.origin} />
                           </div>
-                          <p className="mt-1 text-sm font-medium text-slate-700">{threat.name}</p>
+                          <Link
+                            href={`/threats/${threat.id}`}
+                            className="mt-1 block text-sm font-medium text-slate-700 hover:text-sky-600 hover:underline"
+                          >
+                            {threat.name}
+                          </Link>
                           {threat.description && (
                             <p className="mt-0.5 text-xs text-slate-400 line-clamp-2">
                               {threat.description}
