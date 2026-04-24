@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, Loader2, Trash2 } from 'lucide-react';
-import { createRegulatoryEvent, deleteRegulatoryEvent } from '../actions/regulatoryEventActions';
+import { Plus, X, Loader2, Trash2, CheckCircle2 } from 'lucide-react';
+import { createRegulatoryEvent, deleteRegulatoryEvent, markEventCompleted } from '../actions/regulatoryEventActions';
 import type { RegulatoryEventRow } from '../services/regulatoryEventService';
 
 const AUTHORITY_OPTIONS = [
@@ -86,6 +86,8 @@ export function RegulatoryCalendarClient({ data }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, start] = useTransition();
+  // Optimistic completed set: ids that the user has marked as completed in this session
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -109,6 +111,22 @@ export function RegulatoryCalendarClient({ data }: Props) {
     start(async () => {
       await deleteRegulatoryEvent(id);
       router.refresh();
+    });
+  }
+
+  function handleComplete(id: string) {
+    // Optimistic update: immediately mark as completed in local state
+    setCompletedIds((prev) => new Set(prev).add(id));
+    start(async () => {
+      const res = await markEventCompleted(id);
+      if (res.error) {
+        // Roll back optimistic update on error
+        setCompletedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
     });
   }
 
@@ -147,12 +165,17 @@ export function RegulatoryCalendarClient({ data }: Props) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {data.map((event) => {
-                const overdue = isOverdue(event);
+                const isOptimisticallyCompleted = completedIds.has(event.id);
+                const effectiveStatus = isOptimisticallyCompleted
+                  ? 'completed'
+                  : isOverdue(event)
+                  ? 'overdue'
+                  : event.status;
                 const authColor = AUTHORITY_COLORS[event.authority] ?? 'bg-slate-100 text-slate-600 border-slate-200';
-                const statusColor = STATUS_COLORS[event.status] ?? 'bg-slate-100 text-slate-600 border-slate-200';
-                const effectiveStatus = overdue ? 'overdue' : event.status;
-                const effectiveColor = STATUS_COLORS[effectiveStatus] ?? statusColor;
+                const effectiveColor = STATUS_COLORS[effectiveStatus] ?? 'bg-slate-100 text-slate-600 border-slate-200';
                 const effectiveLabel = STATUS_LABELS[effectiveStatus] ?? event.status;
+                const overdue = isOverdue(event) && !isOptimisticallyCompleted;
+                const canComplete = effectiveStatus !== 'completed';
 
                 return (
                   <tr key={event.id} className="hover:bg-slate-50/50 transition-colors group">
@@ -186,14 +209,29 @@ export function RegulatoryCalendarClient({ data }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <button
-                        onClick={() => handleDelete(event.id)}
-                        disabled={isPending}
-                        className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all p-1 rounded disabled:opacity-50"
-                        aria-label="Eliminar evento"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {canComplete && (
+                          <button
+                            type="button"
+                            onClick={() => handleComplete(event.id)}
+                            disabled={isPending}
+                            className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded transition-all disabled:opacity-50"
+                            aria-label="Marcar como completado"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            Completar
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(event.id)}
+                          disabled={isPending}
+                          className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all p-1 rounded disabled:opacity-50"
+                          aria-label="Eliminar evento"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

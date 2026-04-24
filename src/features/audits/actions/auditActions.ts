@@ -6,9 +6,11 @@ import { getCurrentOrg } from '@/shared/lib/get-org';
 import { createEntity, updateEntity, deleteEntity, type ActionResult } from '@/shared/lib/actions-helpers';
 
 const FIELDS = [
-  'code', 'name', 'description', 'audit_type', 'scope', 'status',
-  'lead_auditor', 'planned_start', 'planned_end',
-  'actual_start', 'actual_end', 'framework_id', 'report_url',
+  'code', 'title', 'description', 'audit_type', 'status', 'year',
+  'scope_description', 'planned_start', 'planned_end',
+  'actual_start', 'actual_end',
+  'certification_body', 'certificate_number', 'certificate_expiry',
+  'notes',
 ];
 
 export async function createAudit(formData: FormData): Promise<ActionResult> {

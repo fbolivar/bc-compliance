@@ -2,6 +2,7 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { getNonConformities } from '@/features/nonconformities/services/ncService';
 import { NCList } from '@/features/nonconformities/components/NCList';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { FileSpreadsheet } from 'lucide-react';
 
 interface Props {
   searchParams: Promise<{ page?: string; status?: string; type?: string }>;
@@ -22,6 +23,16 @@ export default async function NonconformitiesPage({ searchParams }: Props) {
       <PageHeader
         title="No Conformidades"
         description="Registro de no conformidades, observaciones y acciones correctivas"
+        actions={
+          <a
+            href="/api/nonconformities/export"
+            download
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            Exportar Excel
+          </a>
+        }
       />
       <NCList
         data={result.data}

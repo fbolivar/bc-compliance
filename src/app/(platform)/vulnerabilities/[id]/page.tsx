@@ -9,7 +9,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { VulnRisksPanel } from '@/features/vulnerabilities/components/VulnRisksPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Shield, Calendar, Server } from 'lucide-react';
+import { ArrowLeft, Shield, Calendar, Server, Pencil } from 'lucide-react';
 import { ActionPlanEditor } from '@/features/vulnerabilities/components/ActionPlanEditor';
 
 interface Props {
@@ -46,6 +46,13 @@ export default async function VulnerabilityDetailPage({ params }: Props) {
           title={vuln.title}
           description={`${vuln.code} ${vuln.cve_id ? `| ${vuln.cve_id}` : ''}`}
         />
+        <Link
+          href={`/vulnerabilities/${vuln.id}/edit`}
+          className="ml-auto flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+          Editar
+        </Link>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

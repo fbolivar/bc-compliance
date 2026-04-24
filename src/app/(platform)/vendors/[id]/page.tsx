@@ -5,7 +5,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { VendorAssessmentPanel } from '@/features/vendors/components/VendorAssessmentPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Globe, Mail, Phone, Calendar, ShieldCheck, FileCheck, FileWarning } from 'lucide-react';
+import { ArrowLeft, Globe, Mail, Phone, Calendar, ShieldCheck, FileCheck, FileWarning, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -53,6 +53,13 @@ export default async function VendorDetailPage({ params }: Props) {
           title={vendor.name}
           description={`${vendor.code} · ${vendor.vendor_type?.replace(/_/g, ' ') ?? 'Proveedor'}`}
         />
+        <Link
+          href={`/vendors/${vendor.id}/edit`}
+          className="ml-auto flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+          Editar
+        </Link>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

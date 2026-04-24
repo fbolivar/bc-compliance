@@ -5,7 +5,7 @@ import { PageHeader } from '@/shared/components/PageHeader';
 import { FindingsPanel } from '@/features/audits/components/FindingsPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ArrowLeft, Calendar, Pencil } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,6 +40,13 @@ export default async function AuditDetailPage({ params }: Props) {
           title={audit.title}
           description={`${audit.code} | ${audit.audit_type?.replace(/_/g, ' ')}`}
         />
+        <Link
+          href={`/audits/${audit.id}/edit`}
+          className="ml-auto flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+          Editar
+        </Link>
       </div>
 
       <div className="flex items-center gap-3">

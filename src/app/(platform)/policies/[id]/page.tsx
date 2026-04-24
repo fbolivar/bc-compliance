@@ -1,6 +1,7 @@
 import { requireOrg } from '@/shared/lib/get-org';
 import { getPolicyById } from '@/features/policies/services/policyService';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { PolicyApproveButton } from '@/features/policies/components/PolicyApproveButton';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Edit } from 'lucide-react';
@@ -98,6 +99,7 @@ export default async function PolicyDetailPage({ params }: Props) {
           {typeLabel}
         </span>
         <span className="font-mono text-xs text-slate-400">v{policy.version}</span>
+        <PolicyApproveButton policyId={policy.id} status={policy.status} />
       </div>
 
       {/* 2-column info grid */}

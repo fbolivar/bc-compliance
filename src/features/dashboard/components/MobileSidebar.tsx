@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, Bug, Shield, CheckSquare,
   AlertTriangle, FileWarning, Building2, FileText, ClipboardCheck,
   Zap, Plug, Settings, Users, KeyRound, ScrollText, Target,
-  ChevronDown, LogOut, Menu, X,
+  ChevronDown, LogOut, Menu, X, BarChart3, Bell, BookOpen, CalendarClock,
 } from 'lucide-react';
 import { signout } from '@/actions/auth';
 
@@ -44,6 +44,8 @@ const navigation: NavItem[] = [
       { label: 'Multi-Framework', href: '/compliance' },
       { label: 'Analisis de Brechas', href: '/compliance/gap-analysis' },
       { label: 'SOA', href: '/compliance/soa' },
+      { label: 'Aprobaciones SOA', href: '/compliance/soa/approvals' },
+      { label: 'Cross-Framework', href: '/compliance/cross-framework' },
     ]
   },
   { label: 'Incidentes', href: '/incidents', icon: AlertTriangle },
@@ -56,6 +58,8 @@ const navigation: NavItem[] = [
       { label: 'Evidencias', href: '/documents/evidence' },
     ]
   },
+  { label: 'Politicas', href: '/policies', icon: BookOpen },
+  { label: 'Calendario Regulatorio', href: '/regulatory-calendar', icon: CalendarClock },
   {
     label: 'Auditorias', href: '/audits', icon: ClipboardCheck,
     children: [
@@ -63,6 +67,8 @@ const navigation: NavItem[] = [
       { label: 'Informes', href: '/audits/reports' },
     ]
   },
+  { label: 'Informes', href: '/reports', icon: BarChart3 },
+  { label: 'Notificaciones', href: '/notifications', icon: Bell },
   { label: 'Automatizacion', href: '/automation', icon: Zap },
   { label: 'Integraciones', href: '/integrations', icon: Plug },
 ];
