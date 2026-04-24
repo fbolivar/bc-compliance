@@ -2,9 +2,10 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { getAuditById, getEnrichedAuditFindings } from '@/features/audits/services/auditService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { FindingsPanel } from '@/features/audits/components/FindingsPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, AlertTriangle, CheckSquare, Shield, FileWarning } from 'lucide-react';
+import { ArrowLeft, Calendar } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -117,88 +118,7 @@ export default async function AuditDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Findings - enriched with requirement/control/NC links */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Hallazgos</h2>
-          <span className="text-xs text-slate-400 ml-1">({findings.length})</span>
-        </div>
-        {findings.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-sm text-slate-500">No hay hallazgos registrados para esta auditoría.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {findings.map((finding) => (
-              <div key={finding.id} className="px-6 py-4">
-                <div className="flex items-start gap-4">
-                  <span className="font-mono text-xs font-semibold text-sky-600 w-24 flex-shrink-0">{finding.code}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-700">{finding.title}</p>
-                    {finding.description && (
-                      <p className="text-xs text-slate-500 mt-0.5">{finding.description}</p>
-                    )}
-                    {finding.clause_reference && (
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        Cláusula: <span className="font-mono">{finding.clause_reference}</span>
-                      </p>
-                    )}
-
-                    {/* GRC integration links */}
-                    {(finding.requirement_code || finding.control_code || finding.nonconformity_code) && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {finding.requirement_code && (
-                          <Link
-                            href="/compliance"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-                          >
-                            <CheckSquare className="w-3 h-3" />
-                            {finding.requirement_framework ? `${finding.requirement_framework}: ` : ''}{finding.requirement_code}
-                          </Link>
-                        )}
-                        {finding.control_code && (
-                          <Link
-                            href="/controls"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors"
-                          >
-                            <Shield className="w-3 h-3" />
-                            {finding.control_code}
-                          </Link>
-                        )}
-                        {finding.nonconformity_code && (
-                          <Link
-                            href="/nonconformities"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors"
-                          >
-                            <FileWarning className="w-3 h-3" />
-                            {finding.nonconformity_code}
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <StatusBadge status={finding.severity} />
-                    <StatusBadge status={finding.status} />
-                  </div>
-                </div>
-                {finding.auditor_recommendation && (
-                  <p className="mt-2 ml-24 text-xs text-slate-600 bg-slate-50 rounded-md p-2 border border-slate-100">
-                    <span className="font-semibold text-slate-500">Recomendación: </span>
-                    {finding.auditor_recommendation}
-                  </p>
-                )}
-                {finding.response_due_date && (
-                  <p className="mt-1 ml-24 text-[11px] text-amber-600">
-                    Respuesta debida: {new Date(finding.response_due_date).toLocaleDateString('es-CO')}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <FindingsPanel auditId={audit.id} findings={findings} />
     </div>
   );
 }

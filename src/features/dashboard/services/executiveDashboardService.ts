@@ -473,3 +473,44 @@ export async function getUpcomingActions(orgId: string): Promise<UpcomingAction[
 
   return items.sort((a, b) => a.daysUntil - b.daysUntil).slice(0, 12);
 }
+
+// ─── Risk zone KPIs ──────────────────────────────────────────────────────────
+
+export interface RiskZoneSummary {
+  total: number;
+  extremo: number;
+  alto: number;
+  moderado: number;
+  bajo: number;
+  withPlan: number;
+}
+
+const LEVEL_ZONE: Record<string, string> = {
+  critical: 'Extremo', high: 'Alto', medium: 'Moderado', low: 'Bajo', negligible: 'Bajo',
+};
+
+export async function getRisksByZone(orgId: string): Promise<RiskZoneSummary> {
+  const supabase = await createClient();
+  const [{ data: risks }, { data: planLinks }] = await Promise.all([
+    supabase
+      .from('risk_scenarios')
+      .select('id, risk_zone, risk_level_residual')
+      .eq('organization_id', orgId),
+    supabase
+      .from('treatment_plan_risks')
+      .select('risk_scenario_id'),
+  ]);
+
+  const linkedRiskIds = new Set((planLinks ?? []).map((l) => l.risk_scenario_id));
+  const summary: RiskZoneSummary = { total: 0, extremo: 0, alto: 0, moderado: 0, bajo: 0, withPlan: 0 };
+  for (const r of risks ?? []) {
+    summary.total++;
+    const zone = r.risk_zone ?? LEVEL_ZONE[r.risk_level_residual ?? ''] ?? '';
+    if (zone === 'Extremo') summary.extremo++;
+    else if (zone === 'Alto') summary.alto++;
+    else if (zone === 'Moderado') summary.moderado++;
+    else summary.bajo++;
+    if (linkedRiskIds.has(r.id)) summary.withPlan++;
+  }
+  return summary;
+}

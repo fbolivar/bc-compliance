@@ -7,6 +7,7 @@ import {
   getTopCriticalGaps,
   getOperationalMetrics,
   getUpcomingActions,
+  getRisksByZone,
 } from '@/features/dashboard/services/executiveDashboardService';
 import { getSnapshotHistory } from '@/features/dashboard/services/snapshotService';
 
@@ -16,6 +17,7 @@ import { OperationalMetricsRow } from '@/features/dashboard/components/Operation
 import { FrameworksPosture } from '@/features/dashboard/components/FrameworksPosture';
 import { ProcessHealthMatrix } from '@/features/dashboard/components/ProcessHealthMatrix';
 import { TopGapsAndActions } from '@/features/dashboard/components/TopGapsAndActions';
+import { RiskKpiRow } from '@/features/dashboard/components/RiskKpiRow';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +43,7 @@ export default async function DashboardPage() {
   const { orgId, userName, organization } = await getCurrentOrg();
   if (!orgId) redirect('/login');
 
-  const [posture, frameworks, processes, gaps, metrics, actions, history] = await Promise.all([
+  const [posture, frameworks, processes, gaps, metrics, actions, history, riskSummary] = await Promise.all([
     getMspiPosture(orgId),
     getFrameworksWithCompliance(orgId),
     getProcessesHealth(orgId),
@@ -49,6 +51,7 @@ export default async function DashboardPage() {
     getOperationalMetrics(orgId),
     getUpcomingActions(orgId),
     getSnapshotHistory(orgId, 30),
+    getRisksByZone(orgId),
   ]);
 
   const mspiHistory = history.map((h) => h.mspi_score);
@@ -87,7 +90,10 @@ export default async function DashboardPage() {
       {/* 2. PHVA cycle */}
       <PhvaCycle phva={posture.phva} />
 
-      {/* 3. Operational SecOps */}
+      {/* 3. Risk panorama */}
+      <RiskKpiRow summary={riskSummary} />
+
+      {/* 4. Operational SecOps */}
       <OperationalMetricsRow metrics={metrics} />
 
       {/* 4. Frameworks posture */}

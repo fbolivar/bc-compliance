@@ -150,13 +150,15 @@ export default async function RiskTreatmentPlansPage() {
                   return (
                     <tr key={plan.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className="font-mono text-xs text-sky-600">{plan.code}</span>
+                        <Link href={`/risks/treatment-plans/${plan.id}`} className="font-mono text-xs text-sky-600 hover:underline">{plan.code}</Link>
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-slate-800 line-clamp-1">{plan.title}</p>
-                        {plan.description && (
-                          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{plan.description}</p>
-                        )}
+                        <Link href={`/risks/treatment-plans/${plan.id}`} className="block hover:text-sky-600 transition-colors">
+                          <p className="text-sm font-medium text-slate-800 line-clamp-1">{plan.title}</p>
+                          {plan.description && (
+                            <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{plan.description}</p>
+                          )}
+                        </Link>
                       </td>
                       <td className="px-4 py-3">
                         {risks.length === 0 ? (
