@@ -10,6 +10,7 @@ export interface OrgMembership {
   slug: string | null;
   plan: string | null;
   is_platform_owner: boolean | null;
+  settings?: Record<string, unknown> | null;
 }
 
 /**
@@ -28,7 +29,7 @@ export async function getCurrentOrg() {
   // Fetch ALL memberships (we need the full list for the switcher)
   const { data: memberships } = await supabase
     .from('organization_members')
-    .select('organization_id, organizations(id, name, slug, plan, is_platform_owner)')
+    .select('organization_id, organizations(id, name, slug, plan, is_platform_owner, settings)')
     .eq('user_id', user.id)
     .eq('is_active', true);
 

@@ -45,6 +45,25 @@ export default async function DashboardPage() {
   const { orgId, userName, organization } = await getCurrentOrg();
   if (!orgId) redirect('/login');
 
+  // First-time org: redirect to onboarding wizard only if no data yet
+  const orgSettings = (organization as { settings?: Record<string, unknown> | null } | null)?.settings;
+  if (!orgSettings?.onboarding_completed) {
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+    const { count: assetCount } = await supabase
+      .from('assets')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', orgId);
+    if ((assetCount ?? 0) === 0) {
+      redirect('/setup');
+    }
+    // Existing org without flag — silently mark complete (fire-and-forget)
+    supabase.from('organizations')
+      .update({ settings: { ...(orgSettings ?? {}), onboarding_completed: true } })
+      .eq('id', orgId)
+      .then(() => {});
+  }
+
   const [posture, frameworks, processes, gaps, metrics, actions, history, riskSummary, mspiHistory6m] = await Promise.all([
     getMspiPosture(orgId),
     getFrameworksWithCompliance(orgId),
