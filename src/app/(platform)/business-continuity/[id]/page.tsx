@@ -4,7 +4,7 @@ import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Calendar, Clock, User, Target } from 'lucide-react';
+import { ArrowLeft, Pencil, Calendar, Clock, User, Target, Download } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -50,13 +50,22 @@ export default async function BcpPlanDetailPage({ params }: Props) {
           title={plan.title}
           description={`${plan.code}${plan.version ? ` · v${plan.version}` : ''}`}
         />
-        <Link
-          href={`/business-continuity/${plan.id}/edit`}
-          className="ml-auto flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Pencil className="w-4 h-4" />
-          Editar
-        </Link>
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={`/api/reports/bcp?id=${plan.id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            PDF
+          </a>
+          <Link
+            href={`/business-continuity/${plan.id}/edit`}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+            Editar
+          </Link>
+        </div>
       </div>
 
       {/* Badges */}
