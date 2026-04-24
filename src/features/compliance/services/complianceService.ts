@@ -74,14 +74,17 @@ export async function getFrameworksWithCompliance(orgId: string): Promise<Framew
 
       const { data: soaEntries } = await supabase
         .from('soa_entries')
-        .select('requirement_id, implementation_status')
+        .select('requirement_id, implementation_status, compliance_status')
         .eq('organization_id', orgId)
         .in('requirement_id', reqIds);
 
       const entries = soaEntries || [];
       const compliant = entries.filter((e) => e.implementation_status === 'implemented').length;
       const partial = entries.filter((e) => e.implementation_status === 'partially_implemented').length;
-      const nonCompliant = entries.filter((e) => e.implementation_status === 'not_implemented').length;
+      // Only count explicitly marked non-compliant; 'not_assessed' rows are "sin evaluar"
+      const nonCompliant = entries.filter(
+        (e) => e.implementation_status === 'not_implemented' && e.compliance_status !== 'not_assessed',
+      ).length;
 
       const percentage = total > 0 ? Math.round(((compliant + partial * 0.5) / total) * 100) : 0;
 

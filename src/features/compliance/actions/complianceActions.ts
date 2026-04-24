@@ -187,6 +187,47 @@ export async function deriveSoaFromControls(
   };
 }
 
+export async function initFrameworkSoaEntries(
+  orgId: string,
+  frameworkId: string,
+): Promise<ActionResult & { created?: number }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'No autenticado' };
+
+  const { data: requirements } = await supabase
+    .from('framework_requirements')
+    .select('id')
+    .eq('framework_id', frameworkId);
+
+  if (!requirements || requirements.length === 0) return { success: true, created: 0 };
+
+  const reqIds = requirements.map((r) => r.id);
+
+  const { data: existing } = await supabase
+    .from('soa_entries')
+    .select('requirement_id')
+    .eq('organization_id', orgId)
+    .in('requirement_id', reqIds);
+
+  const existingIds = new Set((existing || []).map((e) => e.requirement_id));
+  const missing = reqIds.filter((id) => !existingIds.has(id));
+
+  if (missing.length === 0) return { success: true, created: 0 };
+
+  const toInsert = missing.map((reqId) => ({
+    organization_id: orgId,
+    requirement_id: reqId,
+    compliance_status: 'not_assessed' as const,
+    is_applicable: true,
+  }));
+
+  const { error } = await supabase.from('soa_entries').insert(toInsert);
+  if (error) return { error: error.message };
+
+  return { success: true, created: missing.length };
+}
+
 export async function deriveSoaBulk(entryIds: string[]): Promise<ActionResult & { updated?: number }> {
   let updated = 0;
   for (const id of entryIds) {

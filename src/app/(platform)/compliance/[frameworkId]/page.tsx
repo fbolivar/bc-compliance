@@ -4,6 +4,7 @@ import {
   getFrameworkRequirements,
   getControlMappingsByRequirements,
 } from '@/features/compliance/services/complianceService';
+import { initFrameworkSoaEntries } from '@/features/compliance/actions/complianceActions';
 import { createClient } from '@/lib/supabase/server';
 import { FrameworkDetailClient } from '@/features/compliance/components/FrameworkDetailClient';
 import { notFound } from 'next/navigation';
@@ -21,6 +22,9 @@ export default async function FrameworkDetailPage({ params }: Props) {
 
   const framework = await getFrameworkById(frameworkId);
   if (!framework) notFound();
+
+  // Auto-create SOA entries (not_assessed) for any requirements without entries
+  await initFrameworkSoaEntries(orgId, frameworkId);
 
   const requirements = await getFrameworkRequirements(frameworkId);
 
