@@ -14,11 +14,19 @@
     },
     "src/app/api/cron/monthly-report/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/cron/grc-alerts/route.ts": {
+      "maxDuration": 120
+    },
+    "src/app/api/cron/training-reminders/route.ts": {
+      "maxDuration": 120
     }
   },
   "crons": [
     { "path": "/api/cron/dashboard-snapshot", "schedule": "0 6 * * *" },
     { "path": "/api/cron/generate-alerts", "schedule": "0 */6 * * *" },
-    { "path": "/api/cron/monthly-report", "schedule": "0 8 1 * *" }
+    { "path": "/api/cron/monthly-report", "schedule": "0 8 1 * *" },
+    { "path": "/api/cron/grc-alerts", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/training-reminders", "schedule": "0 9 * * 1" }
   ]
 }
