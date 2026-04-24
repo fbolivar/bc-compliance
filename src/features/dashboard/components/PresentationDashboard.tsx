@@ -28,7 +28,7 @@ export function PresentationDashboard({
   const router = useRouter();
   const [slide, setSlide] = useState<Slide>('posture');
   const [autoPlay, setAutoPlay] = useState(true);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,6 +50,7 @@ export function PresentationDashboard({
   }, [autoPlay]);
 
   useEffect(() => {
+    setNow(new Date());
     const tick = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(tick);
   }, []);
@@ -92,8 +93,8 @@ export function PresentationDashboard({
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm font-mono">{now.toLocaleTimeString('es-CO')}</p>
-            <p className="text-[10px] text-slate-400">{now.toLocaleDateString('es-CO', { dateStyle: 'medium' })}</p>
+            <p className="text-sm font-mono">{now ? now.toLocaleTimeString('es-CO') : '--:--:--'}</p>
+            <p className="text-[10px] text-slate-400">{now ? now.toLocaleDateString('es-CO', { dateStyle: 'medium' }) : ''}</p>
           </div>
           <button
             type="button"
