@@ -37,21 +37,12 @@ const SOURCE_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
-  { key: 'title', label: 'Titulo' },
+  { key: 'title', label: 'Titulo', priority: 1 },
+  { key: 'code', label: 'Codigo', priority: 2, className: 'w-28 font-mono text-sky-600' },
+  { key: 'nc_type', label: 'Tipo', priority: 3, render: (item: NCRow) => <StatusBadge status={item.nc_type} /> },
+  { key: 'status', label: 'Estado', priority: 4, render: (item: NCRow) => <StatusBadge status={item.status} /> },
   {
-    key: 'nc_type',
-    label: 'Tipo',
-    render: (item: NCRow) => <StatusBadge status={item.nc_type} />,
-  },
-  {
-    key: 'status',
-    label: 'Estado',
-    render: (item: NCRow) => <StatusBadge status={item.status} />,
-  },
-  {
-    key: 'target_close_date',
-    label: 'Vencimiento',
+    key: 'target_close_date', label: 'Vencimiento',
     render: (item: NCRow) => (
       <span className="text-slate-400 text-sm">
         {item.target_close_date ? new Date(item.target_close_date).toLocaleDateString('es-CO') : '-'}

@@ -20,58 +20,38 @@ export function AssetList({ data, count, page, pageSize }: AssetListProps) {
 
   const columns = [
     {
-      key: 'code',
-      label: 'Codigo',
+      key: 'name', label: 'Nombre', priority: 1,
+      render: (item: AssetRow) => <span className="font-medium text-slate-700">{item.name}</span>,
+    },
+    {
+      key: 'code', label: 'Codigo', priority: 2,
+      render: (item: AssetRow) => <span className="font-mono text-sky-600 text-xs">{item.code}</span>,
+    },
+    {
+      key: 'status', label: 'Estado', priority: 3,
+      render: (item: AssetRow) => <StatusBadge status={item.status} />,
+    },
+    {
+      key: 'asset_type', label: 'Tipo Activo', priority: 4,
       render: (item: AssetRow) => (
-        <span className="font-mono text-sky-600 text-xs">{item.code}</span>
+        <span className="text-xs text-slate-500 capitalize">{item.asset_type.replace(/_/g, ' ')}</span>
       ),
     },
     {
-      key: 'name',
-      label: 'Nombre',
-      render: (item: AssetRow) => (
-        <span className="font-medium text-slate-700">{item.name}</span>
-      ),
-    },
-    {
-      key: 'process_type',
-      label: 'Tipo Proceso',
+      key: 'process_type', label: 'Tipo Proceso', hideOnMobile: true,
       render: (item: AssetRow) => (
         <span className="text-xs text-slate-500 capitalize">
           {item.process_type ? item.process_type.replace(/_/g, ' ') : '-'}
         </span>
       ),
-      hideOnMobile: true,
     },
     {
-      key: 'sede',
-      label: 'Sede',
-      render: (item: AssetRow) => (
-        <span className="text-xs text-slate-500">{item.sede || '-'}</span>
-      ),
-      hideOnMobile: true,
+      key: 'sede', label: 'Sede', hideOnMobile: true,
+      render: (item: AssetRow) => <span className="text-xs text-slate-500">{item.sede || '-'}</span>,
     },
     {
-      key: 'asset_type',
-      label: 'Tipo Activo',
-      render: (item: AssetRow) => (
-        <span className="text-xs text-slate-500 capitalize">
-          {item.asset_type.replace(/_/g, ' ')}
-        </span>
-      ),
-    },
-    {
-      key: 'criticality_cid',
-      label: 'Criticidad CID',
-      render: (item: AssetRow) => (
-        <StatusBadge status={item.criticality_cid ?? item.criticality} />
-      ),
-      hideOnMobile: true,
-    },
-    {
-      key: 'status',
-      label: 'Estado',
-      render: (item: AssetRow) => <StatusBadge status={item.status} />,
+      key: 'criticality_cid', label: 'Criticidad CID', hideOnMobile: true,
+      render: (item: AssetRow) => <StatusBadge status={item.criticality_cid ?? item.criticality} />,
     },
   ];
 

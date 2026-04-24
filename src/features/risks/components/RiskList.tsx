@@ -19,54 +19,44 @@ export function RiskList({ data, count, page, pageSize }: RiskListProps) {
 
   const columns = [
     {
-      key: 'code',
-      label: 'Codigo',
-      render: (item: RiskRow) => <span className="font-mono text-sky-600">{item.code}</span>,
-    },
-    {
-      key: 'name',
-      label: 'Escenario',
+      key: 'name', label: 'Escenario', priority: 1,
       render: (item: RiskRow) => <span className="font-medium text-slate-700">{item.name}</span>,
     },
     {
-      key: 'asset',
-      label: 'Activo',
+      key: 'code', label: 'Codigo', priority: 2,
+      render: (item: RiskRow) => <span className="font-mono text-sky-600">{item.code}</span>,
+    },
+    {
+      key: 'risk_level_residual', label: 'Riesgo Residual', priority: 3,
+      render: (item: RiskRow) => <StatusBadge status={item.risk_level_residual} />,
+    },
+    {
+      key: 'treatment', label: 'Tratamiento', priority: 4,
+      render: (item: RiskRow) => <span className="text-xs text-slate-400 capitalize">{item.treatment}</span>,
+    },
+    {
+      key: 'risk_level_inherent', label: 'Riesgo Inherente', hideOnMobile: true,
+      render: (item: RiskRow) => <StatusBadge status={item.risk_level_inherent} />,
+    },
+    {
+      key: 'asset', label: 'Activo', hideOnMobile: true,
       render: (item: RiskRow) => (
         <span className="text-xs text-slate-400">{item.assets?.code} - {item.assets?.name}</span>
       ),
     },
     {
-      key: 'threat',
-      label: 'Amenaza',
+      key: 'threat', label: 'Amenaza', hideOnMobile: true,
       render: (item: RiskRow) => (
         <span className="text-xs text-slate-400">{item.threat_catalog?.code} - {item.threat_catalog?.name}</span>
       ),
     },
     {
-      key: 'risk_level_inherent',
-      label: 'Riesgo Inherente',
-      render: (item: RiskRow) => <StatusBadge status={item.risk_level_inherent} />,
-    },
-    {
-      key: 'risk_level_residual',
-      label: 'Riesgo Residual',
-      render: (item: RiskRow) => <StatusBadge status={item.risk_level_residual} />,
-    },
-    {
-      key: 'risk_potential',
-      label: 'Valor',
+      key: 'risk_potential', label: 'Valor', hideOnMobile: true,
       render: (item: RiskRow) => (
         <div className="text-right">
           <span className="font-mono text-sm text-slate-600">{Number(item.risk_residual).toFixed(1)}</span>
           <span className="text-xs text-slate-400 ml-1">/ {Number(item.risk_potential).toFixed(1)}</span>
         </div>
-      ),
-    },
-    {
-      key: 'treatment',
-      label: 'Tratamiento',
-      render: (item: RiskRow) => (
-        <span className="text-xs text-slate-400 capitalize">{item.treatment}</span>
       ),
     },
   ];

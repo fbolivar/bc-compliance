@@ -29,29 +29,13 @@ const STATUS_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', render: (item: VulnRow) => <span className="font-mono text-sky-600 text-xs">{item.code}</span> },
-  { key: 'title', label: 'Nombre', render: (item: VulnRow) => <span className="font-medium text-slate-700">{item.title}</span> },
-  {
-    key: 'severity',
-    label: 'Severidad',
-    render: (item: VulnRow) => <StatusBadge status={item.severity} />,
-  },
-  {
-    key: 'cvss_base_score',
-    label: 'CVSS',
-    render: (item: VulnRow) => (
-      <span className="font-mono text-sm">{item.cvss_base_score ?? '-'}</span>
-    ),
-  },
-  { key: 'affected_host', label: 'Host', render: (item: VulnRow) => (
-    <span className="font-mono text-xs text-slate-600">{item.affected_host || '-'}{item.affected_port ? `:${item.affected_port}` : ''}</span>
-  ), hideOnMobile: true },
+  { key: 'title', label: 'Nombre', priority: 1, render: (item: VulnRow) => <span className="font-medium text-slate-700">{item.title}</span> },
+  { key: 'code', label: 'Codigo', priority: 2, render: (item: VulnRow) => <span className="font-mono text-sky-600 text-xs">{item.code}</span> },
+  { key: 'severity', label: 'Severidad', priority: 3, render: (item: VulnRow) => <StatusBadge status={item.severity} /> },
+  { key: 'status', label: 'Estado', priority: 4, render: (item: VulnRow) => <StatusBadge status={item.status} /> },
+  { key: 'cvss_base_score', label: 'CVSS', render: (item: VulnRow) => <span className="font-mono text-sm">{item.cvss_base_score ?? '-'}</span> },
+  { key: 'affected_host', label: 'Host', render: (item: VulnRow) => <span className="font-mono text-xs text-slate-600">{item.affected_host || '-'}{item.affected_port ? `:${item.affected_port}` : ''}</span>, hideOnMobile: true },
   { key: 'cve_id', label: 'CVE', render: (item: VulnRow) => <span className="font-mono text-xs text-slate-500">{item.cve_id || '-'}</span>, hideOnMobile: true },
-  {
-    key: 'status',
-    label: 'Estado',
-    render: (item: VulnRow) => <StatusBadge status={item.status} />,
-  },
 ];
 
 interface Props {

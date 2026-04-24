@@ -41,28 +41,24 @@ const CATEGORY_OPTIONS = [
 ];
 
 const columns = [
-  { key: 'code', label: 'Codigo', className: 'w-28 font-mono text-sky-600' },
-  { key: 'title', label: 'Titulo' },
+  { key: 'title', label: 'Titulo', priority: 1 },
+  { key: 'code', label: 'Codigo', priority: 2, className: 'w-28 font-mono text-sky-600' },
   {
-    key: 'severity',
-    label: 'Severidad',
+    key: 'severity', label: 'Severidad', priority: 3,
     render: (item: IncidentRow) => <StatusBadge status={item.severity} />,
   },
   {
-    key: 'status',
-    label: 'Estado',
+    key: 'status', label: 'Estado', priority: 4,
     render: (item: IncidentRow) => <StatusBadge status={item.status} />,
   },
   {
-    key: 'category',
-    label: 'Categoria',
+    key: 'category', label: 'Categoria', hideOnMobile: true,
     render: (item: IncidentRow) => (
       <span className="text-slate-400 text-sm">{item.category?.replace(/_/g, ' ') || '-'}</span>
     ),
   },
   {
-    key: 'detected_at',
-    label: 'Detectado',
+    key: 'detected_at', label: 'Detectado', hideOnMobile: true,
     render: (item: IncidentRow) => (
       <span className="text-slate-400 text-sm">
         {item.detected_at ? new Date(item.detected_at).toLocaleDateString('es-CO') : '-'}
