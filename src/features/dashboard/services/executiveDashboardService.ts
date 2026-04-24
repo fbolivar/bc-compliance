@@ -29,6 +29,28 @@ export function maturityFromScore(score: number): { level: MaturityLevel; label:
   return { level: 'inexistente', label: 'Inexistente' };
 }
 
+export interface MspiSnapshot {
+  snapshot_date: string;
+  score: number;
+  planear: number;
+  hacer: number;
+  verificar: number;
+  actuar: number;
+}
+
+export async function getMspiHistory(orgId: string, months = 6): Promise<MspiSnapshot[]> {
+  const supabase = await createClient();
+  const since = new Date();
+  since.setMonth(since.getMonth() - months);
+  const { data } = await supabase
+    .from('mspi_snapshots')
+    .select('snapshot_date, score, planear, hacer, verificar, actuar')
+    .eq('organization_id', orgId)
+    .gte('snapshot_date', since.toISOString().slice(0, 10))
+    .order('snapshot_date', { ascending: true });
+  return (data ?? []) as MspiSnapshot[];
+}
+
 export async function getMspiPosture(orgId: string): Promise<MspiPosture> {
   const supabase = await createClient();
 
@@ -95,6 +117,25 @@ export async function getMspiPosture(orgId: string): Promise<MspiPosture> {
   const score = Math.round(planear * 0.20 + hacer * 0.40 + verificar * 0.20 + actuar * 0.20);
   const { level, label } = maturityFromScore(score);
 
+  // Upsert today's snapshot (one row per org per day)
+  const today = new Date().toISOString().slice(0, 10);
+  await supabase.from('mspi_snapshots').upsert(
+    { organization_id: orgId, snapshot_date: today, score, planear: Math.round(planear), hacer: Math.round(hacer), verificar: Math.round(verificar), actuar: Math.round(actuar) },
+    { onConflict: 'organization_id,snapshot_date' }
+  );
+
+  // Fetch 30-day-ago snapshot for trend
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const { data: oldSnap } = await supabase
+    .from('mspi_snapshots')
+    .select('score')
+    .eq('organization_id', orgId)
+    .lte('snapshot_date', thirtyDaysAgo)
+    .order('snapshot_date', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const trend = oldSnap ? score - oldSnap.score : 0;
+
   return {
     score,
     level,
@@ -105,7 +146,7 @@ export async function getMspiPosture(orgId: string): Promise<MspiPosture> {
       verificar: Math.round(verificar),
       actuar: Math.round(actuar),
     },
-    trend: 0, // TODO: histórico no implementado, placeholder
+    trend,
   };
 }
 

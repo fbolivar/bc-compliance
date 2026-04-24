@@ -3,6 +3,7 @@ import { getCurrentOrg } from '@/shared/lib/get-org';
 import { getFrameworksWithCompliance } from '@/features/compliance/services/complianceService';
 import {
   getMspiPosture,
+  getMspiHistory,
   getProcessesHealth,
   getTopCriticalGaps,
   getOperationalMetrics,
@@ -12,6 +13,7 @@ import {
 import { getSnapshotHistory } from '@/features/dashboard/services/snapshotService';
 
 import { MspiPostureHero } from '@/features/dashboard/components/MspiPostureHero';
+import { MspiHistoryChart } from '@/features/dashboard/components/MspiHistoryChart';
 import { PhvaCycle } from '@/features/dashboard/components/PhvaCycle';
 import { OperationalMetricsRow } from '@/features/dashboard/components/OperationalMetricsRow';
 import { FrameworksPosture } from '@/features/dashboard/components/FrameworksPosture';
@@ -43,7 +45,7 @@ export default async function DashboardPage() {
   const { orgId, userName, organization } = await getCurrentOrg();
   if (!orgId) redirect('/login');
 
-  const [posture, frameworks, processes, gaps, metrics, actions, history, riskSummary] = await Promise.all([
+  const [posture, frameworks, processes, gaps, metrics, actions, history, riskSummary, mspiHistory6m] = await Promise.all([
     getMspiPosture(orgId),
     getFrameworksWithCompliance(orgId),
     getProcessesHealth(orgId),
@@ -52,6 +54,7 @@ export default async function DashboardPage() {
     getUpcomingActions(orgId),
     getSnapshotHistory(orgId, 30),
     getRisksByZone(orgId),
+    getMspiHistory(orgId, 6),
   ]);
 
   const mspiHistory = history.map((h) => h.mspi_score);
@@ -86,6 +89,13 @@ export default async function DashboardPage() {
 
       {/* 1. Postura MSPI hero */}
       <MspiPostureHero posture={posture} history={mspiHistory} />
+
+      {/* 1b. MSPI historical chart */}
+      {mspiHistory6m.length >= 2 && (
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
+          <MspiHistoryChart history={mspiHistory6m} />
+        </div>
+      )}
 
       {/* 2. PHVA cycle */}
       <PhvaCycle phva={posture.phva} />

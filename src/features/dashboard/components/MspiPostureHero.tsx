@@ -91,8 +91,14 @@ export function MspiPostureHero({ posture, history = [] }: Props) {
             <span className="font-semibold text-sm">Nivel {posture.levelLabel}</span>
           </div>
 
+          {posture.trend !== 0 && (
+            <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${posture.trend > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+              <span>{posture.trend > 0 ? '▲' : '▼'}</span>
+              <span>{posture.trend > 0 ? '+' : ''}{posture.trend} pts vs hace 30 días</span>
+            </div>
+          )}
           {history.length >= 2 && (
-            <div className="flex flex-col items-center gap-1 mt-2">
+            <div className="flex flex-col items-center gap-1 mt-1">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider">Tendencia 30 días</p>
               <Sparkline values={history} suffix=" pts" />
             </div>
