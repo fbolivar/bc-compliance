@@ -28,6 +28,7 @@ import {
   BookOpen,
   CalendarClock,
   HeartPulse,
+  MapPin,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { signout } from '@/actions/auth';
@@ -71,6 +72,7 @@ const navigation: NavItem[] = [
       { label: 'Cross-Framework', href: '/compliance/cross-framework' },
     ]
   },
+  { label: 'Asistente ISO 27001', href: '/iso-wizard', icon: MapPin },
   { label: 'Incidentes', href: '/incidents', icon: AlertTriangle },
   { label: 'No Conformidades', href: '/nonconformities', icon: FileWarning },
   { label: 'Proveedores', href: '/vendors', icon: Building2 },
