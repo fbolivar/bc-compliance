@@ -27,6 +27,7 @@ import {
   Bell,
   BookOpen,
   CalendarClock,
+  HeartPulse,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { signout } from '@/actions/auth';
@@ -88,6 +89,16 @@ const navigation: NavItem[] = [
       { label: 'Programas', href: '/audits' },
       { label: 'Informes', href: '/audits/reports' },
     ]
+  },
+  {
+    label: 'Continuidad',
+    href: '/business-continuity',
+    icon: HeartPulse,
+    children: [
+      { label: 'Planes BCP/DRP', href: '/business-continuity' },
+      { label: 'Analisis de Impacto', href: '/business-continuity?tab=bia' },
+      { label: 'Pruebas y Ejercicios', href: '/business-continuity?tab=pruebas' },
+    ],
   },
   { label: 'Informes', href: '/reports', icon: BarChart3 },
   { label: 'Notificaciones', href: '/notifications', icon: Bell },

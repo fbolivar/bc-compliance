@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { writeAuditLog } from './audit';
+import { getCurrentOrg } from './get-org';
 
 export type ActionResult = {
   success?: boolean;
@@ -17,19 +18,8 @@ export async function getAuthUser() {
 }
 
 export async function getUserOrgId(): Promise<string | null> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .limit(1)
-    .single();
-
-  return data?.organization_id || null;
+  const { orgId } = await getCurrentOrg();
+  return orgId;
 }
 
 export async function createEntity(

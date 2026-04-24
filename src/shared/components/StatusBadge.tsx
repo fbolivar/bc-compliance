@@ -65,6 +65,15 @@ const colorMap: Record<string, string> = {
   disconnected: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
   error: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   configuring: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  // BCP/DRP test results
+  partial: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  passed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  failed: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  // BCP test types
+  tabletop: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+  walkthrough: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  simulation: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  full_test: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
   // Default
   overdue: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   informational: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -90,6 +99,14 @@ const labelMap: Record<string, string> = {
   action_in_progress: 'Accion en progreso',
   post_incident: 'Post-incidente',
   opportunity_for_improvement: 'Oportunidad de mejora',
+  // BCP/DRP
+  partial: 'Parcial',
+  passed: 'Aprobada',
+  failed: 'Fallida',
+  tabletop: 'Mesa de Trabajo',
+  walkthrough: 'Recorrido',
+  simulation: 'Simulacion',
+  full_test: 'Prueba Completa',
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
