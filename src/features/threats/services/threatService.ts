@@ -51,7 +51,7 @@ export async function getThreatById(id: string): Promise<ThreatRow | null> {
     .from('threat_catalog')
     .select('*')
     .eq('id', id)
-    .or(`organization_id.eq.${member.organization_id},is_system.eq.true`)
+    .or(`organization_id.eq.${member.organization_id},organization_id.is.null`)
     .single();
   return data ?? null;
 }

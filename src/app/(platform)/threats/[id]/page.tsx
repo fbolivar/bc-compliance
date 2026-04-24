@@ -190,7 +190,7 @@ export default async function ThreatDetailPage({ params }: Props) {
             <div className="flex items-center justify-between gap-4">
               <dt className="text-slate-500">Tipo</dt>
               <dd>
-                {threat.is_system ? (
+                {threat.organization_id === null ? (
                   <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                     <Lock className="w-3 h-3" />
                     Sistema (MAGERIT)
