@@ -2,9 +2,10 @@ import { requireOrg } from '@/shared/lib/get-org';
 import { getVendorById, getAssessmentsForVendor } from '@/features/vendors/services/vendorService';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { PageHeader } from '@/shared/components/PageHeader';
+import { VendorAssessmentPanel } from '@/features/vendors/components/VendorAssessmentPanel';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Globe, Mail, Phone, Calendar, ShieldCheck, FileCheck, FileWarning, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Globe, Mail, Phone, Calendar, ShieldCheck, FileCheck, FileWarning } from 'lucide-react';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -177,67 +178,7 @@ export default async function VendorDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Historial de assessments */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-indigo-500" />
-            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">
-              Historial de Evaluaciones
-            </h2>
-            <span className="text-xs text-slate-400 ml-1">({assessments.length})</span>
-          </div>
-        </div>
-
-        {assessments.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-sm text-slate-500">No hay evaluaciones registradas para este proveedor.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/60">
-                  <th className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nivel de riesgo</th>
-                  <th className="px-6 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Score</th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Notas</th>
-                  <th className="px-6 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Próxima evaluación</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {assessments.map((a) => (
-                  <tr key={a.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-3 text-sm text-slate-700">
-                      {new Date(a.assessment_date).toLocaleDateString('es-CO', { dateStyle: 'medium' })}
-                    </td>
-                    <td className="px-6 py-3">
-                      <StatusBadge status={a.status} />
-                    </td>
-                    <td className="px-6 py-3">
-                      {a.risk_level ? <StatusBadge status={a.risk_level} /> : <span className="text-slate-300">—</span>}
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      {a.overall_score !== null ? (
-                        <span className="font-mono text-sm text-slate-700">{a.overall_score}/100</span>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3 text-xs text-slate-500 max-w-xs">
-                      {a.notes ?? <span className="text-slate-300">—</span>}
-                    </td>
-                    <td className="px-6 py-3 text-xs text-slate-500">
-                      {a.next_assessment_date ? new Date(a.next_assessment_date).toLocaleDateString('es-CO') : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <VendorAssessmentPanel vendorId={vendor.id} assessments={assessments} />
     </div>
   );
 }
