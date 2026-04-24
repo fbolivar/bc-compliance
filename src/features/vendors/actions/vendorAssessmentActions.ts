@@ -3,41 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentOrg } from '@/shared/lib/get-org';
+import {
+  type QuestionnaireResponses,
+  computeAssessmentScore,
+  scoreToRiskLevel,
+} from '../lib/assessmentHelpers';
 
-export interface QuestionnaireResponses {
-  iso27001: boolean;
-  soc2: boolean;
-  dpa: boolean;
-  pentest: boolean;
-  bcp: boolean;
-  access_controls: boolean;
-  training: boolean;
-  incident_policy: boolean;
-  had_incidents: boolean;       // risk factor (yes = bad)
-  subcontracts_unvetted: boolean; // risk factor (yes = bad)
-}
-
-/** Compute 0-100 score from questionnaire answers. */
-export function computeAssessmentScore(q: QuestionnaireResponses): number {
-  const positive: (keyof QuestionnaireResponses)[] = [
-    'iso27001', 'soc2', 'dpa', 'pentest',
-    'bcp', 'access_controls', 'training', 'incident_policy',
-  ];
-  const risk: (keyof QuestionnaireResponses)[] = ['had_incidents', 'subcontracts_unvetted'];
-
-  let score = 0;
-  for (const k of positive) if (q[k]) score += 10;
-  for (const k of risk) if (!q[k]) score += 10;
-  return Math.min(100, Math.max(0, score));
-}
-
-/** Derive risk level label from score. */
-export function scoreToRiskLevel(score: number): string {
-  if (score >= 80) return 'low';
-  if (score >= 60) return 'medium';
-  if (score >= 40) return 'high';
-  return 'critical';
-}
+export type { QuestionnaireResponses };
 
 export interface CreateAssessmentResult {
   ok: boolean;
@@ -87,7 +59,6 @@ export async function createVendorAssessment(
 
   if (error) return { ok: false, error: error.message };
 
-  // Update vendor's risk_score and next_assessment_date
   await supabase
     .from('vendors')
     .update({

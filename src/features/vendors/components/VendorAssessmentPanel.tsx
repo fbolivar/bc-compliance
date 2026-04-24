@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClipboardList, Plus, X, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { createVendorAssessment, computeAssessmentScore, type QuestionnaireResponses } from '../actions/vendorAssessmentActions';
+import { createVendorAssessment } from '../actions/vendorAssessmentActions';
+import { computeAssessmentScore, type QuestionnaireResponses } from '../lib/assessmentHelpers';
 import type { VendorAssessmentRow } from '../services/vendorService';
 
 // ── Questionnaire definition ────────────────────────────────────────────────
