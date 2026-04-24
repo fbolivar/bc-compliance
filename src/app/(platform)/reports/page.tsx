@@ -1,7 +1,7 @@
 import { requireOrg } from '@/shared/lib/get-org';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { Download, FileText, CheckSquare, AlertTriangle, BarChart3, Link2, TrendingUp } from 'lucide-react';
+import { Download, FileText, CheckSquare, AlertTriangle, BarChart3, Link2, TrendingUp, GraduationCap } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +89,15 @@ export default async function ReportsPage() {
           icon={<Link2 className="w-5 h-5 text-indigo-600" />}
           bg="bg-indigo-50 border-indigo-200"
           href="/api/compliance/mappings-export"
+          badge="Excel"
+        />
+
+        <ReportCard
+          title="Informe de Formación y Concienciación"
+          description="Registro completo de campañas, sesiones y participantes con estado de completitud, calificaciones y tasa de aprobación. ISO 27001:2022 A.6.3."
+          icon={<GraduationCap className="w-5 h-5 text-teal-600" />}
+          bg="bg-teal-50 border-teal-200"
+          href="/api/reports/training"
           badge="Excel"
         />
       </div>

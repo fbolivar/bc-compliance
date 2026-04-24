@@ -7,7 +7,7 @@ import {
 } from '@/features/training/services/trainingService';
 import { TrainingClient } from '@/features/training/components/TrainingClient';
 import { PageHeader } from '@/shared/components/PageHeader';
-import { GraduationCap, BookOpen, UserCheck, TrendingUp } from 'lucide-react';
+import { GraduationCap, BookOpen, UserCheck, TrendingUp, Download } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,10 +28,19 @@ export default async function TrainingPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Formación y Concienciación"
-        description="ISO 27001:2022 A.6.3 · Campañas de capacitación, seguimiento de completitud y métricas de cumplimiento"
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="Formación y Concienciación"
+          description="ISO 27001:2022 A.6.3 · Campañas de capacitación, seguimiento de completitud y métricas de cumplimiento"
+        />
+        <a
+          href="/api/reports/training"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors whitespace-nowrap"
+        >
+          <Download className="w-4 h-4" />
+          Exportar Excel
+        </a>
+      </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
