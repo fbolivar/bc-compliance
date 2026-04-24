@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Server, ShieldAlert, Bug, Shield, CheckSquare,
   AlertTriangle, FileWarning, Building2, FileText, ClipboardCheck,
   Zap, Plug, Settings, Users, KeyRound, ScrollText, Target,
-  ChevronDown, LogOut, Menu, X, BarChart3, Bell, BookOpen, CalendarClock, HeartPulse, MapPin,
+  ChevronDown, LogOut, Menu, X, BarChart3, Bell, BookOpen, CalendarClock, HeartPulse, MapPin, GraduationCap,
 } from 'lucide-react';
 import { signout } from '@/actions/auth';
 
@@ -76,6 +76,17 @@ const navigation: NavItem[] = [
       { label: 'Planes BCP/DRP', href: '/business-continuity' },
       { label: 'Analisis de Impacto', href: '/business-continuity?tab=bia' },
       { label: 'Pruebas y Ejercicios', href: '/business-continuity?tab=pruebas' },
+    ],
+  },
+  {
+    label: 'Formación',
+    href: '/training',
+    icon: GraduationCap,
+    children: [
+      { label: 'Campañas', href: '/training?tab=campanas' },
+      { label: 'Sesiones', href: '/training?tab=sesiones' },
+      { label: 'Participantes', href: '/training?tab=participantes' },
+      { label: 'Métricas', href: '/training?tab=metricas' },
     ],
   },
   { label: 'Informes', href: '/reports', icon: BarChart3 },
